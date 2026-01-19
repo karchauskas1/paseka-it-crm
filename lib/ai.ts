@@ -42,11 +42,19 @@ export async function generateSuggestions(context: AIContext): Promise<string[]>
 
 export async function analyzePain(painDescription: string, context?: any): Promise<string> {
   try {
+    if (!process.env.OPENROUTER_API_KEY) {
+      console.error('OPENROUTER_API_KEY not configured')
+      throw new Error('AI API key not configured')
+    }
+
     const prompt = `
 Ты - эксперт по бизнес-анализу и архитектуре решений.
 
 Описание боли клиента:
 "${painDescription}"
+
+${context?.whyProblem ? `Почему это проблема: ${context.whyProblem}\n` : ''}
+${context?.consequences ? `Последствия: ${context.consequences}\n` : ''}
 
 Проанализируй эту боль и предложи:
 1. Основные причины проблемы
@@ -56,21 +64,24 @@ export async function analyzePain(painDescription: string, context?: any): Promi
 Будь конкретным и практичным. Ответ дай структурированно.
     `
 
+    console.log('Sending pain analysis request to AI...')
     const response = await client.messages.create({
       model: 'anthropic/claude-opus-4-5',
       max_tokens: 1000,
       messages: [{ role: 'user', content: prompt }],
     })
 
+    console.log('AI response received:', response)
     const content = response.content[0]
     if (content.type === 'text') {
       return content.text
     }
 
     return ''
-  } catch (error) {
+  } catch (error: any) {
     console.error('Pain Analysis Error:', error)
-    return ''
+    console.error('Error details:', error?.message, error?.status, error?.error)
+    throw error
   }
 }
 

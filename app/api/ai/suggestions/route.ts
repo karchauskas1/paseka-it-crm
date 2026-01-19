@@ -39,8 +39,22 @@ export async function POST(request: Request) {
     }
 
     if (type === 'pain-analysis') {
-      const analysis = await analyzePain(context.painDescription, context)
-      return NextResponse.json({ analysis })
+      try {
+        const analysis = await analyzePain(context.painDescription, context)
+        if (!analysis) {
+          return NextResponse.json(
+            { error: 'AI returned empty response' },
+            { status: 500 }
+          )
+        }
+        return NextResponse.json({ analysis })
+      } catch (aiError: any) {
+        console.error('AI analysis failed:', aiError)
+        return NextResponse.json(
+          { error: aiError.message || 'AI analysis failed' },
+          { status: 500 }
+        )
+      }
     }
 
     if (type === 'architecture') {

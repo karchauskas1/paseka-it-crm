@@ -321,12 +321,23 @@ ${architectureForm.constraints}` : ''}
           },
         }),
       })
-      if (!res.ok) throw new Error('Ошибка AI анализа')
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Ошибка AI анализа')
+      }
       const data = await res.json()
-      setAiAnalysis(data.analysis || data.suggestions?.join('\n\n') || 'Анализ выполнен')
+      if (!data.analysis || data.analysis.trim() === '') {
+        throw new Error('AI вернул пустой ответ')
+      }
+      setAiAnalysis(data.analysis)
       showToast({ title: 'AI анализ завершён', variant: 'success' })
-    } catch (error) {
-      showToast({ title: 'Ошибка AI анализа', description: 'Проверьте настройки API ключа', variant: 'destructive' })
+    } catch (error: any) {
+      console.error('AI analysis error:', error)
+      showToast({
+        title: 'Ошибка AI анализа',
+        description: error.message || 'Проверьте настройки API ключа',
+        variant: 'destructive'
+      })
     } finally {
       setIsAIAnalyzing(false)
     }
