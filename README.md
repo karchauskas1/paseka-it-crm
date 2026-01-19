@@ -233,6 +233,8 @@ PASEKA IT CRM/
 
 ## 🤖 AI Функции
 
+> 📖 **Полная документация:** [docs/AI_FUNCTIONALITY.md](docs/AI_FUNCTIONALITY.md)
+
 ### 1. Анализ боли клиента
 
 ```typescript

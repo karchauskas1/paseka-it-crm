@@ -275,14 +275,14 @@ export function TaskDetailDialog({
             <div className="grid gap-2">
               <Label htmlFor="project">Проект</Label>
               <Select
-                value={formData.projectId}
-                onValueChange={(value) => setFormData({ ...formData, projectId: value })}
+                value={formData.projectId || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, projectId: value === 'none' ? '' : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите проект" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Без проекта</SelectItem>
+                  <SelectItem value="none">Без проекта</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
@@ -295,14 +295,14 @@ export function TaskDetailDialog({
             <div className="grid gap-2">
               <Label htmlFor="assignee">Исполнитель</Label>
               <Select
-                value={formData.assigneeId}
-                onValueChange={(value) => setFormData({ ...formData, assigneeId: value })}
+                value={formData.assigneeId || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, assigneeId: value === 'none' ? '' : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите исполнителя" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Не назначен</SelectItem>
+                  <SelectItem value="none">Не назначен</SelectItem>
                   {users.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.name}

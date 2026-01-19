@@ -1,5 +1,6 @@
 import { db } from './db'
 import { NotificationType } from '@prisma/client'
+import { sendTelegramNotification } from './telegram-bot'
 
 interface CreateNotificationParams {
   userId: string
@@ -17,6 +18,7 @@ export async function createNotification(params: CreateNotificationParams): Prom
   const { userId, type, title, message, entityType, entityId } = params
 
   try {
+    // Create notification in database
     await db.notification.create({
       data: {
         userId,
@@ -27,6 +29,22 @@ export async function createNotification(params: CreateNotificationParams): Prom
         entityId,
       },
     })
+
+    // Send Telegram notification if user has Telegram ID linked
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { telegramId: true },
+    })
+
+    if (user && user.telegramId) {
+      await sendTelegramNotification(user.telegramId, {
+        type,
+        title,
+        message,
+        entityType,
+        entityId,
+      })
+    }
   } catch (error) {
     console.error('Error creating notification:', error)
   }

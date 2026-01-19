@@ -50,6 +50,7 @@ import {
   Mail,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { CustomFieldManager } from '@/components/custom-fields/custom-field-manager'
 
 interface AdminClientProps {
   user: any
@@ -481,6 +482,10 @@ export default function AdminClient({
               <Mail className="h-4 w-4 mr-2" />
               Приглашения
             </TabsTrigger>
+            <TabsTrigger value="custom-fields">
+              <FolderKanban className="h-4 w-4 mr-2" />
+              Кастомные поля
+            </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />
               Настройки
@@ -619,6 +624,13 @@ export default function AdminClient({
                   </div>
                 )}
               </div>
+            </div>
+          </TabsContent>
+
+          {/* Custom Fields Tab */}
+          <TabsContent value="custom-fields">
+            <div className="bg-white rounded-lg shadow p-6">
+              <CustomFieldManager entityType="client" workspaceId={workspace.id} />
             </div>
           </TabsContent>
 

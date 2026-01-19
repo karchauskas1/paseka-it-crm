@@ -5,6 +5,7 @@ export const clientSchema = z.object({
   company: z.string().optional(),
   email: z.string().email('Неверный формат email').optional().or(z.literal('')),
   phone: z.string().optional(),
+  website: z.string().url('Неверный формат URL').optional().or(z.literal('')),
   source: z.enum(['WARM', 'COLD', 'REFERRAL', 'OFFLINE', 'WEBSITE', 'SOCIAL']).optional(),
   notes: z.string().optional(),
 })

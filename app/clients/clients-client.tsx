@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { UserMenu } from '@/components/layout/user-menu'
+import { CustomFieldRenderer } from '@/components/custom-fields/custom-field-renderer'
 import {
   Dialog,
   DialogContent,
@@ -27,7 +28,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/lib/hooks/use-toast'
 import { sourceLabels, statusLabels } from '@/lib/validations/client'
-import { Plus, Search, Building2, Mail, Phone, Users, X } from 'lucide-react'
+import { Plus, Search, Building2, Mail, Phone, Users, X, Globe } from 'lucide-react'
 
 interface ClientsClientProps {
   user: any
@@ -54,6 +55,7 @@ export default function ClientsClient({
     company: '',
     email: '',
     phone: '',
+    website: '',
     source: 'WARM',
     notes: '',
   })
@@ -61,6 +63,25 @@ export default function ClientsClient({
   const [socialLinks, setSocialLinks] = useState<Array<{ platform: string; url: string }>>([
     { platform: '', url: '' },
   ])
+
+  const [customFields, setCustomFields] = useState<any[]>([])
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({})
+
+  // Load custom fields on mount
+  useEffect(() => {
+    const fetchCustomFields = async () => {
+      try {
+        const res = await fetch('/api/custom-fields?entityType=client')
+        if (res.ok) {
+          const data = await res.json()
+          setCustomFields(data.fields)
+        }
+      } catch (error) {
+        console.error('Error fetching custom fields:', error)
+      }
+    }
+    fetchCustomFields()
+  }, [])
 
   const filteredClients = clients.filter((client) => {
     if (!client || !client.name) return false
@@ -98,6 +119,7 @@ export default function ClientsClient({
         body: JSON.stringify({
           ...formData,
           socialLinks: filteredSocialLinks,
+          customFields: customFieldValues,
           workspaceId: workspace.id,
         }),
       })
@@ -115,10 +137,12 @@ export default function ClientsClient({
         company: '',
         email: '',
         phone: '',
+        website: '',
         source: 'WARM',
         notes: '',
       })
       setSocialLinks([{ platform: '', url: '' }])
+      setCustomFieldValues({})
       toast({
         title: 'Клиент создан',
         description: `${newClient.name} добавлен в систему`,
@@ -299,6 +323,18 @@ export default function ClientsClient({
                     </div>
                   </div>
                   <div className="grid gap-2">
+                    <Label htmlFor="website">Вебсайт</Label>
+                    <Input
+                      id="website"
+                      type="url"
+                      value={formData.website}
+                      onChange={(e) =>
+                        setFormData({ ...formData, website: e.target.value })
+                      }
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                  <div className="grid gap-2">
                     <Label htmlFor="source">Источник</Label>
                     <Select
                       value={formData.source}
@@ -378,6 +414,28 @@ export default function ClientsClient({
                       ))}
                     </div>
                   </div>
+
+                  {/* Custom Fields */}
+                  {customFields.length > 0 && (
+                    <div className="pt-4 border-t">
+                      <h4 className="text-sm font-semibold mb-3">Дополнительные поля</h4>
+                      <div className="space-y-4">
+                        {customFields.map((field) => (
+                          <CustomFieldRenderer
+                            key={field.id}
+                            field={field}
+                            value={customFieldValues[field.id]}
+                            onChange={(value) =>
+                              setCustomFieldValues({
+                                ...customFieldValues,
+                                [field.id]: value,
+                              })
+                            }
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <DialogFooter>
                   <Button
@@ -519,12 +577,26 @@ export default function ClientsClient({
                           </div>
                         )}
                         {client.phone && (
-                          <div className="flex items-center">
+                          <div className="flex items-center mb-1">
                             <Phone className="h-3 w-3 mr-2 text-gray-400" />
                             {client.phone}
                           </div>
                         )}
-                        {!client.email && !client.phone && (
+                        {client.website && (
+                          <div className="flex items-center">
+                            <Globe className="h-3 w-3 mr-2 text-gray-400" />
+                            <a
+                              href={client.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {new URL(client.website).hostname}
+                            </a>
+                          </div>
+                        )}
+                        {!client.email && !client.phone && !client.website && (
                           <span className="text-gray-400">—</span>
                         )}
                       </div>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { UserMenu } from './user-menu'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 
 interface AppLayoutProps {
   user: any
@@ -32,7 +33,10 @@ export function AppLayout({ user, workspace, currentPage, children }: AppLayoutP
               <h1 className="text-2xl font-bold text-foreground">PASEKA IT CRM</h1>
               <p className="text-sm text-muted-foreground">{workspace.name}</p>
             </div>
-            <UserMenu user={user} workspace={workspace} userRole={user.role} />
+            <div className="flex items-center gap-4">
+              <NotificationBell />
+              <UserMenu user={user} workspace={workspace} userRole={user.role} />
+            </div>
           </div>
         </div>
       </header>
@@ -75,6 +79,16 @@ export function AppLayout({ user, workspace, currentPage, children }: AppLayoutP
               }`}
             >
               Гайд
+            </Link>
+            <Link
+              href="/feedback"
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                currentPage === '/feedback'
+                  ? 'border-yellow-500 text-yellow-600'
+                  : 'border-transparent text-yellow-600 hover:text-yellow-700 hover:border-yellow-400'
+              }`}
+            >
+              Обратная связь
             </Link>
           </div>
         </div>

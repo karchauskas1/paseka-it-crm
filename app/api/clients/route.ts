@@ -40,7 +40,14 @@ export async function GET(request: Request) {
       },
     })
 
-    return NextResponse.json({ clients })
+    // Добавить fallback для socialLinks и customFields (для обратной совместимости)
+    const clientsWithDefaults = clients.map(client => ({
+      ...client,
+      socialLinks: client.socialLinks || [],
+      customFields: client.customFields || {},
+    }))
+
+    return NextResponse.json({ clients: clientsWithDefaults })
   } catch (error) {
     console.error('Get clients error:', error)
     return NextResponse.json(
@@ -58,7 +65,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { workspaceId, name, company, email, phone, source, notes, socialLinks } = body
+    const { workspaceId, name, company, email, phone, website, source, notes, socialLinks, customFields } = body
 
     if (!workspaceId || !name) {
       return NextResponse.json(
@@ -74,9 +81,11 @@ export async function POST(request: Request) {
         company,
         email,
         phone,
+        website,
         source,
         notes,
         socialLinks: socialLinks || [],
+        customFields: customFields || {},
         createdById: user.id,
       },
     })

@@ -17,7 +17,8 @@ model User {
   password  String
   name      String
 
-  telegramId String? @unique @map("telegram_id")
+  telegramId   String? @unique @map("telegram_id")
+  telegramName String? @map("telegram_name")
 
   // Настройки уведомлений и язык
   notificationSettings Json @default("{}") @map("notification_settings")
@@ -105,6 +106,7 @@ model Client {
   company     String?
   email       String?
   phone       String?
+  website     String?
   source      ClientSource?
   status      ClientStatus @default(ACTIVE)
 

@@ -37,6 +37,8 @@ import {
 import { ru } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from 'lucide-react'
 import { UserMenu } from '@/components/layout/user-menu'
+import { TaskDetailDialog } from '@/components/tasks/task-detail-dialog'
+import { useToast } from '@/lib/hooks/use-toast'
 
 interface Event {
   id: string
@@ -82,12 +84,16 @@ export default function CalendarClient({
   clients,
 }: CalendarClientProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [typeFilter, setTypeFilter] = useState('ALL')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false)
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
@@ -129,7 +135,48 @@ export default function CalendarClient({
 
   useEffect(() => {
     fetchEvents()
+    fetchTeamMembers()
   }, [currentDate, typeFilter])
+
+  const fetchTeamMembers = async () => {
+    try {
+      const res = await fetch('/api/workspace/members')
+      if (res.ok) {
+        const data = await res.json()
+        setTeamMembers(data.members.map((m: any) => ({ id: m.user.id, name: m.user.name })))
+      }
+    } catch (error) {
+      console.error('Failed to fetch team members:', error)
+    }
+  }
+
+  const handleEventClick = async (event: Event, e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    // If it's a task event, fetch and open the task detail
+    if (event.type === 'TASK_DUE' && event.task?.id) {
+      try {
+        const res = await fetch(`/api/tasks/${event.task.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          setSelectedTask(data.task)
+          setIsTaskDetailOpen(true)
+        } else {
+          toast({
+            title: 'Ошибка',
+            description: 'Не удалось загрузить задачу',
+            variant: 'destructive',
+          })
+        }
+      } catch (error) {
+        toast({
+          title: 'Ошибка',
+          description: 'Не удалось загрузить задачу',
+          variant: 'destructive',
+        })
+      }
+    }
+  }
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -368,11 +415,11 @@ export default function CalendarClient({
                     {dayEvents.slice(0, 3).map((event) => (
                       <div
                         key={event.id}
-                        className={`text-xs px-1.5 py-0.5 rounded truncate text-white ${
+                        className={`text-xs px-1.5 py-0.5 rounded truncate text-white cursor-pointer hover:opacity-80 ${
                           eventTypeColors[event.type] || 'bg-gray-500'
                         }`}
                         title={event.title}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => handleEventClick(event, e)}
                       >
                         {event.title}
                       </div>
@@ -508,6 +555,19 @@ export default function CalendarClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Task Detail Dialog */}
+      <TaskDetailDialog
+        task={selectedTask}
+        isOpen={isTaskDetailOpen}
+        onClose={() => {
+          setIsTaskDetailOpen(false)
+          setSelectedTask(null)
+          fetchEvents() // Refresh events after task update
+        }}
+        projects={projects}
+        users={teamMembers}
+      />
     </div>
   )
 }

@@ -42,7 +42,14 @@ export async function GET(
       return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
 
-    return NextResponse.json(client)
+    // Добавить fallback для socialLinks и customFields (для обратной совместимости)
+    const clientWithDefaults = {
+      ...client,
+      socialLinks: client.socialLinks || [],
+      customFields: client.customFields || {},
+    }
+
+    return NextResponse.json(clientWithDefaults)
   } catch (error) {
     console.error('Error fetching client:', error)
     return NextResponse.json(

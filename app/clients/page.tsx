@@ -29,11 +29,18 @@ export default async function ClientsPage() {
     orderBy: { createdAt: 'desc' },
   })
 
+  // Добавить fallback для socialLinks если поле отсутствует в БД (для обратной совместимости)
+  const clientsWithDefaults = clients.map(client => ({
+    ...client,
+    socialLinks: client.socialLinks || [],
+    customFields: client.customFields || {},
+  }))
+
   return (
     <ClientsClient
       user={user}
       workspace={workspaceMember.workspace}
-      clients={clients}
+      clients={clientsWithDefaults}
     />
   )
 }
