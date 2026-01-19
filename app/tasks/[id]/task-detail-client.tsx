@@ -387,9 +387,9 @@ export default function TaskDetailClient({
                         {comment.author.name}
                       </span>
                       <span className="text-sm text-gray-500">
-                        {format(new Date(comment.createdAt), 'd MMM yyyy, HH:mm', {
+                        {comment.createdAt ? format(new Date(comment.createdAt), 'd MMM yyyy, HH:mm', {
                           locale: ru,
-                        })}
+                        }) : ''}
                       </span>
                     </div>
                     <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
@@ -504,7 +504,7 @@ export default function TaskDetailClient({
                   <Label className="text-xs text-gray-500">Срок выполнения</Label>
                   <Input
                     type="date"
-                    value={task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''}
+                    value={task.dueDate && task.dueDate !== 'null' ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''}
                     onChange={(e) =>
                       updateTaskField('dueDate', e.target.value || null)
                     }
@@ -542,7 +542,7 @@ export default function TaskDetailClient({
                 <div className="flex justify-between">
                   <span className="text-gray-500">Создано</span>
                   <span className="text-gray-900">
-                    {format(new Date(task.createdAt), 'd MMM yyyy', { locale: ru })}
+                    {task.createdAt ? format(new Date(task.createdAt), 'd MMM yyyy', { locale: ru }) : '-'}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -552,7 +552,7 @@ export default function TaskDetailClient({
                 <div className="flex justify-between">
                   <span className="text-gray-500">Обновлено</span>
                   <span className="text-gray-900">
-                    {format(new Date(task.updatedAt), 'd MMM yyyy', { locale: ru })}
+                    {task.updatedAt ? format(new Date(task.updatedAt), 'd MMM yyyy', { locale: ru }) : '-'}
                   </span>
                 </div>
               </div>
