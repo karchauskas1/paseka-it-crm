@@ -15,6 +15,7 @@ import {
 } from '@/components/dashboard'
 import { UserMenu } from '@/components/layout/user-menu'
 import { FeedbackButton } from '@/components/feedback'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 import { RefreshCw } from 'lucide-react'
 
 interface DashboardClientProps {
@@ -98,7 +99,10 @@ export default function DashboardClient({
               <h1 className="text-2xl font-bold text-foreground">PASEKA IT CRM</h1>
               <p className="text-sm text-muted-foreground">{workspace.name}</p>
             </div>
-            <UserMenu user={user} workspace={workspace} userRole={workspace.role} />
+            <div className="flex items-center gap-4">
+              <NotificationBell />
+              <UserMenu user={user} workspace={workspace} userRole={workspace.role} />
+            </div>
           </div>
         </div>
       </header>

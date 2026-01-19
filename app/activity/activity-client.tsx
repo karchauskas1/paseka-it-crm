@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { UserMenu } from '@/components/layout/user-menu'
 import { FeedbackButton } from '@/components/feedback'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 
 interface Activity {
   id: string
@@ -152,7 +153,10 @@ export default function ActivityClient({
               <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
               <p className="text-sm text-gray-600">{workspace.name}</p>
             </div>
-            <UserMenu user={user} workspace={workspace} userRole={user.role} />
+            <div className="flex items-center gap-4">
+              <NotificationBell />
+              <UserMenu user={user} workspace={workspace} userRole={user.role} />
+            </div>
           </div>
         </div>
       </header>

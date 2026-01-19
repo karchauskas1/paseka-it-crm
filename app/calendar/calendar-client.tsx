@@ -40,6 +40,7 @@ import { UserMenu } from '@/components/layout/user-menu'
 import { TaskDetailDialog } from '@/components/tasks/task-detail-dialog'
 import { useToast } from '@/lib/hooks/use-toast'
 import { FeedbackButton } from '@/components/feedback'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 
 interface Event {
   id: string
@@ -264,7 +265,10 @@ export default function CalendarClient({
               <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
               <p className="text-sm text-gray-600">{workspace.name}</p>
             </div>
-            <UserMenu user={user} workspace={workspace} userRole={user.role} />
+            <div className="flex items-center gap-4">
+              <NotificationBell />
+              <UserMenu user={user} workspace={workspace} userRole={user.role} />
+            </div>
           </div>
         </div>
       </header>

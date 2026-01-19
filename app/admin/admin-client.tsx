@@ -52,6 +52,7 @@ import {
 import { toast } from 'sonner'
 import { CustomFieldManager } from '@/components/custom-fields/custom-field-manager'
 import { FeedbackButton } from '@/components/feedback'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 
 interface AdminClientProps {
   user: any
@@ -363,6 +364,7 @@ export default function AdminClient({
               <p className="text-sm text-gray-600">{workspace.name}</p>
             </div>
             <div className="flex items-center gap-4">
+              <NotificationBell />
               <span className="text-sm text-gray-700">{user.name}</span>
               <Badge variant="info">
                 <Shield className="h-3 w-3 mr-1" />
