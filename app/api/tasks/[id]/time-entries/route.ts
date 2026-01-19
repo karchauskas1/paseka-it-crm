@@ -1,38 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getCurrentUser, getUserWorkspace } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 
-/**
- * GET /api/tasks/[id]/time-entries
- * Получить записи времени для задачи
- */
+// Get time entries for a task
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const workspace = await getUserWorkspace(user.id)
-    if (!workspace) {
-      return NextResponse.json({ error: 'No workspace found' }, { status: 404 })
-    }
-
-    // Verify task belongs to workspace
-    const task = await db.task.findFirst({
-      where: { id, workspaceId: workspace.id },
-    })
-
-    if (!task) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 })
-    }
+    const { id: taskId } = await params
 
     const timeEntries = await db.timeEntry.findMany({
-      where: { taskId: id },
+      where: { taskId },
       include: {
         user: {
           select: {
@@ -41,80 +25,120 @@ export async function GET(
           },
         },
       },
-      orderBy: { startedAt: 'desc' },
+      orderBy: {
+        startedAt: 'desc',
+      },
     })
 
-    // Calculate total time
-    const totalSeconds = timeEntries.reduce((sum, entry) => sum + (entry.duration || 0), 0)
-
-    return NextResponse.json({
-      entries: timeEntries,
-      totalSeconds,
-    })
+    return NextResponse.json({ timeEntries })
   } catch (error) {
-    console.error('Error fetching time entries:', error)
+    console.error('Get time entries error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch time entries' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
 }
 
-/**
- * POST /api/tasks/[id]/time-entries
- * Создать запись времени
- */
+// Start or stop time tracking
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const workspace = await getUserWorkspace(user.id)
-    if (!workspace) {
-      return NextResponse.json({ error: 'No workspace found' }, { status: 404 })
-    }
+    const { id: taskId } = await params
+    const body = await req.json()
+    const { action, notes } = body
 
-    // Verify task belongs to workspace
-    const task = await db.task.findFirst({
-      where: { id, workspaceId: workspace.id },
-    })
-
-    if (!task) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 })
-    }
-
-    const { duration, notes, startedAt, endedAt } = await req.json()
-
-    if (!duration || duration <= 0) {
+    if (!action || !['start', 'stop'].includes(action)) {
       return NextResponse.json(
-        { error: 'Duration is required and must be positive' },
+        { error: 'Invalid action. Must be "start" or "stop"' },
         { status: 400 }
       )
     }
 
-    const now = new Date()
-    const timeEntry = await db.timeEntry.create({
-      data: {
-        taskId: id,
-        userId: user.id,
-        duration,
-        notes,
-        startedAt: startedAt ? new Date(startedAt) : new Date(now.getTime() - duration * 1000),
-        endedAt: endedAt ? new Date(endedAt) : now,
-      },
-    })
+    if (action === 'start') {
+      const activeEntry = await db.timeEntry.findFirst({
+        where: {
+          taskId,
+          userId: user.id,
+          endedAt: null,
+        },
+      })
 
-    return NextResponse.json(timeEntry, { status: 201 })
+      if (activeEntry) {
+        return NextResponse.json(
+          { error: 'Timer already running for this task' },
+          { status: 400 }
+        )
+      }
+
+      const timeEntry = await db.timeEntry.create({
+        data: {
+          taskId,
+          userId: user.id,
+          startedAt: new Date(),
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      })
+
+      return NextResponse.json({ timeEntry })
+    } else {
+      const activeEntry = await db.timeEntry.findFirst({
+        where: {
+          taskId,
+          userId: user.id,
+          endedAt: null,
+        },
+      })
+
+      if (!activeEntry) {
+        return NextResponse.json(
+          { error: 'No active timer for this task' },
+          { status: 400 }
+        )
+      }
+
+      const endedAt = new Date()
+      const duration = Math.floor(
+        (endedAt.getTime() - activeEntry.startedAt.getTime()) / 1000
+      )
+
+      const timeEntry = await db.timeEntry.update({
+        where: { id: activeEntry.id },
+        data: {
+          endedAt,
+          duration,
+          notes: notes || null,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      })
+
+      return NextResponse.json({ timeEntry })
+    }
   } catch (error) {
-    console.error('Error creating time entry:', error)
+    console.error('Time tracking error:', error)
     return NextResponse.json(
-      { error: 'Failed to create time entry' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

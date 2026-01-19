@@ -31,6 +31,7 @@ import {
   complexityLabels,
 } from '@/lib/validations/task'
 import { Calendar, User, FolderOpen, Trash2, Save } from 'lucide-react'
+import { TimeTracker } from './time-tracker'
 
 interface Task {
   id: string
@@ -311,6 +312,12 @@ export function TaskDetailDialog({
               </Select>
             </div>
           </div>
+        </div>
+
+        {/* Time Tracking */}
+        <div className="pt-4 border-t">
+          <h3 className="text-sm font-medium mb-3">Трекинг времени</h3>
+          <TimeTracker taskId={task.id} />
         </div>
 
         <DialogFooter className="flex justify-between">
