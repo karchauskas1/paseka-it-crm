@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -31,8 +31,9 @@ import {
   User,
   Folder,
   Loader2,
+  AlertCircle,
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, isValid } from 'date-fns'
 import { ru } from 'date-fns/locale'
 
 interface TaskDetailClientProps {
@@ -84,6 +85,27 @@ export default function TaskDetailClient({
   const [newSubtask, setNewSubtask] = useState('')
   const [newComment, setNewComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [renderError, setRenderError] = useState<string | null>(null)
+
+  // Error logging on mount
+  useEffect(() => {
+    try {
+      console.log('TaskDetailClient mounted with task:', {
+        id: initialTask?.id,
+        title: initialTask?.title,
+        hasProject: !!initialTask?.project,
+        hasAssignee: !!initialTask?.assignee,
+        hasCreatedBy: !!initialTask?.createdBy,
+        subtasksCount: initialTask?.subtasks?.length || 0,
+        commentsCount: initialTask?.comments?.length || 0,
+        dueDate: initialTask?.dueDate,
+        dueDateType: typeof initialTask?.dueDate,
+      })
+    } catch (error) {
+      console.error('Error logging task data:', error)
+      setRenderError('Ошибка загрузки данных задачи')
+    }
+  }, [])
 
   // Timer state
   const [isTimerRunning, setIsTimerRunning] = useState(false)
@@ -232,6 +254,23 @@ export default function TaskDetailClient({
 
   const completedSubtasks = task.subtasks?.filter((s: any) => s.completed).length || 0
   const totalSubtasks = task.subtasks?.length || 0
+
+  if (renderError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow p-8 max-w-md">
+          <div className="flex items-center gap-3 text-red-600 mb-4">
+            <AlertCircle className="h-6 w-6" />
+            <h2 className="text-lg font-semibold">Ошибка загрузки</h2>
+          </div>
+          <p className="text-gray-700 mb-4">{renderError}</p>
+          <Button onClick={() => router.push('/tasks')}>
+            Вернуться к задачам
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -387,9 +426,16 @@ export default function TaskDetailClient({
                         {comment.author?.name || 'Неизвестный'}
                       </span>
                       <span className="text-sm text-gray-500">
-                        {comment.createdAt ? format(new Date(comment.createdAt), 'd MMM yyyy, HH:mm', {
-                          locale: ru,
-                        }) : ''}
+                        {(() => {
+                          try {
+                            if (!comment.createdAt) return ''
+                            const date = new Date(comment.createdAt)
+                            if (!isValid(date)) return ''
+                            return format(date, 'd MMM yyyy, HH:mm', { locale: ru })
+                          } catch {
+                            return ''
+                          }
+                        })()}
                       </span>
                     </div>
                     <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
@@ -504,7 +550,16 @@ export default function TaskDetailClient({
                   <Label className="text-xs text-gray-500">Срок выполнения</Label>
                   <Input
                     type="date"
-                    value={task.dueDate && task.dueDate !== 'null' && task.dueDate !== '' ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''}
+                    value={(() => {
+                      try {
+                        if (!task.dueDate || task.dueDate === 'null' || task.dueDate === '') return ''
+                        const date = new Date(task.dueDate)
+                        if (isNaN(date.getTime())) return ''
+                        return format(date, 'yyyy-MM-dd')
+                      } catch {
+                        return ''
+                      }
+                    })()}
                     onChange={(e) =>
                       updateTaskField('dueDate', e.target.value || null)
                     }

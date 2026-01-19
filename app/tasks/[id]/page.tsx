@@ -78,9 +78,32 @@ export default async function TaskDetailPage({
     },
   })
 
+  // Serialize data properly to avoid Next.js serialization errors
+  const serializedTask = {
+    ...task,
+    createdAt: task.createdAt.toISOString(),
+    updatedAt: task.updatedAt.toISOString(),
+    dueDate: task.dueDate?.toISOString() || null,
+    completedAt: task.completedAt?.toISOString() || null,
+    subtasks: task.subtasks.map((st) => ({
+      ...st,
+      createdAt: st.createdAt.toISOString(),
+      updatedAt: st.updatedAt.toISOString(),
+      completedAt: st.completedAt?.toISOString() || null,
+    })),
+    comments: task.comments.map((c) => ({
+      ...c,
+      createdAt: c.createdAt.toISOString(),
+      author: c.author || { id: '', name: 'Неизвестный' },
+    })),
+    project: task.project || null,
+    assignee: task.assignee || null,
+    createdBy: task.createdBy || { id: '', name: 'Неизвестный' },
+  }
+
   return (
     <TaskDetailClient
-      task={task}
+      task={serializedTask}
       user={user}
       workspace={workspace}
       teamMembers={teamMembers.map((m) => m.user)}
