@@ -60,6 +60,8 @@ export default function ProjectDetailClient({ project: initialProject, user, tea
     hypotheses: '',
     constraints: '',
   })
+  const [generatedPrompt, setGeneratedPrompt] = useState('')
+  const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false)
   const [milestoneForm, setMilestoneForm] = useState({
     title: '',
     description: '',
@@ -137,6 +139,76 @@ export default function ProjectDetailClient({ project: initialProject, user, tea
     }
   }
 
+  const handleGeneratePrompt = async () => {
+    if (!architectureForm.title.trim() || !architectureForm.description.trim()) {
+      showToast({ title: 'Заполните название и описание', variant: 'destructive' })
+      return
+    }
+    setIsGeneratingPrompt(true)
+    try {
+      // Generate comprehensive prompt from architecture data
+      const prompt = `# Задача: Создать первую модель проекта
+
+## Контекст проекта
+**Название:** ${project.name}
+**Клиент:** ${project.client?.name || 'Не указан'}
+${project.pain ? `**Боль клиента:** ${project.pain}` : ''}
+${project.whyProblem ? `**Почему проблема:** ${project.whyProblem}` : ''}
+${project.goals ? `**Цели:** ${project.goals}` : ''}
+${project.expectedResult ? `**Ожидаемый результат:** ${project.expectedResult}` : ''}
+
+## Версия архитектуры: ${architectureForm.title}
+**Описание:** ${architectureForm.description}
+
+${architectureForm.solution ? `**Решение:** ${architectureForm.solution}` : ''}
+
+${architectureForm.hypotheses ? `**Гипотезы для проверки:**
+${architectureForm.hypotheses}` : ''}
+
+${architectureForm.constraints ? `**Известные ограничения:**
+${architectureForm.constraints}` : ''}
+
+## Требования к модели
+Необходимо создать детальное техническое описание первой версии продукта, которое включает:
+
+1. **Функциональные требования**
+   - Список всех функций продукта
+   - User stories для ключевых сценариев использования
+   - Описание пользовательских интерфейсов
+
+2. **Технический стек**
+   - Рекомендуемые технологии (frontend, backend, БД)
+   - Обоснование выбора технологий
+   - Архитектурные паттерны
+
+3. **Модель данных**
+   - Основные сущности и их связи
+   - Структура базы данных (схема)
+   - API endpoints
+
+4. **Этапы разработки**
+   - Декомпозиция на этапы/спринты
+   - Оценка трудозатрат
+   - Критические пути и зависимости
+
+5. **Риски и митигация**
+   - Технические риски
+   - Бизнес-риски
+   - План снижения рисков
+
+Результат должен быть готов к использованию для начала разработки.`
+
+      setGeneratedPrompt(prompt)
+      // Copy to clipboard
+      await navigator.clipboard.writeText(prompt)
+      toast.success('Промпт сгенерирован и скопирован в буфер обмена!')
+    } catch (error) {
+      showToast({ title: 'Ошибка генерации промпта', variant: 'destructive' })
+    } finally {
+      setIsGeneratingPrompt(false)
+    }
+  }
+
   const handleCreateArchitecture = async () => {
     if (!architectureForm.title.trim()) {
       showToast({ title: 'Укажите название версии', variant: 'destructive' })
@@ -160,6 +232,7 @@ export default function ProjectDetailClient({ project: initialProject, user, tea
       })
       setIsArchitectureDialogOpen(false)
       setArchitectureForm({ title: '', description: '', solution: '', hypotheses: '', constraints: '' })
+      setGeneratedPrompt('')
       showToast({ title: 'Версия архитектуры создана', variant: 'success' })
     } catch (error) {
       showToast({ title: 'Ошибка создания версии', variant: 'destructive' })
@@ -555,9 +628,54 @@ export default function ProjectDetailClient({ project: initialProject, user, tea
                 placeholder="Известные ограничения..."
               />
             </div>
+
+            {/* Generate AI Prompt Button */}
+            <div className="border-t pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGeneratePrompt}
+                disabled={isGeneratingPrompt || !architectureForm.title || !architectureForm.description}
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                {isGeneratingPrompt ? 'Генерация...' : 'Сгенерировать AI промпт из данных'}
+              </Button>
+              <p className="text-xs text-gray-500 mt-2">
+                Создаст готовый промпт для AI с полным описанием проекта и требований
+              </p>
+            </div>
+
+            {/* Show Generated Prompt */}
+            {generatedPrompt && (
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">Сгенерированный промпт</Label>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedPrompt)
+                      toast.success('Скопировано!')
+                    }}
+                  >
+                    Копировать
+                  </Button>
+                </div>
+                <Textarea
+                  value={generatedPrompt}
+                  readOnly
+                  rows={10}
+                  className="text-xs font-mono bg-white"
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsArchitectureDialogOpen(false)}>Отмена</Button>
+            <Button variant="outline" onClick={() => {
+              setIsArchitectureDialogOpen(false)
+              setGeneratedPrompt('')
+            }}>Отмена</Button>
             <Button onClick={handleCreateArchitecture} disabled={isSubmitting}>
               {isSubmitting ? 'Создание...' : 'Создать версию'}
             </Button>

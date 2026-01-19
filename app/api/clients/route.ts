@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { logCreate } from '@/lib/activity-logger'
 
 export async function GET(request: Request) {
   try {
@@ -96,6 +97,33 @@ export async function POST(request: Request) {
         },
       },
     })
+
+    // Log activity
+    await logCreate('client', client.id, { name, company, email }, user.id, { workspaceId })
+
+    // Notify team members about new client
+    const teamMembers = await db.workspaceMember.findMany({
+      where: { workspaceId },
+      select: { userId: true },
+    })
+
+    const userName = user.name || user.email
+    await Promise.all(
+      teamMembers
+        .filter(m => m.userId !== user.id)
+        .map(member =>
+          db.notification.create({
+            data: {
+              userId: member.userId,
+              type: 'PROJECT_STATUS_CHANGED', // Используем существующий тип
+              title: 'Добавлен новый клиент',
+              message: `${userName} добавил клиента "${name}"${company ? ` (${company})` : ''}`,
+              entityType: 'client',
+              entityId: client.id,
+            },
+          })
+        )
+    )
 
     return NextResponse.json(client)
   } catch (error) {

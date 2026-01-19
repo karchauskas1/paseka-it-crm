@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { logCreate } from '@/lib/activity-logger'
 
 export async function GET(request: Request) {
   try {
@@ -107,7 +108,49 @@ export async function POST(request: Request) {
       },
     })
 
-    // Send notification to assignee
+    // Log activity
+    await logCreate('task', task.id, { title, assigneeId }, user.id, { workspaceId, projectId })
+
+    // Notify assignee
+    if (assigneeId && assigneeId !== user.id) {
+      const userName = user.name || user.email
+      await db.notification.create({
+        data: {
+          userId: assigneeId,
+          type: 'TASK_ASSIGNED',
+          title: 'Новая задача назначена',
+          message: `${userName} назначил вам задачу "${title}"`,
+          entityType: 'task',
+          entityId: task.id,
+        },
+      })
+    }
+
+    // Notify team about new task
+    const teamMembers = await db.workspaceMember.findMany({
+      where: { workspaceId },
+      select: { userId: true },
+    })
+
+    const userName = user.name || user.email
+    await Promise.all(
+      teamMembers
+        .filter(m => m.userId !== user.id && m.userId !== assigneeId)
+        .map(member =>
+          db.notification.create({
+            data: {
+              userId: member.userId,
+              type: 'PROJECT_STATUS_CHANGED',
+              title: 'Создана новая задача',
+              message: `${userName} создал задачу "${title}"`,
+              entityType: 'task',
+              entityId: task.id,
+            },
+          })
+        )
+    )
+
+    // Send Telegram notification to assignee
     if (assigneeId && task.assignee?.telegramId) {
       const { notifyTaskAssigned } = await import('@/lib/telegram')
       await notifyTaskAssigned(

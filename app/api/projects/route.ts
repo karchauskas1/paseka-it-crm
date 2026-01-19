@@ -119,6 +119,30 @@ export async function POST(request: Request) {
       },
     })
 
+    // Notify team members about new project
+    const teamMembers = await db.workspaceMember.findMany({
+      where: { workspaceId },
+      select: { userId: true },
+    })
+
+    const userName = user.name || user.email
+    await Promise.all(
+      teamMembers
+        .filter(m => m.userId !== user.id)
+        .map(member =>
+          db.notification.create({
+            data: {
+              userId: member.userId,
+              type: 'PROJECT_STATUS_CHANGED',
+              title: 'Создан новый проект',
+              message: `${userName} создал проект "${name}"`,
+              entityType: 'project',
+              entityId: project.id,
+            },
+          })
+        )
+    )
+
     return NextResponse.json({ project })
   } catch (error) {
     console.error('Create project error:', error)

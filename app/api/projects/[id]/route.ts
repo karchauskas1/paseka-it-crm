@@ -139,6 +139,41 @@ export async function PATCH(
         },
       })
 
+      // Notify team members about status change
+      const teamMembers = await db.workspaceMember.findMany({
+        where: { workspaceId: existingProject.workspaceId },
+        select: { userId: true },
+      })
+
+      const userName = user.name || user.email
+      const statusLabels: Record<string, string> = {
+        LEAD: 'Лид',
+        QUALIFICATION: 'Квалификация',
+        BRIEFING: 'Брифинг',
+        IN_PROGRESS: 'В работе',
+        ON_HOLD: 'На паузе',
+        COMPLETED: 'Завершён',
+        REJECTED: 'Отклонён',
+        ARCHIVED: 'Архив',
+      }
+
+      await Promise.all(
+        teamMembers
+          .filter(m => m.userId !== user.id)
+          .map(member =>
+            db.notification.create({
+              data: {
+                userId: member.userId,
+                type: 'PROJECT_STATUS_CHANGED',
+                title: 'Изменён статус проекта',
+                message: `${userName} изменил статус проекта "${project.name}": ${statusLabels[existingProject.status] || existingProject.status} → ${statusLabels[body.status] || body.status}`,
+                entityType: 'project',
+                entityId: project.id,
+              },
+            })
+          )
+      )
+
       // Send Telegram notification
       if (user.telegramId) {
         const { notifyProjectStatusChange } = await import('@/lib/telegram')
@@ -173,9 +208,43 @@ export async function DELETE(
 
     const { id } = await params
 
+    // Get project data before deletion
+    const existingProject = await db.project.findUnique({
+      where: { id },
+      select: { name: true, workspaceId: true },
+    })
+
+    if (!existingProject) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
+    }
+
     await db.project.delete({
       where: { id },
     })
+
+    // Notify team
+    const teamMembers = await db.workspaceMember.findMany({
+      where: { workspaceId: existingProject.workspaceId },
+      select: { userId: true },
+    })
+
+    const userName = user.name || user.email
+    await Promise.all(
+      teamMembers
+        .filter(m => m.userId !== user.id)
+        .map(member =>
+          db.notification.create({
+            data: {
+              userId: member.userId,
+              type: 'PROJECT_STATUS_CHANGED',
+              title: 'Проект удалён',
+              message: `${userName} удалил проект "${existingProject.name}"`,
+              entityType: 'project',
+              entityId: id,
+            },
+          })
+        )
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { logUpdate, logDelete } from '@/lib/activity-logger'
 
 export async function GET(
   req: NextRequest,
@@ -107,6 +108,37 @@ export async function PATCH(
       },
     })
 
+    // Log activity
+    const oldData = { name: existingClient.name, company: existingClient.company }
+    const newData = { name, company }
+    await logUpdate('client', client.id, oldData, newData, user.id, { workspaceId: workspaceMember.workspaceId })
+
+    // Notify team if important field changed (name or status)
+    if (name && name !== existingClient.name) {
+      const teamMembers = await db.workspaceMember.findMany({
+        where: { workspaceId: workspaceMember.workspaceId },
+        select: { userId: true },
+      })
+
+      const userName = user.name || user.email
+      await Promise.all(
+        teamMembers
+          .filter(m => m.userId !== user.id)
+          .map(member =>
+            db.notification.create({
+              data: {
+                userId: member.userId,
+                type: 'PROJECT_STATUS_CHANGED',
+                title: 'Клиент обновлён',
+                message: `${userName} изменил клиента "${existingClient.name}" на "${name}"`,
+                entityType: 'client',
+                entityId: client.id,
+              },
+            })
+          )
+      )
+    }
+
     return NextResponse.json(client)
   } catch (error) {
     console.error('Error updating client:', error)
@@ -162,9 +194,36 @@ export async function DELETE(
       )
     }
 
+    // Log activity before deletion
+    await logDelete('client', id, { name: existingClient.name, company: existingClient.company }, user.id, { workspaceId: workspaceMember.workspaceId })
+
     await db.client.delete({
       where: { id },
     })
+
+    // Notify team
+    const teamMembers = await db.workspaceMember.findMany({
+      where: { workspaceId: workspaceMember.workspaceId },
+      select: { userId: true },
+    })
+
+    const userName = user.name || user.email
+    await Promise.all(
+      teamMembers
+        .filter(m => m.userId !== user.id)
+        .map(member =>
+          db.notification.create({
+            data: {
+              userId: member.userId,
+              type: 'PROJECT_STATUS_CHANGED',
+              title: 'Клиент удалён',
+              message: `${userName} удалил клиента "${existingClient.name}"`,
+              entityType: 'client',
+              entityId: id,
+            },
+          })
+        )
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {

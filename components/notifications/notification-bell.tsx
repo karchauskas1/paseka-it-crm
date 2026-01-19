@@ -120,7 +120,7 @@ export function NotificationBell() {
       case 'project':
         return `/projects/${notification.entityId}`
       case 'task':
-        return `/tasks?id=${notification.entityId}`
+        return `/tasks/${notification.entityId}`
       case 'client':
         return `/clients/${notification.entityId}`
       default:
