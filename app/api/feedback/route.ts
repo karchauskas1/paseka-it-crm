@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const workspaceId = searchParams.get('workspaceId')
+    const adminView = searchParams.get('adminView') === 'true'
 
     if (!workspaceId) {
       return NextResponse.json(
@@ -19,8 +20,27 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    // Проверяем роль пользователя
+    const workspaceMember = await db.workspaceMember.findFirst({
+      where: {
+        workspaceId,
+        userId: user.id,
+      },
+    })
+
+    if (!workspaceMember) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const isAdmin = ['OWNER', 'ADMIN'].includes(workspaceMember.role)
+
+    // Админы видят всё, пользователи только свои
+    const whereClause = adminView && isAdmin
+      ? { workspaceId }
+      : { workspaceId, createdById: user.id }
+
     const feedback = await db.feedback.findMany({
-      where: { workspaceId },
+      where: whereClause,
       include: {
         createdBy: {
           select: {
@@ -35,7 +55,7 @@ export async function GET(req: NextRequest) {
       },
     })
 
-    return NextResponse.json({ feedback })
+    return NextResponse.json({ feedback, isAdmin })
   } catch (error) {
     console.error('Get feedback error:', error)
     return NextResponse.json(
@@ -53,7 +73,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { workspaceId, type, title, description, priority } = body
+    const { workspaceId, type, title, description, priority, screenshot } = body
 
     if (!workspaceId || !type || !title || !description) {
       return NextResponse.json(
@@ -76,6 +96,7 @@ export async function POST(req: NextRequest) {
         type,
         title,
         description,
+        screenshot: screenshot || null,
         priority: priority || null,
         createdById: user.id,
       },

@@ -698,6 +698,7 @@ model Feedback {
   type        FeedbackType
   title       String
   description String
+  screenshot  String?      // URL скриншота
   status      FeedbackStatus @default(OPEN)
   priority    Priority?
 

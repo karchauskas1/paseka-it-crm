@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { UserMenu } from './user-menu'
 import { NotificationBell } from '@/components/notifications/notification-bell'
+import { FeedbackButton } from '@/components/feedback'
 
 interface AppLayoutProps {
   user: any
@@ -80,16 +81,10 @@ export function AppLayout({ user, workspace, currentPage, children }: AppLayoutP
             >
               Гайд
             </Link>
-            <Link
-              href="/feedback"
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                currentPage === '/feedback'
-                  ? 'border-yellow-500 text-yellow-600'
-                  : 'border-transparent text-yellow-600 hover:text-yellow-700 hover:border-yellow-400'
-              }`}
-            >
-              Обратная связь
-            </Link>
+            <div className="flex-1" />
+            <div className="flex items-center py-2">
+              <FeedbackButton workspaceId={workspace.id} />
+            </div>
           </div>
         </div>
       </nav>
