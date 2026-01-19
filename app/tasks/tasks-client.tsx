@@ -34,6 +34,7 @@ import {
   priorityColors,
 } from '@/lib/validations/task'
 import KanbanBoard from '@/components/views/kanban-board'
+import { TaskDetailDialog } from '@/components/tasks/task-detail-dialog'
 import {
   Plus,
   Search,
@@ -70,6 +71,8 @@ export default function TasksClient({
   const [filterAssignee, setFilterAssignee] = useState<string>('all')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -582,7 +585,14 @@ export default function TasksClient({
                   </tr>
                 ) : (
                   filteredTasks.map((task) => (
-                    <tr key={task.id} className="hover:bg-gray-50">
+                    <tr
+                      key={task.id}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => {
+                        setSelectedTask(task)
+                        setIsDetailDialogOpen(true)
+                      }}
+                    >
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">
                           {task.title}
@@ -643,8 +653,24 @@ export default function TasksClient({
           <KanbanBoard
             tasks={filteredTasks}
             onStatusChange={handleStatusChange}
+            onTaskClick={(task) => {
+              setSelectedTask(task)
+              setIsDetailDialogOpen(true)
+            }}
           />
         )}
+
+        {/* Task Detail Dialog */}
+        <TaskDetailDialog
+          task={selectedTask}
+          isOpen={isDetailDialogOpen}
+          onClose={() => {
+            setIsDetailDialogOpen(false)
+            setSelectedTask(null)
+          }}
+          projects={projects}
+          users={teamMembers}
+        />
       </main>
     </div>
   )

@@ -11,6 +11,7 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
+  useDroppable,
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -42,6 +43,7 @@ interface Task {
 interface KanbanBoardProps {
   tasks: Task[]
   onStatusChange: (taskId: string, newStatus: string) => void
+  onTaskClick?: (task: Task) => void
 }
 
 const columns = [
@@ -51,10 +53,11 @@ const columns = [
   { id: 'COMPLETED', title: 'Выполнено', color: 'bg-green-100' },
 ]
 
-function TaskCard({ task, isDragging }: { task: Task; isDragging?: boolean }) {
+function TaskCard({ task, isDragging, onClick }: { task: Task; isDragging?: boolean; onClick?: () => void }) {
   return (
     <div
-      className={`bg-white rounded-lg border p-3 shadow-sm ${
+      onClick={onClick}
+      className={`bg-white rounded-lg border p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow ${
         isDragging ? 'opacity-50 shadow-lg' : ''
       }`}
     >
@@ -108,7 +111,7 @@ function TaskCard({ task, isDragging }: { task: Task; isDragging?: boolean }) {
   )
 }
 
-function SortableTaskCard({ task }: { task: Task }) {
+function SortableTaskCard({ task, onClick }: { task: Task; onClick?: () => void }) {
   const {
     attributes,
     listeners,
@@ -125,7 +128,7 @@ function SortableTaskCard({ task }: { task: Task }) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} isDragging={isDragging} />
+      <TaskCard task={task} isDragging={isDragging} onClick={onClick} />
     </div>
   )
 }
@@ -135,14 +138,25 @@ function Column({
   title,
   color,
   tasks,
+  onTaskClick,
 }: {
   id: string
   title: string
   color: string
   tasks: Task[]
+  onTaskClick?: (task: Task) => void
 }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: id,
+  })
+
   return (
-    <div className={`flex-1 min-w-[280px] max-w-[320px] ${color} rounded-lg p-3`}>
+    <div
+      ref={setNodeRef}
+      className={`flex-1 min-w-[280px] max-w-[320px] ${color} rounded-lg p-3 transition-all ${
+        isOver ? 'ring-2 ring-blue-400 ring-offset-2' : ''
+      }`}
+    >
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-gray-900">{title}</h3>
         <span className="bg-white rounded-full px-2 py-0.5 text-xs font-medium text-gray-600">
@@ -155,7 +169,7 @@ function Column({
       >
         <div className="space-y-2 min-h-[200px]">
           {tasks.map((task) => (
-            <SortableTaskCard key={task.id} task={task} />
+            <SortableTaskCard key={task.id} task={task} onClick={() => onTaskClick?.(task)} />
           ))}
           {tasks.length === 0 && (
             <div className="text-center py-8 text-gray-400 text-sm">
@@ -168,7 +182,7 @@ function Column({
   )
 }
 
-export default function KanbanBoard({ tasks, onStatusChange }: KanbanBoardProps) {
+export default function KanbanBoard({ tasks, onStatusChange, onTaskClick }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
 
   const sensors = useSensors(
@@ -253,6 +267,7 @@ export default function KanbanBoard({ tasks, onStatusChange }: KanbanBoardProps)
             title={column.title}
             color={column.color}
             tasks={tasksByStatus[column.id] || []}
+            onTaskClick={onTaskClick}
           />
         ))}
       </div>

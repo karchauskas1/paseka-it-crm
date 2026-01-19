@@ -84,7 +84,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
 
-    const { name, company, email, phone, source, status, notes } = await req.json()
+    const { name, company, email, phone, source, status, notes, socialLinks } = await req.json()
 
     const client = await db.client.update({
       where: { id },
@@ -96,6 +96,7 @@ export async function PATCH(
         ...(source !== undefined && { source }),
         ...(status !== undefined && { status }),
         ...(notes !== undefined && { notes }),
+        ...(socialLinks !== undefined && { socialLinks }),
       },
     })
 

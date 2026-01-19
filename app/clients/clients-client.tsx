@@ -27,7 +27,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/lib/hooks/use-toast'
 import { sourceLabels, statusLabels } from '@/lib/validations/client'
-import { Plus, Search, Building2, Mail, Phone, Users } from 'lucide-react'
+import { Plus, Search, Building2, Mail, Phone, Users, X } from 'lucide-react'
 
 interface ClientsClientProps {
   user: any
@@ -58,6 +58,10 @@ export default function ClientsClient({
     notes: '',
   })
 
+  const [socialLinks, setSocialLinks] = useState<Array<{ platform: string; url: string }>>([
+    { platform: '', url: '' },
+  ])
+
   const filteredClients = clients.filter((client) => {
     if (!client || !client.name) return false
 
@@ -83,11 +87,17 @@ export default function ClientsClient({
     setIsLoading(true)
 
     try {
+      // Фильтруем пустые социальные сети
+      const filteredSocialLinks = socialLinks.filter(
+        (link) => link.platform.trim() !== '' && link.url.trim() !== ''
+      )
+
       const res = await fetch('/api/clients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          socialLinks: filteredSocialLinks,
           workspaceId: workspace.id,
         }),
       })
@@ -108,6 +118,7 @@ export default function ClientsClient({
         source: 'WARM',
         notes: '',
       })
+      setSocialLinks([{ platform: '', url: '' }])
       toast({
         title: 'Клиент создан',
         description: `${newClient.name} добавлен в систему`,
@@ -123,6 +134,22 @@ export default function ClientsClient({
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const addSocialLink = () => {
+    setSocialLinks([...socialLinks, { platform: '', url: '' }])
+  }
+
+  const removeSocialLink = (index: number) => {
+    if (socialLinks.length > 1) {
+      setSocialLinks(socialLinks.filter((_, i) => i !== index))
+    }
+  }
+
+  const updateSocialLink = (index: number, field: 'platform' | 'url', value: string) => {
+    const updated = [...socialLinks]
+    updated[index][field] = value
+    setSocialLinks(updated)
   }
 
   return (
@@ -302,6 +329,54 @@ export default function ClientsClient({
                       placeholder="Дополнительная информация о клиенте..."
                       rows={3}
                     />
+                  </div>
+
+                  {/* Социальные сети */}
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Социальные сети</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addSocialLink}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Добавить
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {socialLinks.map((link, index) => (
+                        <div key={index} className="flex gap-2 items-start">
+                          <div className="flex-1 grid grid-cols-2 gap-2">
+                            <Input
+                              placeholder="Платформа (Telegram, VK, Instagram...)"
+                              value={link.platform}
+                              onChange={(e) =>
+                                updateSocialLink(index, 'platform', e.target.value)
+                              }
+                            />
+                            <Input
+                              placeholder="URL или username"
+                              value={link.url}
+                              onChange={(e) =>
+                                updateSocialLink(index, 'url', e.target.value)
+                              }
+                            />
+                          </div>
+                          {socialLinks.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeSocialLink(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <DialogFooter>

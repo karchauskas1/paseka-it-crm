@@ -107,6 +107,7 @@ model Client {
   status      ClientStatus @default(ACTIVE)
 
   notes       String?
+  socialLinks Json @default("[]") @map("social_links") // Массив объектов {platform: string, url: string}
   customFields Json @default("{}") @map("custom_fields")
 
   createdById String   @map("created_by_id")

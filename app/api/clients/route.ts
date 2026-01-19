@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { workspaceId, name, company, email, phone, source, notes } = body
+    const { workspaceId, name, company, email, phone, source, notes, socialLinks } = body
 
     if (!workspaceId || !name) {
       return NextResponse.json(
@@ -76,6 +76,7 @@ export async function POST(request: Request) {
         phone,
         source,
         notes,
+        socialLinks: socialLinks || [],
         createdById: user.id,
       },
     })
