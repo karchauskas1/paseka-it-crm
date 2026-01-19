@@ -27,13 +27,21 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         email: true,
-        role: true,
         createdAt: true,
+        workspaces: {
+          where: {
+            workspaceId: workspace.id,
+          },
+          select: {
+            role: true,
+          },
+          take: 1,
+        },
       },
       orderBy: { createdAt: 'asc' },
     })
 
-    // Get counts for each user
+    // Get counts for each user and flatten role
     const usersWithCounts = await Promise.all(
       users.map(async (u) => {
         const tasksCount = await db.task.count({
@@ -48,7 +56,11 @@ export async function GET(req: NextRequest) {
           },
         })
         return {
-          ...u,
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          createdAt: u.createdAt,
+          role: u.workspaces?.[0]?.role || 'MEMBER',
           _count: {
             tasks: tasksCount,
             projects: projectsCount,
@@ -74,8 +86,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only admins can create users
-    if (user.role !== 'ADMIN') {
+    // Only admins and owners can create users
+    if (user.role !== 'ADMIN' && user.role !== 'OWNER') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -115,7 +127,6 @@ export async function POST(req: NextRequest) {
         name,
         email,
         password: hashedPassword,
-        role: role || 'MEMBER',
         workspaces: {
           create: {
             workspaceId: workspace.id,
@@ -127,12 +138,23 @@ export async function POST(req: NextRequest) {
         id: true,
         name: true,
         email: true,
-        role: true,
         createdAt: true,
+        workspaces: {
+          where: {
+            workspaceId: workspace.id,
+          },
+          select: {
+            role: true,
+          },
+          take: 1,
+        },
       },
     })
 
-    return NextResponse.json(newUser)
+    return NextResponse.json({
+      ...newUser,
+      role: newUser.workspaces?.[0]?.role || 'MEMBER',
+    })
   } catch (error) {
     console.error('Error creating user:', error)
     return NextResponse.json(

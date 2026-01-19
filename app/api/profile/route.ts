@@ -19,7 +19,6 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         email: true,
-        role: true,
         telegramId: true,
         notificationSettings: true,
         language: true,
@@ -27,7 +26,10 @@ export async function GET(req: NextRequest) {
       },
     })
 
-    return NextResponse.json(profile)
+    return NextResponse.json({
+      ...profile,
+      role: user.role,
+    })
   } catch (error) {
     console.error('Error fetching profile:', error)
     return NextResponse.json(
@@ -88,14 +90,16 @@ export async function PATCH(req: NextRequest) {
         id: true,
         name: true,
         email: true,
-        role: true,
         telegramId: true,
         notificationSettings: true,
         language: true,
       },
     })
 
-    return NextResponse.json(updatedUser)
+    return NextResponse.json({
+      ...updatedUser,
+      role: user.role,
+    })
   } catch (error) {
     console.error('Error updating profile:', error)
     return NextResponse.json(
