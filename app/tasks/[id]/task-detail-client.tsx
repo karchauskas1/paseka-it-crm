@@ -107,6 +107,18 @@ export default function TaskDetailClient({
     }
   }, [])
 
+  // Timer update effect - updates display every second when running
+  useEffect(() => {
+    if (!isTimerRunning) return
+
+    const interval = setInterval(() => {
+      // Force re-render to update displayed time
+      setElapsedTime((prev) => prev)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [isTimerRunning])
+
   // Timer state
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [timerStart, setTimerStart] = useState<Date | null>(null)
@@ -199,9 +211,26 @@ export default function TaskDetailClient({
   }
 
   // Timer handlers
-  const startTimer = () => {
-    setIsTimerRunning(true)
-    setTimerStart(new Date())
+  const startTimer = async () => {
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/time-entries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start' }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        toast({ title: error.error || 'Ошибка запуска таймера', variant: 'destructive' })
+        return
+      }
+
+      setIsTimerRunning(true)
+      setTimerStart(new Date())
+      toast({ title: 'Таймер запущен', variant: 'success' })
+    } catch (error) {
+      toast({ title: 'Ошибка запуска таймера', variant: 'destructive' })
+    }
   }
 
   const pauseTimer = () => {
@@ -214,27 +243,26 @@ export default function TaskDetailClient({
   }
 
   const stopTimer = async () => {
-    let totalSeconds = elapsedTime
-    if (timerStart) {
-      totalSeconds += Math.floor((new Date().getTime() - timerStart.getTime()) / 1000)
-    }
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/time-entries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stop' }),
+      })
 
-    if (totalSeconds > 0) {
-      try {
-        await fetch(`/api/tasks/${task.id}/time-entries`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ duration: totalSeconds }),
-        })
-        toast({ title: 'Время записано', variant: 'success' })
-      } catch (error) {
-        toast({ title: 'Ошибка записи времени', variant: 'destructive' })
+      if (!res.ok) {
+        const error = await res.json()
+        toast({ title: error.error || 'Ошибка остановки таймера', variant: 'destructive' })
+        return
       }
-    }
 
-    setIsTimerRunning(false)
-    setTimerStart(null)
-    setElapsedTime(0)
+      toast({ title: 'Время записано', variant: 'success' })
+      setIsTimerRunning(false)
+      setTimerStart(null)
+      setElapsedTime(0)
+    } catch (error) {
+      toast({ title: 'Ошибка записи времени', variant: 'destructive' })
+    }
   }
 
   const formatTime = (seconds: number) => {
