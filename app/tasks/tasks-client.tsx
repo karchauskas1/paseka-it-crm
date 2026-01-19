@@ -82,6 +82,8 @@ export default function TasksClient({
   })
 
   const filteredTasks = tasks.filter((task) => {
+    if (!task || !task.title) return false
+
     const matchesSearch = task.title
       .toLowerCase()
       .includes(searchQuery.toLowerCase())

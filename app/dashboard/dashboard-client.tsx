@@ -88,14 +88,14 @@ export default function DashboardClient({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
-              <p className="text-sm text-gray-600">{workspace.name}</p>
+              <h1 className="text-2xl font-bold text-foreground">PASEKA IT CRM</h1>
+              <p className="text-sm text-muted-foreground">{workspace.name}</p>
             </div>
             <UserMenu user={user} workspace={workspace} userRole={workspace.role} />
           </div>
@@ -103,49 +103,49 @@ export default function DashboardClient({
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b">
+      <nav className="bg-card border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             <Link
               href="/dashboard"
-              className="py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600"
+              className="py-4 px-1 border-b-2 border-primary font-medium text-sm text-primary"
             >
               Dashboard
             </Link>
             <Link
               href="/projects"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Проекты
             </Link>
             <Link
               href="/clients"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Клиенты
             </Link>
             <Link
               href="/tasks"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Задачи
             </Link>
             <Link
               href="/calendar"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Календарь
             </Link>
             <Link
               href="/activity"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Активность
             </Link>
             {(user.role === 'ADMIN' || user.role === 'OWNER') && (
               <Link
                 href="/admin"
-                className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
               >
                 Администрирование
               </Link>
@@ -165,8 +165,8 @@ export default function DashboardClient({
         {/* Header with period selector */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Добро пожаловать, {user.name}!</h2>
-            <p className="mt-1 text-sm text-gray-600">
+            <h2 className="text-2xl font-bold text-foreground">Добро пожаловать, {user.name}!</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
               Обзор вашей работы и текущих проектов
             </p>
           </div>
