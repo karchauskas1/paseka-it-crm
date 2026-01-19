@@ -14,6 +14,7 @@ import {
   PeriodSelector,
 } from '@/components/dashboard'
 import { UserMenu } from '@/components/layout/user-menu'
+import { FeedbackButton } from '@/components/feedback'
 import { RefreshCw } from 'lucide-react'
 
 interface DashboardClientProps {
@@ -156,6 +157,10 @@ export default function DashboardClient({
             >
               Гайд
             </Link>
+            <div className="flex-1" />
+            <div className="flex items-center py-2">
+              <FeedbackButton workspaceId={workspace.id} />
+            </div>
           </div>
         </div>
       </nav>
