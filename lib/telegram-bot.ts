@@ -2,13 +2,15 @@ import TelegramBot from 'node-telegram-bot-api'
 import { db } from '@/lib/db'
 
 let bot: TelegramBot | null = null
+let currentToken: string | null = null
 
 /**
  * Initialize Telegram bot with token
  */
 export function initBot(token: string): TelegramBot {
-  if (!bot || bot.token !== token) {
+  if (!bot || currentToken !== token) {
     bot = new TelegramBot(token, { polling: false })
+    currentToken = token
   }
   return bot
 }
