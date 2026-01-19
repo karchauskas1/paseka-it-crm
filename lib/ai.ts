@@ -1,3 +1,7 @@
+// Imports
+import { AIAnalysisError } from './pain-radar/errors'
+import { PainCategory, PainSeverity } from '@prisma/client'
+
 // OpenRouter API configuration
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1'
@@ -108,10 +112,7 @@ ${goals}
     `
 
     const content = await callOpenRouter([{ role: 'user', content: prompt }], 1500)
-
     return content
-
-    return ''
   } catch (error) {
     console.error('Architecture Generation Error:', error)
     return ''
@@ -181,9 +182,6 @@ function parseSuggestions(text: string): string[] {
 }
 
 // ==================== PAIN RADAR AI FUNCTIONS ====================
-
-import { AIAnalysisError } from './pain-radar/errors'
-import type { PainCategory, PainSeverity } from '@prisma/client'
 
 export interface ExtractedPainData {
   painText: string
