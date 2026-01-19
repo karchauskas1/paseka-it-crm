@@ -79,6 +79,16 @@ export default async function DashboardPage() {
     completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
   }
 
+  // Serialize dates to avoid Next.js serialization errors
+  const serializedProjects = recentProjects.map((project) => ({
+    ...project,
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString(),
+    startDate: project.startDate?.toISOString() || null,
+    endDatePlan: project.endDatePlan?.toISOString() || null,
+    endDateActual: project.endDateActual?.toISOString() || null,
+  }))
+
   return (
     <DashboardClient
       user={user}
@@ -87,7 +97,7 @@ export default async function DashboardPage() {
         role: workspaceMember.role,
       }}
       metrics={metrics}
-      recentProjects={recentProjects}
+      recentProjects={serializedProjects}
     />
   )
 }

@@ -39,11 +39,21 @@ export default async function ProjectsPage() {
     }),
   ])
 
+  // Serialize dates to avoid Next.js serialization errors
+  const serializedProjects = projects.map((project) => ({
+    ...project,
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString(),
+    startDate: project.startDate?.toISOString() || null,
+    endDatePlan: project.endDatePlan?.toISOString() || null,
+    endDateActual: project.endDateActual?.toISOString() || null,
+  }))
+
   return (
     <ProjectsClient
       user={user}
       workspace={workspaceMember.workspace}
-      projects={projects}
+      projects={serializedProjects}
       clients={clients}
     />
   )

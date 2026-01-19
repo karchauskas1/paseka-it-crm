@@ -97,9 +97,45 @@ export default async function ProjectDetailPage({
 
   const teamMembers = workspaceMember?.workspace.members.map((m) => m.user) || []
 
+  // Serialize all dates to avoid Next.js serialization errors
+  const serializedProject = {
+    ...project,
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString(),
+    startDate: project.startDate?.toISOString() || null,
+    endDatePlan: project.endDatePlan?.toISOString() || null,
+    endDateActual: project.endDateActual?.toISOString() || null,
+    tasks: project.tasks.map((task) => ({
+      ...task,
+      createdAt: task.createdAt.toISOString(),
+      updatedAt: task.updatedAt.toISOString(),
+      dueDate: task.dueDate?.toISOString() || null,
+      completedAt: task.completedAt?.toISOString() || null,
+    })),
+    architectureVersions: project.architectureVersions.map((av) => ({
+      ...av,
+      createdAt: av.createdAt.toISOString(),
+    })),
+    milestones: project.milestones.map((m) => ({
+      ...m,
+      dueDate: m.dueDate?.toISOString() || null,
+      completedAt: m.completedAt?.toISOString() || null,
+      createdAt: m.createdAt.toISOString(),
+      updatedAt: m.updatedAt.toISOString(),
+    })),
+    documents: project.documents.map((d) => ({
+      ...d,
+      uploadedAt: d.uploadedAt.toISOString(),
+    })),
+    comments: project.comments.map((c) => ({
+      ...c,
+      createdAt: c.createdAt.toISOString(),
+    })),
+  }
+
   return (
     <ProjectDetailClient
-      project={project}
+      project={serializedProject}
       user={user}
       teamMembers={teamMembers}
     />

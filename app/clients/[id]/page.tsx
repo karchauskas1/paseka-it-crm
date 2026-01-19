@@ -46,11 +46,26 @@ export default async function ClientPage({ params }: ClientPageProps) {
     notFound()
   }
 
+  // Serialize dates to avoid Next.js serialization errors
+  const serializedClient = {
+    ...client,
+    createdAt: client.createdAt.toISOString(),
+    updatedAt: client.updatedAt.toISOString(),
+    projects: client.projects.map((p) => ({
+      ...p,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+      startDate: p.startDate?.toISOString() || null,
+      endDatePlan: p.endDatePlan?.toISOString() || null,
+      endDateActual: p.endDateActual?.toISOString() || null,
+    })),
+  }
+
   return (
     <ClientDetailClient
       user={user}
       workspace={workspaceMember.workspace}
-      client={client}
+      client={serializedClient}
     />
   )
 }

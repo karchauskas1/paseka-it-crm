@@ -29,9 +29,11 @@ export default async function ClientsPage() {
     orderBy: { createdAt: 'desc' },
   })
 
-  // Добавить fallback для socialLinks если поле отсутствует в БД (для обратной совместимости)
-  const clientsWithDefaults = clients.map(client => ({
+  // Serialize dates and add fallbacks
+  const serializedClients = clients.map(client => ({
     ...client,
+    createdAt: client.createdAt.toISOString(),
+    updatedAt: client.updatedAt.toISOString(),
     socialLinks: client.socialLinks || [],
     customFields: client.customFields || {},
   }))
@@ -40,7 +42,7 @@ export default async function ClientsPage() {
     <ClientsClient
       user={user}
       workspace={workspaceMember.workspace}
-      clients={clientsWithDefaults}
+      clients={serializedClients}
     />
   )
 }
