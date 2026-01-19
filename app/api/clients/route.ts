@@ -88,9 +88,16 @@ export async function POST(request: Request) {
         customFields: customFields || {},
         createdById: user.id,
       },
+      include: {
+        _count: {
+          select: {
+            projects: true,
+          },
+        },
+      },
     })
 
-    return NextResponse.json({ client })
+    return NextResponse.json(client)
   } catch (error) {
     console.error('Create client error:', error)
     return NextResponse.json(
