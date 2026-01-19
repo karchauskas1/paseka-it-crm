@@ -23,6 +23,29 @@
 - (Опционально) Telegram Bot Token
 - (Опционально) OpenRouter API Key для AI функций
 
+## 🚢 Быстрый деплой на Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/karchauskas1/paseka-it-crm)
+
+### Настройка переменных окружения на Vercel:
+
+1. Перейдите в настройки проекта на Vercel
+2. Добавьте следующие переменные окружения:
+
+```
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+JWT_SECRET=your-super-secret-jwt-key-change-this
+OPENROUTER_API_KEY=sk-or-v1-your-key (опционально)
+TELEGRAM_BOT_TOKEN=your-bot-token (опционально)
+TELEGRAM_CHAT_ID=your-chat-id (опционально)
+```
+
+3. После деплоя выполните миграцию базы данных через Vercel CLI:
+```bash
+vercel env pull .env
+npx prisma db push
+```
+
 ## 🛠 Установка
 
 ### 1. Клонирование и установка зависимостей
