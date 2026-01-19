@@ -38,3 +38,8 @@ next-env.d.ts
 
 # prisma
 prisma/migrations
+
+# backup files
+*.backup
+*.bak
+fix_*.py
