@@ -50,11 +50,20 @@ export default async function TasksPage() {
     },
   })
 
+  // Serialize dates to avoid Next.js serialization errors
+  const serializedTasks = tasks.map((task) => ({
+    ...task,
+    createdAt: task.createdAt.toISOString(),
+    updatedAt: task.updatedAt.toISOString(),
+    dueDate: task.dueDate?.toISOString() || null,
+    completedAt: task.completedAt?.toISOString() || null,
+  }))
+
   return (
     <TasksClient
       user={user}
       workspace={workspaceMember.workspace}
-      tasks={tasks}
+      tasks={serializedTasks}
       projects={projects}
       teamMembers={teamMembers.map((m) => m.user)}
     />
