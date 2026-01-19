@@ -10,8 +10,8 @@ export default async function AdminPage() {
     redirect('/login')
   }
 
-  // Only admins can access this page
-  if (user.role !== 'ADMIN') {
+  // Only admins and owners can access this page
+  if (user.role !== 'ADMIN' && user.role !== 'OWNER') {
     redirect('/dashboard')
   }
 
@@ -50,8 +50,15 @@ export default async function AdminPage() {
       id: true,
       name: true,
       email: true,
-      role: true,
       createdAt: true,
+      workspaces: {
+        where: {
+          workspaceId: workspace.id,
+        },
+        select: {
+          role: true,
+        },
+      },
     },
     orderBy: { createdAt: 'asc' },
   })
@@ -71,7 +78,11 @@ export default async function AdminPage() {
         },
       })
       return {
-        ...user,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+        role: user.workspaces[0]?.role || 'MEMBER',
         _count: {
           tasks: tasksCount,
           projects: projectsCount,

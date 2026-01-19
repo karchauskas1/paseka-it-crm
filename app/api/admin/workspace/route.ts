@@ -45,8 +45,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only admins can update workspace settings
-    if (user.role !== 'ADMIN') {
+    // Only admins and owners can update workspace settings
+    if (user.role !== 'ADMIN' && user.role !== 'OWNER') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { UserMenu } from '@/components/layout/user-menu'
 import {
   Dialog,
   DialogContent,
@@ -134,12 +135,7 @@ export default function ClientsClient({
               <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
               <p className="text-sm text-gray-600">{workspace.name}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700">{user.name}</span>
-              <Button onClick={handleLogout} variant="outline" size="sm">
-                Выйти
-              </Button>
-            </div>
+            <UserMenu user={user} workspace={workspace} userRole={user.role} />
           </div>
         </div>
       </header>
@@ -172,7 +168,19 @@ export default function ClientsClient({
             >
               Задачи
             </Link>
-            {user.role === 'ADMIN' && (
+            <Link
+              href="/calendar"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              Календарь
+            </Link>
+            <Link
+              href="/activity"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              Активность
+            </Link>
+            {(user.role === 'ADMIN' || user.role === 'OWNER') && (
               <Link
                 href="/admin"
                 className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"

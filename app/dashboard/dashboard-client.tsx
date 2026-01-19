@@ -13,6 +13,7 @@ import {
   TeamWorkload,
   PeriodSelector,
 } from '@/components/dashboard'
+import { UserMenu } from '@/components/layout/user-menu'
 import { RefreshCw } from 'lucide-react'
 
 interface DashboardClientProps {
@@ -96,12 +97,7 @@ export default function DashboardClient({
               <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
               <p className="text-sm text-gray-600">{workspace.name}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700">{user.name}</span>
-              <Button onClick={handleLogout} variant="outline" size="sm">
-                Выйти
-              </Button>
-            </div>
+            <UserMenu user={user} workspace={workspace} userRole={workspace.role} />
           </div>
         </div>
       </header>

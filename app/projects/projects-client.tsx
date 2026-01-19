@@ -21,6 +21,7 @@ import {
   ProjectsTimeline,
   ProjectsCards,
 } from '@/components/projects'
+import { UserMenu } from '@/components/layout/user-menu'
 
 interface ProjectsClientProps {
   user: any
@@ -149,12 +150,7 @@ export default function ProjectsClient({
               <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
               <p className="text-sm text-gray-600">{workspace.name}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700">{user.name}</span>
-              <Button onClick={handleLogout} variant="outline" size="sm">
-                Выйти
-              </Button>
-            </div>
+            <UserMenu user={user} workspace={workspace} userRole={user.role} />
           </div>
         </div>
       </header>

@@ -36,6 +36,7 @@ import {
 } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from 'lucide-react'
+import { UserMenu } from '@/components/layout/user-menu'
 
 interface Event {
   id: string
@@ -159,8 +160,8 @@ export default function CalendarClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...newEvent,
-          projectId: newEvent.projectId || null,
-          clientId: newEvent.clientId || null,
+          projectId: newEvent.projectId && newEvent.projectId !== 'none' ? newEvent.projectId : null,
+          clientId: newEvent.clientId && newEvent.clientId !== 'none' ? newEvent.clientId : null,
         }),
       })
 
@@ -215,12 +216,7 @@ export default function CalendarClient({
               <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
               <p className="text-sm text-gray-600">{workspace.name}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700">{user.name}</span>
-              <Button onClick={handleLogout} variant="outline" size="sm">
-                Выйти
-              </Button>
-            </div>
+            <UserMenu user={user} workspace={workspace} userRole={user.role} />
           </div>
         </div>
       </header>
@@ -471,7 +467,7 @@ export default function CalendarClient({
                   <SelectValue placeholder="Выберите проект" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Без проекта</SelectItem>
+                  <SelectItem value="none">Без проекта</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
@@ -491,7 +487,7 @@ export default function CalendarClient({
                   <SelectValue placeholder="Выберите клиента" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Без клиента</SelectItem>
+                  <SelectItem value="none">Без клиента</SelectItem>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}

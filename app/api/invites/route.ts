@@ -1,27 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getCurrentUser, getUserWorkspace } from '@/lib/auth'
-import { checkPermission } from '@/lib/permissions'
+import { requireAuth, requirePermission, getWorkspaceRole } from '@/lib/permissions'
+import { getUserWorkspace } from '@/lib/auth'
+import { WorkspaceRole } from '@prisma/client'
 import { randomBytes } from 'crypto'
+import { z } from 'zod'
+
+const createInviteSchema = z.object({
+  role: z.enum(['VIEWER', 'MEMBER', 'ADMIN']).default('MEMBER'),
+})
 
 /**
  * GET /api/invites
  * Получить список инвайтов workspace
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const user = await getCurrentUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+    const user = await requireAuth()
     const workspace = await getUserWorkspace(user.id)
+
     if (!workspace) {
-      return NextResponse.json({ error: 'No workspace found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'No workspace found' },
+        { status: 404 }
+      )
     }
 
-    // Проверка прав
-    if (user.role !== 'ADMIN' && user.role !== 'OWNER') {
+    // Проверяем права manage_users
+    const role = await getWorkspaceRole(user.id, workspace.id)
+    if (!role || (role !== WorkspaceRole.ADMIN && role !== WorkspaceRole.OWNER)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -38,7 +45,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(invites)
   } catch (error) {
     console.error('Error fetching invites:', error)
-    return NextResponse.json({ error: 'Failed to fetch invites' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch invites' },
+      { status: 500 }
+    )
   }
 }
 
@@ -48,41 +58,34 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+    const user = await requireAuth()
     const workspace = await getUserWorkspace(user.id)
+
     if (!workspace) {
-      return NextResponse.json({ error: 'No workspace found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'No workspace found' },
+        { status: 404 }
+      )
     }
 
-    // Проверка прав
-    if (user.role !== 'ADMIN' && user.role !== 'OWNER') {
+    // Получаем роль пользователя
+    const userRole = await getWorkspaceRole(user.id, workspace.id)
+    if (!userRole || (userRole !== WorkspaceRole.ADMIN && userRole !== WorkspaceRole.OWNER)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const body = await req.json()
-    const { email, role = 'MEMBER' } = body
-
-    // Валидация роли - нельзя создавать инвайт на OWNER
-    if (role === 'OWNER') {
-      return NextResponse.json(
-        { error: 'Cannot create invite for OWNER role' },
-        { status: 400 }
-      )
-    }
+    const data = createInviteSchema.parse(body)
 
     // ADMIN не может создавать ADMIN инвайты, только OWNER
-    if (role === 'ADMIN' && user.role !== 'OWNER') {
+    if (data.role === 'ADMIN' && userRole !== WorkspaceRole.OWNER) {
       return NextResponse.json(
         { error: 'Only OWNER can invite ADMIN users' },
         { status: 403 }
       )
     }
 
-    // Генерация токена
+    // Генерация уникального токена
     const token = randomBytes(32).toString('hex')
 
     // Срок действия - 7 дней
@@ -92,9 +95,9 @@ export async function POST(req: NextRequest) {
     const invite = await db.invite.create({
       data: {
         workspaceId: workspace.id,
-        email: email || null,
+        email: null, // Всегда null - инвайт теперь только по ссылке
         token,
-        role,
+        role: data.role as WorkspaceRole,
         expiresAt,
         createdById: user.id,
       },
@@ -113,7 +116,17 @@ export async function POST(req: NextRequest) {
       inviteUrl,
     })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.errors[0].message },
+        { status: 400 }
+      )
+    }
+
     console.error('Error creating invite:', error)
-    return NextResponse.json({ error: 'Failed to create invite' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to create invite' },
+      { status: 500 }
+    )
   }
 }

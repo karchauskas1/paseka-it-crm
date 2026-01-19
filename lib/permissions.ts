@@ -1,6 +1,6 @@
 import { db } from './db'
 import { getCurrentUser } from './auth'
-import { WorkspaceRole, UserRole } from '@prisma/client'
+import { WorkspaceRole } from '@prisma/client'
 
 // Определение действий в системе
 export type Action =
@@ -19,19 +19,11 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, Action[]> = {
   OWNER: ['read', 'create', 'update', 'delete', 'manage_users', 'manage_workspace'],
 }
 
-// Аналогичная матрица для UserRole (глобальные роли)
-const USER_ROLE_PERMISSIONS: Record<UserRole, Action[]> = {
-  VIEWER: ['read'],
-  MEMBER: ['read', 'create', 'update'],
-  ADMIN: ['read', 'create', 'update', 'delete', 'manage_users'],
-  OWNER: ['read', 'create', 'update', 'delete', 'manage_users', 'manage_workspace'],
-}
-
 /**
  * Проверяет, может ли роль выполнить указанное действие
  */
-export function canPerformAction(role: WorkspaceRole | UserRole, action: Action): boolean {
-  const permissions = ROLE_PERMISSIONS[role as WorkspaceRole] || USER_ROLE_PERMISSIONS[role as UserRole]
+export function canPerformAction(role: WorkspaceRole, action: Action): boolean {
+  const permissions = ROLE_PERMISSIONS[role]
   return permissions?.includes(action) ?? false
 }
 
@@ -39,10 +31,10 @@ export function canPerformAction(role: WorkspaceRole | UserRole, action: Action)
  * Проверяет, имеет ли роль доступ выше указанного минимума
  */
 export function hasMinimumRole(
-  userRole: WorkspaceRole | UserRole,
-  minimumRole: WorkspaceRole | UserRole
+  userRole: WorkspaceRole,
+  minimumRole: WorkspaceRole
 ): boolean {
-  const roleOrder: (WorkspaceRole | UserRole)[] = ['VIEWER', 'MEMBER', 'ADMIN', 'OWNER']
+  const roleOrder: WorkspaceRole[] = ['VIEWER', 'MEMBER', 'ADMIN', 'OWNER']
   const userRoleIndex = roleOrder.indexOf(userRole)
   const minimumRoleIndex = roleOrder.indexOf(minimumRole)
   return userRoleIndex >= minimumRoleIndex
@@ -87,7 +79,7 @@ export async function checkPermission(
 export async function requirePermission(
   workspaceId: string,
   action: Action
-): Promise<{ user: { id: string; email: string; name: string; role: UserRole }; workspaceRole: WorkspaceRole }> {
+): Promise<{ user: { id: string; email: string; name: string }; workspaceRole: WorkspaceRole }> {
   const user = await getCurrentUser()
 
   if (!user) {
@@ -110,7 +102,7 @@ export async function requirePermission(
 /**
  * Проверка только авторизации (без проверки workspace)
  */
-export async function requireAuth(): Promise<{ id: string; email: string; name: string; role: UserRole }> {
+export async function requireAuth(): Promise<{ id: string; email: string; name: string }> {
   const user = await getCurrentUser()
 
   if (!user) {
@@ -181,8 +173,8 @@ export function handlePermissionError(error: unknown): { error: string; status: 
 /**
  * Получить все разрешения для роли
  */
-export function getPermissionsForRole(role: WorkspaceRole | UserRole): Action[] {
-  return ROLE_PERMISSIONS[role as WorkspaceRole] || USER_ROLE_PERMISSIONS[role as UserRole] || []
+export function getPermissionsForRole(role: WorkspaceRole): Action[] {
+  return ROLE_PERMISSIONS[role] || []
 }
 
 /**

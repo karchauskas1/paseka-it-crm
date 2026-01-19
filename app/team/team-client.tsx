@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { UserMenu } from '@/components/layout/user-menu'
 import { Home, Users, CheckCircle, Clock, UserPlus } from 'lucide-react'
 
 interface TeamMember {
@@ -69,12 +70,7 @@ export default function TeamClient({ user, workspace, members }: TeamClientProps
               <h1 className="text-2xl font-bold text-gray-900">Команда</h1>
               <p className="text-sm text-gray-600">{workspace.name}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700">{user.name}</span>
-              <Button onClick={handleLogout} variant="outline" size="sm">
-                Выйти
-              </Button>
-            </div>
+            <UserMenu user={user} workspace={workspace} userRole={user.role} />
           </div>
         </div>
       </header>

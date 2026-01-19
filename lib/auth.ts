@@ -60,13 +60,35 @@ export async function getCurrentUser() {
       id: true,
       email: true,
       name: true,
-      role: true,
       telegramId: true,
       createdAt: true,
+      workspaces: {
+        select: {
+          role: true,
+          workspace: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        take: 1, // Берём первый workspace пользователя
+      },
     },
   })
 
-  return user
+  if (!user) return null
+
+  // Возвращаем пользователя с ролью из WorkspaceMember
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    telegramId: user.telegramId,
+    createdAt: user.createdAt,
+    role: user.workspaces?.[0]?.role || 'MEMBER',
+    workspace: user.workspaces?.[0]?.workspace,
+  }
 }
 
 export async function getUserWorkspace(userId: string) {

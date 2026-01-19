@@ -82,7 +82,10 @@ export default async function DashboardPage() {
   return (
     <DashboardClient
       user={user}
-      workspace={workspaceMember.workspace}
+      workspace={{
+        ...workspaceMember.workspace,
+        role: workspaceMember.role,
+      }}
       metrics={metrics}
       recentProjects={recentProjects}
     />

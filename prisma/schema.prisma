@@ -16,7 +16,6 @@ model User {
   email     String   @unique
   password  String
   name      String
-  role      UserRole @default(MEMBER)
 
   telegramId String? @unique @map("telegram_id")
 
@@ -42,13 +41,6 @@ model User {
   createdEvents Event[] @relation("EventCreator")
 
   @@map("users")
-}
-
-enum UserRole {
-  OWNER
-  ADMIN
-  MEMBER
-  VIEWER
 }
 
 // ==================== WORKSPACE ====================
