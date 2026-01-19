@@ -12,8 +12,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only admins can update users
-    if (user.role !== 'ADMIN') {
+    // Only admins and owners can update users
+    if (user.role !== 'ADMIN' && user.role !== 'OWNER') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -82,12 +82,23 @@ export async function PATCH(
         id: true,
         name: true,
         email: true,
-        role: true,
         createdAt: true,
+        workspaces: {
+          where: {
+            workspaceId: workspace.id,
+          },
+          select: {
+            role: true,
+          },
+          take: 1,
+        },
       },
     })
 
-    return NextResponse.json(updatedUser)
+    return NextResponse.json({
+      ...updatedUser,
+      role: updatedUser?.workspaces?.[0]?.role || 'MEMBER',
+    })
   } catch (error) {
     console.error('Error updating user:', error)
     return NextResponse.json(
@@ -107,8 +118,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only admins can delete users
-    if (user.role !== 'ADMIN') {
+    // Only admins and owners can delete users
+    if (user.role !== 'ADMIN' && user.role !== 'OWNER') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
