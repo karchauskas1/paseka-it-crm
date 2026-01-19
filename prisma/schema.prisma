@@ -1,0 +1,701 @@
+// Prisma schema for PASEKA CRM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USER MANAGEMENT ====================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(MEMBER)
+
+  telegramId String? @unique @map("telegram_id")
+
+  // Настройки уведомлений и язык
+  notificationSettings Json @default("{}") @map("notification_settings")
+  language String @default("ru")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspaces WorkspaceMember[]
+  createdClients Client[] @relation("ClientCreator")
+  createdProjects Project[] @relation("ProjectCreator")
+  assignedTasks Task[] @relation("TaskAssignee")
+  createdTasks Task[] @relation("TaskCreator")
+  comments Comment[]
+  activities Activity[]
+  aiSuggestions AISuggestion[]
+  notifications Notification[]
+  timeEntries TimeEntry[]
+  communications Communication[] @relation("CommunicationCreator")
+  createdInvites Invite[] @relation("InviteCreator")
+  createdEvents Event[] @relation("EventCreator")
+
+  @@map("users")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+// ==================== WORKSPACE ====================
+
+model Workspace {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+
+  // Интеграции
+  telegramBotToken  String? @map("telegram_bot_token")
+  telegramChatId    String? @map("telegram_chat_id")
+  openRouterApiKey  String? @map("openrouter_api_key")
+  defaultAiModel    String? @map("default_ai_model")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  members     WorkspaceMember[]
+  clients     Client[]
+  projects    Project[]
+  tasks       Task[]
+  savedViews  SavedView[]
+  customFields CustomField[]
+  invites     Invite[]
+  events      Event[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  userId      String   @map("user_id")
+  role        WorkspaceRole @default(MEMBER)
+
+  joinedAt    DateTime @default(now()) @map("joined_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@map("workspace_members")
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+// ==================== CLIENTS ====================
+
+model Client {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+
+  name        String
+  company     String?
+  email       String?
+  phone       String?
+  source      ClientSource?
+  status      ClientStatus @default(ACTIVE)
+
+  notes       String?
+  customFields Json @default("{}") @map("custom_fields")
+
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy   User      @relation("ClientCreator", fields: [createdById], references: [id])
+  projects    Project[]
+  communications Communication[]
+  events      Event[] @relation("EventClient")
+
+  @@index([workspaceId])
+  @@index([status])
+  @@map("clients")
+}
+
+enum ClientSource {
+  WARM
+  COLD
+  REFERRAL
+  OFFLINE
+  WEBSITE
+  SOCIAL
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+// ==================== PROJECTS ====================
+
+model Project {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  clientId    String?  @map("client_id")
+
+  name        String
+  description String?
+  type        ProjectType
+  status      ProjectStatus @default(QUALIFICATION)
+  priority    Priority @default(MEDIUM)
+
+  // Боль и контекст
+  pain        String?
+  context     String?
+  whyProblem  String? @map("why_problem")
+  consequences String?
+
+  // Задачи и цели
+  goals       String?
+  expectedResult String? @map("expected_result")
+  successCriteria String? @map("success_criteria")
+
+  // Архитектура решения
+  architectureVersions ArchitectureVersion[]
+
+  // Финансы
+  budget      Float?
+  revenue     Float?
+  currency    String @default("RUB")
+
+  // Даты
+  startDate   DateTime? @map("start_date")
+  endDatePlan DateTime? @map("end_date_plan")
+  endDateFact DateTime? @map("end_date_fact")
+
+  // Решения
+  keyDecision String? @map("key_decision")
+  decisionReason String? @map("decision_reason")
+
+  // Гостевой доступ
+  guestToken  String? @unique @map("guest_token")
+  guestAccess Boolean @default(false) @map("guest_access")
+
+  customFields Json @default("{}") @map("custom_fields")
+
+  responsibleId String? @map("responsible_id")
+  createdById   String  @map("created_by_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Шаблоны
+  isTemplate    Boolean @default(false) @map("is_template")
+  templateName  String? @map("template_name")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client      Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy   User      @relation("ProjectCreator", fields: [createdById], references: [id])
+  tasks       Task[]
+  milestones  Milestone[]
+  documents   Document[]
+  comments    Comment[]
+  activities  Activity[]
+  aiSuggestions AISuggestion[]
+  events      Event[] @relation("EventProject")
+
+  @@index([workspaceId])
+  @@index([clientId])
+  @@index([status])
+  @@index([type])
+  @@map("projects")
+}
+
+enum ProjectType {
+  MONEY
+  GROWTH
+  INVESTMENT
+}
+
+enum ProjectStatus {
+  LEAD
+  QUALIFICATION
+  BRIEFING
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  REJECTED
+  ARCHIVED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// ==================== ARCHITECTURE VERSIONS ====================
+
+model ArchitectureVersion {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+
+  version     Int
+  title       String
+  description String?
+  solution    String?
+  hypotheses  String?
+  constraints String?
+  comments    String?
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, version])
+  @@index([projectId])
+  @@map("architecture_versions")
+}
+
+// ==================== TASKS ====================
+
+model Task {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  projectId   String?  @map("project_id")
+  parentId    String?  @map("parent_id")
+
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  priority    Priority @default(MEDIUM)
+
+  // Оценка и трекинг
+  complexity  TaskComplexity?
+  estimatedHours Float? @map("estimated_hours")
+  actualHours    Float? @map("actual_hours")
+
+  // Даты
+  dueDate     DateTime? @map("due_date")
+  startDate   DateTime? @map("start_date")
+  completedAt DateTime? @map("completed_at")
+
+  // Связи
+  tags        String[]
+  dependsOn   String[] @map("depends_on")
+
+  assigneeId  String? @map("assignee_id")
+  createdById String  @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent      Task?     @relation("TaskSubtasks", fields: [parentId], references: [id])
+  subtasks    Task[]    @relation("TaskSubtasks")
+  assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdBy   User      @relation("TaskCreator", fields: [createdById], references: [id])
+  comments    Comment[]
+  timeEntries TimeEntry[]
+  events      Event[] @relation("EventTask")
+
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([status])
+  @@index([assigneeId])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  BLOCKED
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskComplexity {
+  S
+  M
+  L
+  XL
+}
+
+// ==================== MILESTONES ====================
+
+model Milestone {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+
+  title       String
+  description String?
+  status      MilestoneStatus @default(PENDING)
+
+  dueDate     DateTime? @map("due_date")
+  completedAt DateTime? @map("completed_at")
+
+  order       Int @default(0)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("milestones")
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// ==================== DOCUMENTS ====================
+
+model Document {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+
+  name        String
+  type        DocumentType
+  url         String
+  size        Int?
+  mimeType    String? @map("mime_type")
+
+  version     Int @default(1)
+
+  uploadedById String @map("uploaded_by_id")
+  uploadedAt   DateTime @default(now()) @map("uploaded_at")
+
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("documents")
+}
+
+enum DocumentType {
+  CONTRACT
+  BRIEF
+  INVOICE
+  PRESENTATION
+  OTHER
+}
+
+// ==================== COMMENTS ====================
+
+model Comment {
+  id          String   @id @default(uuid())
+  projectId   String?  @map("project_id")
+  taskId      String?  @map("task_id")
+
+  content     String
+
+  authorId    String   @map("author_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task        Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([taskId])
+  @@map("comments")
+}
+
+// ==================== ACTIVITY LOG ====================
+
+model Activity {
+  id          String   @id @default(uuid())
+  workspaceId String?  @map("workspace_id")
+  projectId   String?  @map("project_id")
+
+  type        ActivityType
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id")
+
+  action      String
+  oldValue    Json?    @map("old_value")
+  newValue    Json?    @map("new_value")
+
+  userId      String   @map("user_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("activities")
+}
+
+enum ActivityType {
+  CREATE
+  UPDATE
+  DELETE
+  COMMENT
+  STATUS_CHANGE
+  ASSIGNMENT
+}
+
+// ==================== AI SUGGESTIONS ====================
+
+model AISuggestion {
+  id          String   @id @default(uuid())
+  projectId   String?  @map("project_id")
+
+  fieldType   String   @map("field_type")
+  fieldId     String   @map("field_id")
+  context     Json
+  suggestions Json
+
+  confidence  Float    @default(0.8)
+
+  userId      String   @map("user_id")
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([fieldId])
+  @@map("ai_suggestions")
+}
+
+// ==================== SAVED VIEWS ====================
+
+model SavedView {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+
+  name        String
+  type        ViewType
+  config      Json
+
+  // WIP-лимиты для Kanban
+  wipLimits   Json?    @map("wip_limits")
+
+  isPinned    Boolean  @default(false) @map("is_pinned")
+  isDefault   Boolean  @default(false) @map("is_default")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("saved_views")
+}
+
+enum ViewType {
+  TABLE
+  KANBAN
+  CALENDAR
+  GANTT
+  LIST
+}
+
+// ==================== CUSTOM FIELDS ====================
+
+model CustomField {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+
+  entityType  String   @map("entity_type")
+  name        String
+  fieldType   FieldType @map("field_type")
+
+  options     Json?
+  required    Boolean  @default(false)
+
+  order       Int      @default(0)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, entityType])
+  @@map("custom_fields")
+}
+
+enum FieldType {
+  TEXT
+  NUMBER
+  DATE
+  SELECT
+  MULTISELECT
+  CHECKBOX
+  URL
+  EMAIL
+  PHONE
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+
+  type        NotificationType
+  title       String
+  message     String?
+
+  entityType  String?  @map("entity_type")
+  entityId    String?  @map("entity_id")
+
+  isRead      Boolean  @default(false) @map("is_read")
+  readAt      DateTime? @map("read_at")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_DUE_SOON
+  TASK_COMPLETED
+  PROJECT_STATUS_CHANGED
+  COMMENT_ADDED
+  MENTION
+  DEADLINE_APPROACHING
+}
+
+// ==================== TIME ENTRIES ====================
+
+model TimeEntry {
+  id        String   @id @default(uuid())
+  taskId    String   @map("task_id")
+  userId    String   @map("user_id")
+
+  startedAt DateTime @map("started_at")
+  endedAt   DateTime? @map("ended_at")
+  duration  Int?     // в секундах
+  notes     String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@map("time_entries")
+}
+
+// ==================== COMMUNICATIONS ====================
+
+model Communication {
+  id          String   @id @default(uuid())
+  clientId    String   @map("client_id")
+
+  type        CommunicationType
+  subject     String?
+  content     String
+
+  date        DateTime @default(now())
+
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy   User     @relation("CommunicationCreator", fields: [createdById], references: [id])
+
+  @@index([clientId])
+  @@map("communications")
+}
+
+enum CommunicationType {
+  CALL
+  EMAIL
+  MEETING
+  NOTE
+}
+
+// ==================== INVITES ====================
+
+model Invite {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+
+  email       String?
+  token       String   @unique
+  role        WorkspaceRole @default(MEMBER)
+
+  expiresAt   DateTime @map("expires_at")
+  usedAt      DateTime? @map("used_at")
+  usedById    String?  @map("used_by_id")
+
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy   User      @relation("InviteCreator", fields: [createdById], references: [id])
+
+  @@index([token])
+  @@index([workspaceId])
+  @@map("invites")
+}
+
+// ==================== EVENTS (CALENDAR) ====================
+
+model Event {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+
+  title       String
+  description String?
+  startDate   DateTime @map("start_date")
+  endDate     DateTime? @map("end_date")
+  allDay      Boolean  @default(false) @map("all_day")
+  type        EventType
+
+  // Связи с сущностями (опционально)
+  projectId   String?  @map("project_id")
+  taskId      String?  @map("task_id")
+  clientId    String?  @map("client_id")
+
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?  @relation("EventProject", fields: [projectId], references: [id], onDelete: SetNull)
+  task        Task?     @relation("EventTask", fields: [taskId], references: [id], onDelete: SetNull)
+  client      Client?   @relation("EventClient", fields: [clientId], references: [id], onDelete: SetNull)
+  createdBy   User      @relation("EventCreator", fields: [createdById], references: [id])
+
+  @@index([workspaceId])
+  @@index([startDate])
+  @@map("events")
+}
+
+enum EventType {
+  MEETING
+  REMINDER
+  DEADLINE
+  TASK_DUE
+  MILESTONE
+}
