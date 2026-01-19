@@ -39,6 +39,7 @@ model User {
   communications Communication[] @relation("CommunicationCreator")
   createdInvites Invite[] @relation("InviteCreator")
   createdEvents Event[] @relation("EventCreator")
+  createdFeedback Feedback[] @relation("FeedbackCreator")
 
   @@map("users")
 }
@@ -67,6 +68,7 @@ model Workspace {
   customFields CustomField[]
   invites     Invite[]
   events      Event[]
+  feedback    Feedback[] @relation("WorkspaceFeedback")
 
   @@map("workspaces")
 }
@@ -683,6 +685,44 @@ model Event {
   @@index([workspaceId])
   @@index([startDate])
   @@map("events")
+}
+
+// ==================== FEEDBACK ====================
+
+model Feedback {
+  id          String       @id @default(uuid())
+  workspaceId String       @map("workspace_id")
+
+  type        FeedbackType
+  title       String
+  description String
+  status      FeedbackStatus @default(OPEN)
+  priority    Priority?
+
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation("WorkspaceFeedback", fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy   User      @relation("FeedbackCreator", fields: [createdById], references: [id])
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("feedback")
+}
+
+enum FeedbackType {
+  BUG
+  FEATURE
+  IMPROVEMENT
+}
+
+enum FeedbackStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
 }
 
 enum EventType {
