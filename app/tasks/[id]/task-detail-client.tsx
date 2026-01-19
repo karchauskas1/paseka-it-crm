@@ -87,6 +87,11 @@ export default function TaskDetailClient({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [renderError, setRenderError] = useState<string | null>(null)
 
+  // Timer state
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
+  const [timerStart, setTimerStart] = useState<Date | null>(null)
+  const [elapsedTime, setElapsedTime] = useState(0)
+
   // Error logging on mount
   useEffect(() => {
     try {
@@ -118,11 +123,6 @@ export default function TaskDetailClient({
 
     return () => clearInterval(interval)
   }, [isTimerRunning])
-
-  // Timer state
-  const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [timerStart, setTimerStart] = useState<Date | null>(null)
-  const [elapsedTime, setElapsedTime] = useState(0)
 
   const updateTaskField = useCallback(
     async (field: string, value: any) => {
@@ -313,6 +313,12 @@ export default function TaskDetailClient({
             <span className="text-gray-400">/</span>
             <Link href="/tasks" className="text-gray-600 hover:text-gray-900">
               Задачи
+            </Link>
+                        <Link
+              href={`/pain-radar?workspace=${workspace.id}`}
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            >
+              Pain Radar
             </Link>
             {task.project && (
               <>

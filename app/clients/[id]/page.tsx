@@ -57,7 +57,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
       updatedAt: p.updatedAt.toISOString(),
       startDate: p.startDate?.toISOString() || null,
       endDatePlan: p.endDatePlan?.toISOString() || null,
-      endDateActual: p.endDateActual?.toISOString() || null,
+      endDateFact: p.endDateFact?.toISOString() || null,
     })),
   }
 

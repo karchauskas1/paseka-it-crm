@@ -46,7 +46,7 @@ export default async function ProjectsPage() {
     updatedAt: project.updatedAt.toISOString(),
     startDate: project.startDate?.toISOString() || null,
     endDatePlan: project.endDatePlan?.toISOString() || null,
-    endDateActual: project.endDateActual?.toISOString() || null,
+    endDateFact: project.endDateFact?.toISOString() || null,
   }))
 
   return (

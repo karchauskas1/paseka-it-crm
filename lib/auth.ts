@@ -115,3 +115,15 @@ export async function deleteSessionCookie() {
   const cookieStore = await cookies()
   cookieStore.delete('session')
 }
+
+export async function validateWorkspaceAccess(
+  userId: string,
+  workspaceId: string
+): Promise<boolean> {
+  const member = await db.workspaceMember.findUnique({
+    where: {
+      workspaceId_userId: { workspaceId, userId }
+    }
+  })
+  return !!member
+}

@@ -41,6 +41,7 @@ model User {
   createdInvites Invite[] @relation("InviteCreator")
   createdEvents Event[] @relation("EventCreator")
   createdFeedback Feedback[] @relation("FeedbackCreator")
+  createdPainKeywords PainKeyword[] @relation("PainKeywordCreator")
 
   @@map("users")
 }
@@ -70,6 +71,9 @@ model Workspace {
   invites     Invite[]
   events      Event[]
   feedback    Feedback[] @relation("WorkspaceFeedback")
+  painKeywords    PainKeyword[]
+  extractedPains  ExtractedPain[]
+  painScans       PainScan[]
 
   @@map("workspaces")
 }
@@ -734,4 +738,158 @@ enum EventType {
   DEADLINE
   TASK_DUE
   MILESTONE
+}
+
+// ==================== PAIN RADAR ====================
+
+model PainKeyword {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+
+  keyword     String
+  category    String?
+  isActive    Boolean  @default(true) @map("is_active")
+
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy   User @relation("PainKeywordCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  posts       SocialPost[]
+  scans       PainScan[]
+
+  @@index([workspaceId])
+  @@index([keyword])
+  @@map("pain_keywords")
+}
+
+model SocialPost {
+  id          String   @id @default(uuid())
+  keywordId   String   @map("keyword_id")
+
+  platform    SocialPlatform
+  platformId  String   @map("platform_id")
+
+  author      String
+  authorUrl   String?  @map("author_url")
+  content     String   @db.Text
+  url         String
+
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  engagement  Float    @default(0)
+
+  publishedAt DateTime @map("published_at")
+  fetchedAt   DateTime @default(now()) @map("fetched_at")
+
+  isAnalyzed  Boolean  @default(false) @map("is_analyzed")
+  analyzedAt  DateTime? @map("analyzed_at")
+
+  keyword     PainKeyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  pains       ExtractedPain[]
+
+  @@unique([platform, platformId])
+  @@index([keywordId])
+  @@index([keywordId, isAnalyzed])
+  @@index([publishedAt(sort: Desc)])
+  @@map("social_posts")
+}
+
+enum SocialPlatform {
+  REDDIT
+  TWITTER
+  THREADS
+  INSTAGRAM
+  PIKABU
+}
+
+model ExtractedPain {
+  id          String   @id @default(uuid())
+  postId      String   @map("post_id")
+  workspaceId String   @map("workspace_id")
+
+  painText    String   @db.Text @map("pain_text")
+  category    PainCategory
+  severity    PainSeverity @default(MEDIUM)
+
+  sentiment   Float
+  confidence  Float    @default(0.8)
+
+  keywords    String[]
+  context     String?  @db.Text
+
+  frequency   Int      @default(1)
+  trend       Float    @default(0)
+
+  aiInsights  Json?    @map("ai_insights")
+  linkedProjectIds String[] @default([]) @map("linked_project_ids")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  post        SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([category])
+  @@index([severity])
+  @@index([postId])
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([workspaceId, severity, createdAt(sort: Desc)])
+  @@map("extracted_pains")
+}
+
+enum PainCategory {
+  TIME_MANAGEMENT
+  COST
+  TECHNICAL
+  PROCESS
+  COMMUNICATION
+  QUALITY
+  SCALABILITY
+  SECURITY
+  OTHER
+}
+
+enum PainSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model PainScan {
+  id          String   @id @default(uuid())
+  keywordId   String   @map("keyword_id")
+  workspaceId String   @map("workspace_id")
+
+  platform    SocialPlatform
+  status      ScanStatus @default(PENDING)
+
+  postsFound  Int      @default(0) @map("posts_found")
+  postsNew    Int      @default(0) @map("posts_new")
+  painsExtracted Int   @default(0) @map("pains_extracted")
+
+  errorMessage String? @map("error_message")
+
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  keyword     PainKeyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([keywordId])
+  @@index([workspaceId, status, createdAt(sort: Desc)])
+  @@map("pain_scans")
+}
+
+enum ScanStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
 }

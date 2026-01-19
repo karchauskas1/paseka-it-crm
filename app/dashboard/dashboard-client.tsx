@@ -147,6 +147,12 @@ export default function DashboardClient({
             >
               Активность
             </Link>
+            <Link
+              href={`/pain-radar?workspace=${workspace.id}`}
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
+            >
+              Pain Radar
+            </Link>
             {(user.role === 'ADMIN' || user.role === 'OWNER') && (
               <Link
                 href="/admin"

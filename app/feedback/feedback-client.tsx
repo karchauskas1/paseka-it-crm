@@ -241,7 +241,13 @@ export default function FeedbackClient({
             >
               Активность
             </Link>
-            <Link
+                        <Link
+              href={`/pain-radar?workspace=${workspace.id}`}
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
+            >
+              Pain Radar
+            </Link>
+<Link
               href="/feedback"
               className="py-4 px-1 border-b-2 border-primary font-medium text-sm text-primary"
             >
