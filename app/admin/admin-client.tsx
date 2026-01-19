@@ -51,6 +51,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { CustomFieldManager } from '@/components/custom-fields/custom-field-manager'
+import { FeedbackButton } from '@/components/feedback'
 
 interface AdminClientProps {
   user: any
@@ -415,6 +416,10 @@ export default function AdminClient({
             >
               Гайд
             </Link>
+            <div className="flex-1" />
+            <div className="flex items-center py-2">
+              <FeedbackButton workspaceId={workspace.id} />
+            </div>
           </div>
         </div>
       </nav>

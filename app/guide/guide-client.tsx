@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { UserMenu } from '@/components/layout/user-menu'
+import { FeedbackButton } from '@/components/feedback'
 import {
   Users,
   FolderKanban,
@@ -116,6 +117,10 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
             >
               Гайд
             </Link>
+            <div className="flex-1" />
+            <div className="flex items-center py-2">
+              <FeedbackButton workspaceId={workspace.id} />
+            </div>
           </div>
         </div>
       </nav>

@@ -39,6 +39,7 @@ import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from 'lucid
 import { UserMenu } from '@/components/layout/user-menu'
 import { TaskDetailDialog } from '@/components/tasks/task-detail-dialog'
 import { useToast } from '@/lib/hooks/use-toast'
+import { FeedbackButton } from '@/components/feedback'
 
 interface Event {
   id: string
@@ -322,6 +323,10 @@ export default function CalendarClient({
             >
               Гайд
             </Link>
+            <div className="flex-1" />
+            <div className="flex items-center py-2">
+              <FeedbackButton workspaceId={workspace.id} />
+            </div>
           </div>
         </div>
       </nav>

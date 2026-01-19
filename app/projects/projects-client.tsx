@@ -22,6 +22,7 @@ import {
   ProjectsCards,
 } from '@/components/projects'
 import { UserMenu } from '@/components/layout/user-menu'
+import { FeedbackButton } from '@/components/feedback'
 
 interface ProjectsClientProps {
   user: any
@@ -209,6 +210,10 @@ export default function ProjectsClient({
             >
               Гайд
             </Link>
+            <div className="flex-1" />
+            <div className="flex items-center py-2">
+              <FeedbackButton workspaceId={workspace.id} />
+            </div>
           </div>
         </div>
       </nav>

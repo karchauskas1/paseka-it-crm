@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { UserMenu } from '@/components/layout/user-menu'
+import { FeedbackButton } from '@/components/feedback'
 import { CustomFieldRenderer } from '@/components/custom-fields/custom-field-renderer'
 import {
   Dialog,
@@ -245,6 +246,10 @@ export default function ClientsClient({
             >
               Гайд
             </Link>
+            <div className="flex-1" />
+            <div className="flex items-center py-2">
+              <FeedbackButton workspaceId={workspace.id} />
+            </div>
           </div>
         </div>
       </nav>

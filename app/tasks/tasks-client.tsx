@@ -35,6 +35,7 @@ import {
 } from '@/lib/validations/task'
 import KanbanBoard from '@/components/views/kanban-board'
 import { TaskDetailDialog } from '@/components/tasks/task-detail-dialog'
+import { FeedbackButton } from '@/components/feedback'
 import {
   Plus,
   Search,
@@ -272,6 +273,10 @@ export default function TasksClient({
             >
               Гайд
             </Link>
+            <div className="flex-1" />
+            <div className="flex items-center py-2">
+              <FeedbackButton workspaceId={workspace.id} />
+            </div>
           </div>
         </div>
       </nav>

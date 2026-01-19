@@ -34,6 +34,7 @@ import {
 } from '@/lib/validations/feedback'
 import { priorityLabels, priorityColors } from '@/lib/validations/task'
 import { Plus, Search, User, Calendar, Trash2 } from 'lucide-react'
+import { FeedbackButton } from '@/components/feedback'
 
 interface FeedbackClientProps {
   user: any
@@ -256,6 +257,10 @@ export default function FeedbackClient({
             >
               Гайд
             </Link>
+            <div className="flex-1" />
+            <div className="flex items-center py-2">
+              <FeedbackButton workspaceId={workspace.id} />
+            </div>
           </div>
         </div>
       </nav>

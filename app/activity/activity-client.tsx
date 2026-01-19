@@ -25,6 +25,7 @@ import {
   Calendar,
 } from 'lucide-react'
 import { UserMenu } from '@/components/layout/user-menu'
+import { FeedbackButton } from '@/components/feedback'
 
 interface Activity {
   id: string
@@ -210,6 +211,10 @@ export default function ActivityClient({
             >
               Гайд
             </Link>
+            <div className="flex-1" />
+            <div className="flex items-center py-2">
+              <FeedbackButton workspaceId={workspace.id} />
+            </div>
           </div>
         </div>
       </nav>
