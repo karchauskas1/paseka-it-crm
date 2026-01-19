@@ -15,6 +15,20 @@ export async function POST(request: Request) {
 
     const user = await db.user.findUnique({
       where: { email },
+      include: {
+        workspaces: {
+          select: {
+            role: true,
+            workspace: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          take: 1,
+        },
+      },
     })
 
     if (!user) {
@@ -33,10 +47,12 @@ export async function POST(request: Request) {
       )
     }
 
+    const role = user.workspaces?.[0]?.role || 'MEMBER'
+
     const token = await createSession({
       userId: user.id,
       email: user.email,
-      role: user.role,
+      role: role,
     })
 
     await setSessionCookie(token)
@@ -46,7 +62,7 @@ export async function POST(request: Request) {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: role,
       },
     })
   } catch (error) {
