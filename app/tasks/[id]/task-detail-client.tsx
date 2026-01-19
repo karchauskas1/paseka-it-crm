@@ -384,7 +384,7 @@ export default function TaskDetailClient({
                   <div key={comment.id} className="border-b pb-4 last:border-0">
                     <div className="flex items-start justify-between mb-2">
                       <span className="font-medium text-gray-900">
-                        {comment.author.name}
+                        {comment.author?.name || 'Неизвестный'}
                       </span>
                       <span className="text-sm text-gray-500">
                         {comment.createdAt ? format(new Date(comment.createdAt), 'd MMM yyyy, HH:mm', {
@@ -483,7 +483,7 @@ export default function TaskDetailClient({
                 <div>
                   <Label className="text-xs text-gray-500">Исполнитель</Label>
                   <Select
-                    value={task.assigneeId || ''}
+                    value={task.assigneeId ?? ''}
                     onValueChange={(v) => updateTaskField('assigneeId', v || null)}
                   >
                     <SelectTrigger className="mt-1">
@@ -504,7 +504,7 @@ export default function TaskDetailClient({
                   <Label className="text-xs text-gray-500">Срок выполнения</Label>
                   <Input
                     type="date"
-                    value={task.dueDate && task.dueDate !== 'null' ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''}
+                    value={task.dueDate && task.dueDate !== 'null' && task.dueDate !== '' ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''}
                     onChange={(e) =>
                       updateTaskField('dueDate', e.target.value || null)
                     }
