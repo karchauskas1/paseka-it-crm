@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react'
 import { AppLayout } from '@/components/layout'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -13,6 +12,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { useToast } from '@/lib/hooks/use-toast'
 import {
   Send,
@@ -25,6 +31,8 @@ import {
   Check,
   MessageSquare,
   Sparkles,
+  Menu,
+  ChevronDown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -114,6 +122,7 @@ export default function AIChatClient({ user, workspace }: AIChatClientProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const activeSession = sessions.find((s) => s.id === activeSessionId)!
@@ -226,6 +235,7 @@ export default function AIChatClient({ user, workspace }: AIChatClientProps) {
       },
     ])
     setActiveSessionId(newId)
+    setSidebarOpen(false)
   }
 
   const deleteSession = (sessionId: string) => {
@@ -256,94 +266,124 @@ export default function AIChatClient({ user, workspace }: AIChatClientProps) {
     )
   }
 
+  const selectSession = (sessionId: string) => {
+    setActiveSessionId(sessionId)
+    setSidebarOpen(false)
+  }
+
   const modelInfo = AI_MODELS[activeSession.model as keyof typeof AI_MODELS]
+
+  // Session sidebar content (shared between desktop sidebar and mobile sheet)
+  const SessionsList = () => (
+    <div className="flex flex-col h-full">
+      <Button onClick={createNewSession} className="w-full mb-4">
+        <Plus className="h-4 w-4 mr-2" />
+        Новый чат
+      </Button>
+
+      <div className="flex-1 overflow-y-auto space-y-2">
+        {sessions.map((session) => (
+          <div
+            key={session.id}
+            className={cn(
+              'p-3 rounded-lg cursor-pointer group flex items-center justify-between touch-manipulation',
+              session.id === activeSessionId
+                ? 'bg-primary/10 border border-primary/20'
+                : 'hover:bg-muted active:bg-muted'
+            )}
+            onClick={() => selectSession(session.id)}
+          >
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <MessageSquare className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+              <span className="text-sm truncate">{session.title}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="opacity-0 group-hover:opacity-100 h-8 w-8 p-0 md:h-6 md:w-6"
+              onClick={(e) => {
+                e.stopPropagation()
+                deleteSession(session.id)
+              }}
+            >
+              <Trash2 className="h-4 w-4 md:h-3 md:w-3 text-muted-foreground hover:text-destructive" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/ai-chat" userRole={user.role}>
-      <div className="flex h-[calc(100vh-120px)]">
-        {/* Sidebar with sessions */}
-        <div className="w-64 bg-gray-50 border-r p-4 flex flex-col">
-          <Button onClick={createNewSession} className="w-full mb-4">
-            <Plus className="h-4 w-4 mr-2" />
-            Новый чат
-          </Button>
-
-          <div className="flex-1 overflow-y-auto space-y-2">
-            {sessions.map((session) => (
-              <div
-                key={session.id}
-                className={cn(
-                  'p-3 rounded-lg cursor-pointer group flex items-center justify-between',
-                  session.id === activeSessionId
-                    ? 'bg-blue-100 border border-blue-200'
-                    : 'hover:bg-gray-100'
-                )}
-                onClick={() => setActiveSessionId(session.id)}
-              >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <MessageSquare className="h-4 w-4 flex-shrink-0 text-gray-500" />
-                  <span className="text-sm truncate">{session.title}</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    deleteSession(session.id)
-                  }}
-                >
-                  <Trash2 className="h-3 w-3 text-gray-400 hover:text-red-500" />
-                </Button>
-              </div>
-            ))}
-          </div>
+      <div className="flex h-[calc(100vh-180px)] md:h-[calc(100vh-120px)] -mx-4 md:mx-0">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:flex w-64 bg-muted/30 border-r p-4 flex-col">
+          <SessionsList />
         </div>
 
         {/* Main chat area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Header with model selector */}
-          <div className="border-b p-4 flex items-center justify-between bg-white">
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-blue-500" />
-              <h1 className="text-lg font-semibold">AI Чат</h1>
+          <div className="border-b p-3 md:p-4 flex items-center justify-between bg-card">
+            {/* Mobile: Menu button + Title */}
+            <div className="flex items-center gap-2 md:gap-3">
+              {/* Mobile sessions sheet */}
+              <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[280px] p-4">
+                  <SheetHeader className="mb-4">
+                    <SheetTitle>Чаты</SheetTitle>
+                  </SheetHeader>
+                  <SessionsList />
+                </SheetContent>
+              </Sheet>
+
+              <Sparkles className="h-5 w-5 text-primary hidden md:block" />
+              <h1 className="text-base md:text-lg font-semibold truncate">
+                <span className="hidden md:inline">AI Чат</span>
+                <span className="md:hidden">{activeSession.title}</span>
+              </h1>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Модель:</span>
-                <Select value={activeSession.model} onValueChange={changeModel}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(AI_MODELS).map(([id, model]) => (
-                      <SelectItem key={id} value={id}>
-                        <div className="flex items-center gap-2">
-                          <div className={cn('w-2 h-2 rounded-full', model.color)} />
-                          <span>{model.name}</span>
-                          <span className="text-xs text-gray-400">({model.provider})</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Badge variant="outline" className="text-xs">
-                {modelInfo?.description}
-              </Badge>
+            {/* Model selector */}
+            <div className="flex items-center gap-2">
+              <Select value={activeSession.model} onValueChange={changeModel}>
+                <SelectTrigger className="w-[140px] md:w-[200px]">
+                  <div className="flex items-center gap-2 truncate">
+                    <div className={cn('w-2 h-2 rounded-full shrink-0', modelInfo?.color)} />
+                    <span className="truncate text-sm">{modelInfo?.name}</span>
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(AI_MODELS).map(([id, model]) => (
+                    <SelectItem key={id} value={id}>
+                      <div className="flex items-center gap-2">
+                        <div className={cn('w-2 h-2 rounded-full', model.color)} />
+                        <span>{model.name}</span>
+                        <span className="text-xs text-muted-foreground hidden md:inline">
+                          ({model.provider})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4">
             {activeSession.messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                <Bot className="h-16 w-16 mb-4 text-gray-300" />
-                <h2 className="text-xl font-semibold mb-2">Начните разговор</h2>
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground px-4">
+                <Bot className="h-12 w-12 md:h-16 md:w-16 mb-4 text-muted-foreground/50" />
+                <h2 className="text-lg md:text-xl font-semibold mb-2 text-center">Начните разговор</h2>
                 <p className="text-sm text-center max-w-md">
-                  Задайте вопрос AI или выберите другую модель для сравнения ответов.
-                  Вы можете создать несколько чатов с разными моделями.
+                  Задайте вопрос AI. Выберите модель вверху для сравнения ответов.
                 </p>
               </div>
             ) : (
@@ -351,60 +391,62 @@ export default function AIChatClient({ user, workspace }: AIChatClientProps) {
                 <div
                   key={message.id}
                   className={cn(
-                    'flex gap-3',
+                    'flex gap-2 md:gap-3',
                     message.role === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
                   {message.role === 'assistant' && (
                     <div
                       className={cn(
-                        'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
+                        'w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center flex-shrink-0',
                         AI_MODELS[message.model as keyof typeof AI_MODELS]?.color ||
-                          'bg-gray-500'
+                          'bg-muted-foreground'
                       )}
                     >
-                      <Bot className="h-4 w-4 text-white" />
+                      <Bot className="h-3.5 w-3.5 md:h-4 md:w-4 text-white" />
                     </div>
                   )}
 
                   <div
                     className={cn(
-                      'max-w-[70%] rounded-lg p-4 group relative',
+                      'max-w-[85%] md:max-w-[70%] rounded-2xl md:rounded-lg p-3 md:p-4 group relative',
                       message.role === 'user'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-900'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-foreground'
                     )}
                   >
                     {message.role === 'assistant' && message.modelInfo && (
-                      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-200">
+                      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/50">
                         <Badge variant="outline" className="text-xs">
                           {message.modelInfo.name}
                         </Badge>
                       </div>
                     )}
 
-                    <div className="whitespace-pre-wrap">{message.content}</div>
+                    <div className="whitespace-pre-wrap text-sm md:text-base break-words">
+                      {message.content}
+                    </div>
 
                     <Button
                       variant="ghost"
                       size="sm"
                       className={cn(
-                        'absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6 p-0',
-                        message.role === 'user' ? 'text-white/70 hover:text-white' : ''
+                        'absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-7 w-7 md:h-6 md:w-6 p-0',
+                        message.role === 'user' ? 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10' : ''
                       )}
                       onClick={() => copyToClipboard(message.content, message.id)}
                     >
                       {copiedId === message.id ? (
-                        <Check className="h-3 w-3" />
+                        <Check className="h-3.5 w-3.5 md:h-3 md:w-3" />
                       ) : (
-                        <Copy className="h-3 w-3" />
+                        <Copy className="h-3.5 w-3.5 md:h-3 md:w-3" />
                       )}
                     </Button>
                   </div>
 
                   {message.role === 'user' && (
-                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                      <User className="h-4 w-4 text-white" />
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                      <User className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary-foreground" />
                     </div>
                   )}
                 </div>
@@ -412,19 +454,19 @@ export default function AIChatClient({ user, workspace }: AIChatClientProps) {
             )}
 
             {isLoading && (
-              <div className="flex gap-3 justify-start">
+              <div className="flex gap-2 md:gap-3 justify-start">
                 <div
                   className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-                    modelInfo?.color || 'bg-gray-500'
+                    'w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center flex-shrink-0',
+                    modelInfo?.color || 'bg-muted-foreground'
                   )}
                 >
-                  <Bot className="h-4 w-4 text-white" />
+                  <Bot className="h-3.5 w-3.5 md:h-4 md:w-4 text-white" />
                 </div>
-                <div className="bg-gray-100 rounded-lg p-4">
+                <div className="bg-muted rounded-2xl md:rounded-lg p-3 md:p-4">
                   <div className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       {modelInfo?.name} думает...
                     </span>
                   </div>
@@ -436,25 +478,26 @@ export default function AIChatClient({ user, workspace }: AIChatClientProps) {
           </div>
 
           {/* Input area */}
-          <div className="border-t p-4 bg-white">
-            <div className="flex gap-3">
+          <div className="border-t p-3 md:p-4 bg-card safe-area-bottom">
+            <div className="flex gap-2 md:gap-3">
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Введите сообщение... (Enter для отправки, Shift+Enter для новой строки)"
-                className="flex-1 min-h-[60px] max-h-[200px] resize-none"
+                placeholder="Введите сообщение..."
+                className="flex-1 min-h-[44px] md:min-h-[60px] max-h-[120px] md:max-h-[200px] resize-none text-base"
                 disabled={isLoading}
               />
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className="self-end"
+                size="icon"
+                className="h-11 w-11 md:h-auto md:w-auto md:px-4 self-end shrink-0"
               >
                 {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-5 w-5 md:h-4 md:w-4 animate-spin" />
                 ) : (
-                  <Send className="h-4 w-4" />
+                  <Send className="h-5 w-5 md:h-4 md:w-4" />
                 )}
               </Button>
             </div>

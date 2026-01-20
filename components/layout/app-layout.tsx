@@ -19,8 +19,17 @@ import {
   Menu,
   X,
   Sparkles,
+  MoreHorizontal,
+  Home,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
 interface AppLayoutProps {
@@ -37,21 +46,27 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false)
 
   // Safety check for workspace
   const workspaceName = workspace?.name || 'Workspace'
 
-  const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/projects', label: 'Проекты', icon: FolderKanban },
-    { href: '/clients', label: 'Клиенты', icon: Users },
-    { href: '/tasks', label: 'Задачи', icon: CheckSquare },
-    { href: '/touches', label: 'Касания', icon: Phone },
-    { href: '/calendar', label: 'Календарь', icon: Calendar },
-    { href: '/activity', label: 'Активность', icon: Activity },
-    { href: '/pain-radar', label: 'Pain Radar', icon: Radar },
-    { href: '/ai-chat', label: 'AI Чат', icon: Sparkles },
+  // All navigation items
+  const allNavItems = [
+    { href: '/dashboard', label: 'Главная', icon: Home, mobileLabel: 'Главная' },
+    { href: '/projects', label: 'Проекты', icon: FolderKanban, mobileLabel: 'Проекты' },
+    { href: '/clients', label: 'Клиенты', icon: Users, mobileLabel: 'Клиенты' },
+    { href: '/tasks', label: 'Задачи', icon: CheckSquare, mobileLabel: 'Задачи' },
+    { href: '/touches', label: 'Касания', icon: Phone, mobileLabel: 'Касания' },
+    { href: '/calendar', label: 'Календарь', icon: Calendar, mobileLabel: 'Календарь' },
+    { href: '/activity', label: 'Активность', icon: Activity, mobileLabel: 'Активность' },
+    { href: '/pain-radar', label: 'Pain Radar', icon: Radar, mobileLabel: 'Radar' },
+    { href: '/ai-chat', label: 'AI Чат', icon: Sparkles, mobileLabel: 'AI' },
   ]
+
+  // Items for bottom mobile nav (first 4 + More)
+  const mobileNavItems = allNavItems.slice(0, 4)
+  const moreNavItems = allNavItems.slice(4)
 
   const effectiveRole = userRole || user.role
   const isAdmin = effectiveRole === 'ADMIN' || effectiveRole === 'OWNER'
@@ -98,12 +113,121 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
     )
   }
 
-  // Top Navigation Layout
+  // Mobile Bottom Navigation Component
+  const MobileBottomNav = () => (
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50 safe-area-bottom">
+      <div className="flex items-center justify-around h-16 px-2">
+        {mobileNavItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              'flex flex-col items-center justify-center flex-1 h-full py-2 px-1 rounded-lg transition-colors touch-manipulation',
+              activePath === item.href
+                ? 'text-primary bg-primary/10'
+                : 'text-muted-foreground active:bg-muted'
+            )}
+          >
+            <item.icon className="h-5 w-5 mb-1" />
+            <span className="text-[10px] font-medium truncate max-w-full">{item.mobileLabel}</span>
+          </Link>
+        ))}
+
+        {/* More menu button */}
+        <Sheet open={moreMenuOpen} onOpenChange={setMoreMenuOpen}>
+          <SheetTrigger asChild>
+            <button
+              className={cn(
+                'flex flex-col items-center justify-center flex-1 h-full py-2 px-1 rounded-lg transition-colors touch-manipulation',
+                moreNavItems.some(item => activePath === item.href)
+                  ? 'text-primary bg-primary/10'
+                  : 'text-muted-foreground active:bg-muted'
+              )}
+            >
+              <MoreHorizontal className="h-5 w-5 mb-1" />
+              <span className="text-[10px] font-medium">Ещё</span>
+            </button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-auto max-h-[70vh] rounded-t-2xl">
+            <SheetHeader className="pb-4">
+              <SheetTitle>Меню</SheetTitle>
+            </SheetHeader>
+            <div className="grid grid-cols-4 gap-4 pb-6">
+              {moreNavItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMoreMenuOpen(false)}
+                  className={cn(
+                    'flex flex-col items-center justify-center p-4 rounded-xl transition-colors touch-manipulation',
+                    activePath === item.href
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted hover:bg-muted/80 active:bg-muted/60'
+                  )}
+                >
+                  <item.icon className="h-6 w-6 mb-2" />
+                  <span className="text-xs font-medium text-center">{item.mobileLabel}</span>
+                </Link>
+              ))}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMoreMenuOpen(false)}
+                  className={cn(
+                    'flex flex-col items-center justify-center p-4 rounded-xl transition-colors touch-manipulation',
+                    activePath === '/admin'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted hover:bg-muted/80 active:bg-muted/60'
+                  )}
+                >
+                  <Settings className="h-6 w-6 mb-2" />
+                  <span className="text-xs font-medium text-center">Админ</span>
+                </Link>
+              )}
+              <Link
+                href="/guide"
+                onClick={() => setMoreMenuOpen(false)}
+                className={cn(
+                  'flex flex-col items-center justify-center p-4 rounded-xl transition-colors touch-manipulation',
+                  activePath === '/guide'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted hover:bg-muted/80 active:bg-muted/60'
+                )}
+              >
+                <BookOpen className="h-6 w-6 mb-2" />
+                <span className="text-xs font-medium text-center">Гайд</span>
+              </Link>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </nav>
+  )
+
+  // Mobile Header Component
+  const MobileHeader = () => (
+    <header className="md:hidden bg-card border-b sticky top-0 z-40">
+      <div className="flex items-center justify-between h-14 px-4">
+        <div className="flex-1">
+          <h1 className="text-lg font-bold text-foreground truncate">PASEKA CRM</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <UserMenu user={user} workspace={workspace} userRole={user.role} />
+        </div>
+      </div>
+    </header>
+  )
+
+  // Top Navigation Layout (Desktop)
   if (navLayout === 'top') {
     return (
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="bg-card shadow-sm border-b sticky top-0 z-40">
+      <div className="min-h-screen bg-background pb-16 md:pb-0">
+        {/* Mobile Header */}
+        <MobileHeader />
+
+        {/* Desktop Header */}
+        <header className="hidden md:block bg-card shadow-sm border-b sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div>
@@ -118,11 +242,11 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
           </div>
         </header>
 
-        {/* Navigation */}
-        <nav className="bg-card border-b sticky top-[73px] z-30">
+        {/* Desktop Navigation */}
+        <nav className="hidden md:block bg-card border-b sticky top-[73px] z-30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
-              {navItems.map((item) => (
+              {allNavItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -168,30 +292,37 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
         </nav>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
           {children}
         </main>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav />
       </div>
     )
   }
 
-  // Sidebar Layout
+  // Sidebar Layout (Desktop only, mobile uses same bottom nav)
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Mobile overlay */}
-      {isMobile && sidebarOpen && (
+    <div className="min-h-screen bg-background flex pb-16 md:pb-0">
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40">
+        <MobileHeader />
+      </div>
+
+      {/* Desktop: Mobile overlay */}
+      {!isMobile && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40"
+          className="hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-0 h-full bg-card border-r z-50 transition-all duration-300',
-          sidebarOpen ? 'w-64' : 'w-16',
-          isMobile && !sidebarOpen && '-translate-x-full'
+          'hidden md:block fixed left-0 top-0 h-full bg-card border-r z-50 transition-all duration-300',
+          sidebarOpen ? 'w-64' : 'w-16'
         )}
       >
         {/* Sidebar Header */}
@@ -214,7 +345,7 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
 
         {/* Navigation Items */}
         <nav className="p-2 space-y-1">
-          {navItems.map((item) => (
+          {allNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -268,25 +399,12 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
       {/* Main Content Area */}
       <div className={cn(
         'flex-1 transition-all duration-300',
-        sidebarOpen ? 'ml-64' : 'ml-16',
-        isMobile && 'ml-0'
+        sidebarOpen ? 'md:ml-64' : 'md:ml-16',
+        'mt-14 md:mt-0' // Account for mobile header
       )}>
-        {/* Top Header */}
-        <header className="h-16 bg-card border-b flex items-center justify-between px-4 sticky top-0 z-30">
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          )}
-          <div className={cn(isMobile ? 'flex-1 text-center' : '')}>
-            {isMobile && (
-              <h1 className="text-lg font-bold text-foreground">PASEKA IT CRM</h1>
-            )}
-          </div>
+        {/* Desktop Top Header */}
+        <header className="hidden md:flex h-16 bg-card border-b items-center justify-between px-4 sticky top-0 z-30">
+          <div />
           <div className="flex items-center gap-4">
             <NotificationBell />
             <UserMenu user={user} workspace={workspace} userRole={user.role} />
@@ -294,10 +412,13 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
         </header>
 
         {/* Page Content */}
-        <main className="p-6">
+        <main className="p-4 md:p-6">
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
     </div>
   )
 }

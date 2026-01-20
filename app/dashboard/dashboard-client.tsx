@@ -82,20 +82,23 @@ export default function DashboardClient({
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/dashboard" userRole={user.role}>
       {/* Header with period selector */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Добро пожаловать, {user.name}!</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">
+            Привет, {user.name?.split(' ')[0] || 'User'}!
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Обзор вашей работы и текущих проектов
+            Обзор вашей работы
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <PeriodSelector value={period} onChange={setPeriod} />
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={fetchExtendedMetrics}
             disabled={loading}
+            className="shrink-0"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
@@ -109,21 +112,21 @@ export default function DashboardClient({
         </div>
       )}
 
-      {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Left Column - Funnel */}
-        <div className="lg:col-span-1">
-          {extendedMetrics && <ProjectFunnel funnel={extendedMetrics.funnel} />}
-        </div>
-
-        {/* Middle Column - Tasks */}
-        <div className="lg:col-span-1 space-y-6">
+      {/* Main Grid Layout - Mobile optimized */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+        {/* Tasks - Show first on mobile */}
+        <div className="md:order-2 lg:order-2 space-y-4 md:space-y-6">
           {extendedMetrics && <TodayTasks tasks={extendedMetrics.todayTasks} />}
           {extendedMetrics && <UpcomingDeadlines tasks={extendedMetrics.upcomingDeadlines} />}
         </div>
 
-        {/* Right Column - Team & Activity */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Funnel */}
+        <div className="md:order-1 lg:order-1">
+          {extendedMetrics && <ProjectFunnel funnel={extendedMetrics.funnel} />}
+        </div>
+
+        {/* Team & Activity */}
+        <div className="md:order-3 lg:order-3 md:col-span-2 lg:col-span-1 space-y-4 md:space-y-6">
           {extendedMetrics && <TeamWorkload members={extendedMetrics.teamWorkload} />}
           {extendedMetrics && <ActivityFeed activities={extendedMetrics.recentActivities} />}
         </div>
@@ -131,17 +134,17 @@ export default function DashboardClient({
 
       {/* Recent Projects */}
       <div className="bg-card rounded-lg shadow border">
-        <div className="px-6 py-4 border-b flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-foreground">Последние проекты</h3>
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b flex items-center justify-between">
+          <h3 className="text-base sm:text-lg font-semibold text-foreground">Последние проекты</h3>
           <Link href="/projects">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="text-xs sm:text-sm">
               Все проекты
             </Button>
           </Link>
         </div>
         <div className="divide-y">
           {recentProjects.length === 0 ? (
-            <div className="px-6 py-8 text-center text-muted-foreground">
+            <div className="px-4 sm:px-6 py-8 text-center text-muted-foreground">
               <p>Нет проектов</p>
               <Link href="/projects/new">
                 <Button className="mt-4">Создать первый проект</Button>
@@ -152,17 +155,17 @@ export default function DashboardClient({
               <Link
                 key={project.id}
                 href={`/projects/${project.id}`}
-                className="block px-6 py-4 hover:bg-muted/50 transition-colors"
+                className="block px-4 sm:px-6 py-3 sm:py-4 hover:bg-muted/50 active:bg-muted transition-colors touch-manipulation"
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-medium text-foreground">{project.name}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-medium text-foreground truncate">{project.name}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">
                       {project.client.name} • {project._count.tasks} задач
                     </p>
                   </div>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded ${getStatusColor(
+                    className={`px-2 py-1 text-xs font-medium rounded shrink-0 ${getStatusColor(
                       project.status
                     )}`}
                   >
