@@ -113,10 +113,10 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json({ touch })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create touch error:', error)
     return NextResponse.json(
-      { error: 'Failed to create touch' },
+      { error: error.message || 'Failed to create touch' },
       { status: 500 }
     )
   }

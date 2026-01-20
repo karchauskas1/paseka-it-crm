@@ -478,21 +478,21 @@ export default function AIChatClient({ user, workspace }: AIChatClientProps) {
           </div>
 
           {/* Input area */}
-          <div className="border-t p-3 md:p-4 bg-card safe-area-bottom">
+          <div className="border-t p-3 md:p-4 bg-card pb-safe">
             <div className="flex gap-2 md:gap-3">
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Введите сообщение..."
-                className="flex-1 min-h-[44px] md:min-h-[60px] max-h-[120px] md:max-h-[200px] resize-none text-base"
+                className="flex-1 min-h-[44px] md:min-h-[60px] max-h-[120px] md:max-h-[200px] resize-none text-base touch-manipulation"
                 disabled={isLoading}
               />
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
                 size="icon"
-                className="h-11 w-11 md:h-auto md:w-auto md:px-4 self-end shrink-0"
+                className="h-11 w-11 md:h-auto md:w-auto md:px-4 self-end shrink-0 touch-manipulation"
               >
                 {isLoading ? (
                   <Loader2 className="h-5 w-5 md:h-4 md:w-4 animate-spin" />

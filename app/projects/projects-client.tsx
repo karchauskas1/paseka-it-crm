@@ -142,35 +142,44 @@ export default function ProjectsClient({
 
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/projects" userRole={user.role}>
-      <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Проекты</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              {filteredProjects.length} из {projects.length} проектов
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <ViewSwitcher value={viewMode} onChange={handleViewChange} />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refreshProjects}
-              disabled={loading}
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-            <Link href="/projects/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Создать проект
-              </Button>
-            </Link>
-          </div>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Проекты</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {filteredProjects.length} из {projects.length} проектов
+          </p>
         </div>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="hidden sm:block">
+            <ViewSwitcher value={viewMode} onChange={handleViewChange} />
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={refreshProjects}
+            disabled={loading}
+            className="shrink-0"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Link href="/projects/new">
+            <Button size="sm" className="sm:size-default">
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Создать проект</span>
+            </Button>
+          </Link>
+        </div>
+      </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Mobile View Switcher */}
+      <div className="sm:hidden mb-4">
+        <ViewSwitcher value={viewMode} onChange={handleViewChange} />
+      </div>
+
+      {/* Filters */}
+      <div className="bg-card rounded-lg shadow p-3 sm:p-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input

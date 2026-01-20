@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Layout } from '@/components/layout'
+import { AppLayout } from '@/components/layout'
 import { toast } from 'sonner'
 import {
   Plus,
@@ -177,10 +177,21 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
 
     setIsSubmitting(true)
     try {
+      // Отправляем только нужные поля, преобразуем пустые строки в null
+      const payload = {
+        contactName: formData.contactName,
+        contactEmail: formData.contactEmail || null,
+        contactPhone: formData.contactPhone || null,
+        contactCompany: formData.contactCompany || null,
+        socialMedia: formData.socialMedia || null,
+        source: formData.source || null,
+        description: formData.description || null,
+        followUpAt: formData.followUpAt || null,
+      }
       const res = await fetch('/api/touches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) {
@@ -289,71 +300,153 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
   }
 
   return (
-    <Layout user={user} workspace={workspace} userRole={userRole}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Касания</h1>
-            <p className="text-sm text-gray-600">
-              Отслеживание контактов и взаимодействий
-            </p>
-          </div>
-          <Button onClick={openCreateDialog}>
-            <Plus className="h-4 w-4 mr-2" />
-            Новое касание
-          </Button>
+    <AppLayout user={user} workspace={workspace} currentPage="/touches" userRole={userRole}>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Касания</h2>
+          <p className="text-sm text-muted-foreground">
+            Отслеживание контактов и взаимодействий
+          </p>
         </div>
+        <Button onClick={openCreateDialog} size="sm" className="w-full sm:w-auto">
+          <Plus className="h-4 w-4 mr-2" />
+          Новое касание
+        </Button>
+      </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center gap-4">
-            <Label>Статус:</Label>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все</SelectItem>
-                <SelectItem value="WAITING">Ждём ответа</SelectItem>
-                <SelectItem value="WAITING_US">Ждут нашего ответа</SelectItem>
-                <SelectItem value="RESPONDED">Ответили</SelectItem>
-                <SelectItem value="NO_RESPONSE">Не ответили</SelectItem>
-                <SelectItem value="FOLLOW_UP">Повторно связаться</SelectItem>
-                <SelectItem value="CONVERTED">Конвертированы</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Filters */}
+      <div className="bg-card rounded-lg shadow p-3 sm:p-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <Label className="text-sm">Статус:</Label>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все</SelectItem>
+              <SelectItem value="WAITING">Ждём ответа</SelectItem>
+              <SelectItem value="WAITING_US">Ждут нашего ответа</SelectItem>
+              <SelectItem value="RESPONDED">Ответили</SelectItem>
+              <SelectItem value="NO_RESPONSE">Не ответили</SelectItem>
+              <SelectItem value="FOLLOW_UP">Повторно связаться</SelectItem>
+              <SelectItem value="CONVERTED">Конвертированы</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
+      </div>
 
-        {/* Touches List */}
-        <div className="bg-white rounded-lg shadow">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500">Загрузка...</div>
-          ) : touches.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-gray-500 mb-4">Нет касаний</p>
-              <Button onClick={openCreateDialog}>Создать первое касание</Button>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {touches.map((touch) => (
-                <div
-                  key={touch.id}
-                  className="p-4 hover:bg-gray-50 transition-colors"
-                >
+      {/* Touches List */}
+      <div className="bg-card rounded-lg shadow">
+        {isLoading ? (
+          <div className="p-8 text-center text-muted-foreground">Загрузка...</div>
+        ) : touches.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="text-muted-foreground mb-4">Нет касаний</p>
+            <Button onClick={openCreateDialog}>Создать первое касание</Button>
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {touches.map((touch) => (
+              <div
+                key={touch.id}
+                className="p-4 hover:bg-muted/50 active:bg-muted transition-colors touch-manipulation"
+              >
+                {/* Mobile Layout */}
+                <div className="md:hidden">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="font-semibold text-foreground">{touch.contactName}</h3>
+                    <Badge className={`${statusColors[touch.status]} text-xs shrink-0`}>
+                      {statusLabels[touch.status]}
+                    </Badge>
+                  </div>
+
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-2">
+                    {touch.contactCompany && (
+                      <span className="flex items-center gap-1">
+                        <Building2 className="h-3 w-3" />
+                        {touch.contactCompany}
+                      </span>
+                    )}
+                    {touch.contactEmail && (
+                      <span className="flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        <span className="truncate max-w-[120px]">{touch.contactEmail}</span>
+                      </span>
+                    )}
+                    {touch.contactPhone && (
+                      <span className="flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {touch.contactPhone}
+                      </span>
+                    )}
+                  </div>
+
+                  {touch.description && (
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{touch.description}</p>
+                  )}
+
+                  {touch.response && (
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-2 mb-2">
+                      <p className="text-xs text-green-800 dark:text-green-200 line-clamp-2">
+                        <MessageSquare className="h-3 w-3 inline mr-1" />
+                        {touch.response}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {new Date(touch.contactedAt).toLocaleDateString('ru-RU')}
+                    </span>
+                    {touch.followUpAt && (
+                      <span className="flex items-center gap-1 text-primary">
+                        <CalendarClock className="h-3 w-3" />
+                        {new Date(touch.followUpAt).toLocaleDateString('ru-RU')}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Mobile Actions */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAiAnalysis(touch.id)}
+                      disabled={isAnalyzing === touch.id}
+                      className="text-purple-600 border-purple-300 h-8"
+                    >
+                      {isAnalyzing === touch.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                    </Button>
+                    {touch.status !== 'CONVERTED' && (
+                      <Button variant="outline" size="sm" onClick={() => handleConvert(touch)} className="h-8">
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button variant="outline" size="sm" onClick={() => openEditDialog(touch)} className="h-8">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(touch.id)} className="h-8">
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden md:block">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">
-                          {touch.contactName}
-                        </h3>
-                        <Badge className={statusColors[touch.status]}>
-                          {statusLabels[touch.status]}
-                        </Badge>
+                        <h3 className="font-semibold text-foreground">{touch.contactName}</h3>
+                        <Badge className={statusColors[touch.status]}>{statusLabels[touch.status]}</Badge>
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-2 flex-wrap">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2 flex-wrap">
                         {touch.contactCompany && (
                           <span className="flex items-center gap-1">
                             <Building2 className="h-4 w-4" />
@@ -377,7 +470,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                             href={touch.socialMedia.startsWith('http') ? touch.socialMedia : `https://${touch.socialMedia}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                            className="flex items-center gap-1 text-primary hover:text-primary/80"
                           >
                             <AtSign className="h-4 w-4" />
                             Соцсети
@@ -386,33 +479,29 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                       </div>
 
                       {touch.source && (
-                        <p className="text-sm text-gray-500 mb-1">
-                          Источник: {touch.source}
-                        </p>
+                        <p className="text-sm text-muted-foreground mb-1">Источник: {touch.source}</p>
                       )}
 
                       {touch.description && (
-                        <p className="text-sm text-gray-700 mb-2">
-                          {touch.description}
-                        </p>
+                        <p className="text-sm text-foreground mb-2">{touch.description}</p>
                       )}
 
                       {touch.response && (
-                        <div className="bg-green-50 border border-green-200 rounded p-2 mb-2">
-                          <p className="text-sm text-green-800">
+                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-2 mb-2">
+                          <p className="text-sm text-green-800 dark:text-green-200">
                             <MessageSquare className="h-4 w-4 inline mr-1" />
                             Ответ: {touch.response}
                           </p>
                         </div>
                       )}
 
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {new Date(touch.contactedAt).toLocaleDateString('ru-RU')}
                         </span>
                         {touch.followUpAt && (
-                          <span className="flex items-center gap-1 text-blue-600">
+                          <span className="flex items-center gap-1 text-primary">
                             <CalendarClock className="h-3 w-3" />
                             Напомнить: {new Date(touch.followUpAt).toLocaleDateString('ru-RU')}
                           </span>
@@ -456,37 +545,30 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                           </Button>
                         </Link>
                       )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(touch)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(touch)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(touch.id)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleDelete(touch.id)}>
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </div>
                   </div>
-                  {/* AI Analysis Result */}
-                  {aiAnalysis?.touchId === touch.id && (
-                    <div className="mt-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="h-4 w-4 text-purple-600" />
-                        <span className="text-sm font-medium text-purple-700">AI Анализ</span>
-                      </div>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiAnalysis.analysis}</p>
-                    </div>
-                  )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+
+                {/* AI Analysis Result */}
+                {aiAnalysis?.touchId === touch.id && (
+                  <div className="mt-3 p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="h-4 w-4 text-purple-600" />
+                      <span className="text-sm font-medium text-purple-700 dark:text-purple-300">AI Анализ</span>
+                    </div>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">{aiAnalysis.analysis}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Create Dialog */}
@@ -728,6 +810,6 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </AppLayout>
   )
 }

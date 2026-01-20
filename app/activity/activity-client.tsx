@@ -143,16 +143,17 @@ export default function ActivityClient({
 
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/activity" userRole={user.role}>
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Активность</h2>
-            <p className="mt-1 text-sm text-gray-600">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">Активность</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
               {total} записей активности
             </p>
           </div>
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={() => fetchActivities(true)}
             disabled={loading}
           >
@@ -161,11 +162,11 @@ export default function ActivityClient({
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="bg-card rounded-lg shadow p-3 sm:p-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Тип действия" />
+                <SelectValue placeholder="Тип" />
               </SelectTrigger>
               <SelectContent>
                 {activityTypes.map((type) => (
@@ -204,7 +205,7 @@ export default function ActivityClient({
             </Select>
 
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="date"
                 value={dateFrom}
@@ -214,8 +215,8 @@ export default function ActivityClient({
               />
             </div>
 
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <div className="relative col-span-2 sm:col-span-1">
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="date"
                 value={dateTo}
@@ -228,20 +229,20 @@ export default function ActivityClient({
         </div>
 
         {/* Activity List Grouped by Day */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {sortedDays.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+            <div className="bg-card rounded-lg shadow p-8 text-center text-muted-foreground">
               Нет записей активности
             </div>
           ) : (
             sortedDays.map((day) => (
-              <div key={day} className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="px-4 py-2 bg-gray-50 border-b">
-                  <h3 className="font-medium text-gray-900">
+              <div key={day} className="bg-card rounded-lg shadow overflow-hidden">
+                <div className="px-3 sm:px-4 py-2 bg-muted/50 border-b border-border">
+                  <h3 className="font-medium text-foreground text-sm sm:text-base">
                     {format(parseISO(day), 'd MMMM yyyy', { locale: ru })}
                   </h3>
                 </div>
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-border">
                   {groupedByDay[day].map((activity) => (
                     <ActivityItem key={activity.id} activity={activity} />
                   ))}
@@ -272,20 +273,20 @@ function ActivityItem({ activity }: { activity: Activity }) {
   const link = getActivityLink(activity)
 
   return (
-    <Link href={link} className="block px-4 py-3 hover:bg-gray-50 transition-colors">
-      <div className="flex items-start gap-3">
+    <Link href={link} className="block px-3 sm:px-4 py-3 hover:bg-muted/50 active:bg-muted transition-colors touch-manipulation">
+      <div className="flex items-start gap-2 sm:gap-3">
         <div className="flex-shrink-0 mt-0.5">{icon}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-900">
+          <p className="text-sm text-foreground">
             <span className="font-medium">{activity.user.name}</span>{' '}
-            <span className="text-gray-600">{description}</span>
+            <span className="text-muted-foreground">{description}</span>
           </p>
           {activity.project && (
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
               Проект: {activity.project.name}
             </p>
           )}
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-muted-foreground/70 mt-1">
             {format(new Date(activity.createdAt), 'HH:mm', { locale: ru })}
           </p>
         </div>

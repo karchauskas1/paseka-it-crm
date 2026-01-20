@@ -1,11 +1,18 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Bell, Check, CheckCheck } from 'lucide-react'
+import { Bell, Check, CheckCheck, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import Link from 'next/link'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 
 interface Notification {
   id: string
@@ -20,10 +27,20 @@ interface Notification {
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Fetch notifications
   const fetchNotifications = async () => {
@@ -74,9 +91,14 @@ export function NotificationBell() {
   }, [])
 
   const handleOpen = () => {
-    setIsOpen(!isOpen)
-    if (!isOpen) {
+    if (isMobile) {
+      setIsMobileSheetOpen(true)
       fetchNotifications()
+    } else {
+      setIsOpen(!isOpen)
+      if (!isOpen) {
+        fetchNotifications()
+      }
     }
   }
 
@@ -141,69 +163,117 @@ export function NotificationBell() {
     return icons[type] || 'bell'
   }
 
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="relative"
-        onClick={handleOpen}
-      >
-        <Bell className="h-5 w-5" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
+  // Notification content for both mobile and desktop
+  const NotificationContent = ({ onClose }: { onClose?: () => void }) => (
+    <>
+      <div className="flex-1 overflow-y-auto">
+        {notifications.length === 0 ? (
+          <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+            Нет уведомлений
+          </div>
+        ) : (
+          notifications.map((notification) => (
+            <NotificationItem
+              key={notification.id}
+              notification={notification}
+              onRead={markAsRead}
+              link={getNotificationLink(notification)}
+              onClose={onClose}
+            />
+          ))
         )}
-      </Button>
+      </div>
+      <div className="px-4 py-3 border-t bg-muted/50 shrink-0">
+        <Link
+          href="/notifications"
+          className="text-sm text-primary hover:text-primary/80 font-medium"
+          onClick={onClose}
+        >
+          Все уведомления →
+        </Link>
+      </div>
+    </>
+  )
 
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-50">
-          <div className="px-4 py-3 border-b flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900">Уведомления</h3>
+  return (
+    <>
+      {/* Mobile Sheet */}
+      <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
+        <SheetTrigger asChild className="md:hidden">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="relative"
+            onClick={handleOpen}
+          >
+            <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={markAllAsRead}
-                disabled={loading}
-                className="text-xs text-blue-600 hover:text-blue-800"
-              >
-                <CheckCheck className="h-4 w-4 mr-1" />
-                Прочитать все
-              </Button>
+              <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
             )}
-          </div>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
+          <SheetHeader className="px-4 py-3 border-b shrink-0">
+            <div className="flex items-center justify-between">
+              <SheetTitle>Уведомления</SheetTitle>
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={markAllAsRead}
+                  disabled={loading}
+                  className="text-xs text-primary"
+                >
+                  <CheckCheck className="h-4 w-4 mr-1" />
+                  Прочитать все
+                </Button>
+              )}
+            </div>
+          </SheetHeader>
+          <NotificationContent onClose={() => setIsMobileSheetOpen(false)} />
+        </SheetContent>
+      </Sheet>
 
-          <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-gray-500 text-sm">
-                Нет уведомлений
-              </div>
-            ) : (
-              notifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  onRead={markAsRead}
-                  link={getNotificationLink(notification)}
-                />
-              ))
-            )}
-          </div>
+      {/* Desktop Dropdown */}
+      <div className="relative hidden md:block" ref={dropdownRef}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="relative"
+          onClick={handleOpen}
+        >
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </Button>
 
-          <div className="px-4 py-2 border-t bg-gray-50">
-            <Link
-              href="/notifications"
-              className="text-xs text-blue-600 hover:text-blue-800"
-              onClick={() => setIsOpen(false)}
-            >
-              Все уведомления
-            </Link>
+        {isOpen && (
+          <div className="absolute right-0 mt-2 w-80 bg-card rounded-lg shadow-lg border z-50 flex flex-col max-h-[70vh]">
+            <div className="px-4 py-3 border-b flex items-center justify-between shrink-0">
+              <h3 className="font-semibold text-foreground">Уведомления</h3>
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={markAllAsRead}
+                  disabled={loading}
+                  className="text-xs text-primary hover:text-primary/80"
+                >
+                  <CheckCheck className="h-4 w-4 mr-1" />
+                  Прочитать все
+                </Button>
+              )}
+            </div>
+            <NotificationContent onClose={() => setIsOpen(false)} />
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   )
 }
 
@@ -211,36 +281,39 @@ function NotificationItem({
   notification,
   onRead,
   link,
+  onClose,
 }: {
   notification: Notification
   onRead: (id: string) => void
   link: string
+  onClose?: () => void
 }) {
   const handleClick = () => {
     if (!notification.isRead) {
       onRead(notification.id)
     }
+    onClose?.()
   }
 
   return (
     <Link
       href={link}
       onClick={handleClick}
-      className={`block px-4 py-3 hover:bg-gray-50 transition-colors border-b last:border-b-0 ${
-        notification.isRead ? 'bg-white' : 'bg-blue-50'
+      className={`block px-4 py-3 hover:bg-muted/50 active:bg-muted transition-colors border-b last:border-b-0 touch-manipulation ${
+        notification.isRead ? 'bg-card' : 'bg-primary/5'
       }`}
     >
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
-          <p className={`text-sm ${notification.isRead ? 'text-gray-700' : 'text-gray-900 font-medium'}`}>
+          <p className={`text-sm ${notification.isRead ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
             {notification.title}
           </p>
           {notification.message && (
-            <p className="text-xs text-gray-500 mt-0.5 truncate">
+            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
               {notification.message}
             </p>
           )}
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-muted-foreground/70 mt-1">
             {formatDistanceToNow(new Date(notification.createdAt), {
               addSuffix: true,
               locale: ru,
@@ -249,7 +322,7 @@ function NotificationItem({
         </div>
         {!notification.isRead && (
           <div className="flex-shrink-0">
-            <div className="h-2 w-2 bg-blue-500 rounded-full" />
+            <div className="h-2 w-2 bg-primary rounded-full" />
           </div>
         )}
       </div>

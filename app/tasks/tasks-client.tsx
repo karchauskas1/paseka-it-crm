@@ -205,36 +205,37 @@ export default function TasksClient({
 
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/tasks" userRole={user.role}>
-      <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Задачи</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              {filteredTasks.length} из {tasks.length} задач
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Tabs
-              value={view}
-              onValueChange={(v) => setView(v as 'table' | 'kanban')}
-            >
-              <TabsList>
-                <TabsTrigger value="table">
-                  <List className="h-4 w-4 mr-1" />
-                  Таблица
-                </TabsTrigger>
-                <TabsTrigger value="kanban">
-                  <LayoutGrid className="h-4 w-4 mr-1" />
-                  Kanban
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Создать задачу
-                </Button>
-              </DialogTrigger>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Задачи</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {filteredTasks.length} из {tasks.length} задач
+          </p>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <Tabs
+            value={view}
+            onValueChange={(v) => setView(v as 'table' | 'kanban')}
+          >
+            <TabsList className="h-9">
+              <TabsTrigger value="table" className="text-xs sm:text-sm">
+                <List className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Таблица</span>
+              </TabsTrigger>
+              <TabsTrigger value="kanban" className="text-xs sm:text-sm">
+                <LayoutGrid className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Kanban</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="sm:size-default">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Создать задачу</span>
+              </Button>
+            </DialogTrigger>
               <DialogContent className="sm:max-w-[550px]">
                 <form onSubmit={handleSubmit}>
                   <DialogHeader>
@@ -391,8 +392,8 @@ export default function TasksClient({
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="bg-card rounded-lg shadow p-3 sm:p-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -459,123 +460,192 @@ export default function TasksClient({
 
         {/* Content */}
         {view === 'table' ? (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Задача
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Проект
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Статус
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Приоритет
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Исполнитель
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Срок
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredTasks.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-6 py-12 text-center text-gray-500"
-                    >
-                      {tasks.length === 0 ? (
-                        <div>
-                          <List className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                          <p className="text-lg font-medium">Нет задач</p>
-                          <p className="text-sm mt-1">
-                            Создайте первую задачу, чтобы начать работу
-                          </p>
-                        </div>
-                      ) : (
-                        <div>
-                          <p className="text-lg font-medium">
-                            Ничего не найдено
-                          </p>
-                          <p className="text-sm mt-1">
-                            Попробуйте изменить параметры фильтрации
-                          </p>
-                        </div>
+          <>
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-3">
+              {filteredTasks.length === 0 ? (
+                <div className="bg-card rounded-lg shadow p-8 text-center text-muted-foreground">
+                  {tasks.length === 0 ? (
+                    <div>
+                      <List className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                      <p className="text-lg font-medium">Нет задач</p>
+                      <p className="text-sm mt-1">Создайте первую задачу</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-lg font-medium">Ничего не найдено</p>
+                      <p className="text-sm mt-1">Измените параметры фильтрации</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                filteredTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="bg-card rounded-lg shadow p-4 active:bg-muted transition-colors touch-manipulation"
+                    onClick={() => {
+                      setSelectedTask(task)
+                      setIsDetailDialogOpen(true)
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-medium text-foreground line-clamp-2">{task.title}</h3>
+                      <Badge className={`${priorityColors[task.priority]} text-xs shrink-0`}>
+                        {priorityLabels[task.priority]}
+                      </Badge>
+                    </div>
+                    {task.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{task.description}</p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <Badge className={`${taskStatusColors[task.status]} text-xs`}>
+                        {taskStatusLabels[task.status]}
+                      </Badge>
+                      {task.project && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <FolderOpen className="h-3 w-3" />
+                          {task.project.name}
+                        </span>
                       )}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredTasks.map((task) => (
-                    <tr
-                      key={task.id}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => {
-                        setSelectedTask(task)
-                        setIsDetailDialogOpen(true)
-                      }}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {task.title}
-                        </div>
-                        {task.description && (
-                          <div className="text-sm text-gray-500 truncate max-w-xs">
-                            {task.description}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {task.project ? (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <FolderOpen className="h-4 w-4 mr-1" />
-                            {task.project.name}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge className={taskStatusColors[task.status]}>
-                          {taskStatusLabels[task.status]}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge className={priorityColors[task.priority]}>
-                          {priorityLabels[task.priority]}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {task.assignee ? (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <User className="h-4 w-4 mr-1" />
-                            {task.assignee.name}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">Не назначен</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {task.dueDate ? (
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-1" />
-                            {new Date(task.dueDate).toLocaleDateString('ru-RU')}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {task.assignee ? task.assignee.name : 'Не назначен'}
+                      </span>
+                      {task.dueDate && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(task.dueDate).toLocaleDateString('ru-RU')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-card rounded-lg shadow overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Задача
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Проект
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Статус
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Приоритет
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Исполнитель
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Срок
+                      </th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="bg-card divide-y divide-border">
+                    {filteredTasks.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="px-6 py-12 text-center text-muted-foreground"
+                        >
+                          {tasks.length === 0 ? (
+                            <div>
+                              <List className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                              <p className="text-lg font-medium">Нет задач</p>
+                              <p className="text-sm mt-1">
+                                Создайте первую задачу, чтобы начать работу
+                              </p>
+                            </div>
+                          ) : (
+                            <div>
+                              <p className="text-lg font-medium">
+                                Ничего не найдено
+                              </p>
+                              <p className="text-sm mt-1">
+                                Попробуйте изменить параметры фильтрации
+                              </p>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredTasks.map((task) => (
+                        <tr
+                          key={task.id}
+                          className="hover:bg-muted/50 cursor-pointer"
+                          onClick={() => {
+                            setSelectedTask(task)
+                            setIsDetailDialogOpen(true)
+                          }}
+                        >
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-medium text-foreground">
+                              {task.title}
+                            </div>
+                            {task.description && (
+                              <div className="text-sm text-muted-foreground truncate max-w-xs">
+                                {task.description}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {task.project ? (
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <FolderOpen className="h-4 w-4 mr-1" />
+                                {task.project.name}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <Badge className={taskStatusColors[task.status]}>
+                              {taskStatusLabels[task.status]}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <Badge className={priorityColors[task.priority]}>
+                              {priorityLabels[task.priority]}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {task.assignee ? (
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <User className="h-4 w-4 mr-1" />
+                                {task.assignee.name}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">Не назначен</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                            {task.dueDate ? (
+                              <div className="flex items-center">
+                                <Calendar className="h-4 w-4 mr-1" />
+                                {new Date(task.dueDate).toLocaleDateString('ru-RU')}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         ) : (
           <KanbanBoard
             tasks={filteredTasks}

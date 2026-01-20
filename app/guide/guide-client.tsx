@@ -49,11 +49,36 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
 
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/guide" userRole={user.role}>
-      <div className="flex gap-8">
-          {/* Sidebar */}
-          <div className="w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow p-4 sticky top-8">
-              <h3 className="font-semibold text-gray-900 mb-4">Содержание</h3>
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+          {/* Mobile Navigation */}
+          <div className="lg:hidden">
+            <div className="bg-card rounded-lg shadow p-3">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                {sections.map((section) => {
+                  const Icon = section.icon
+                  return (
+                    <button
+                      key={section.id}
+                      onClick={() => setActiveSection(section.id)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-colors whitespace-nowrap touch-manipulation ${
+                        activeSection === section.id
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                          : 'text-muted-foreground hover:bg-muted'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {section.title}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <div className="bg-card rounded-lg shadow p-4 sticky top-8">
+              <h3 className="font-semibold text-foreground mb-4">Содержание</h3>
               <nav className="space-y-1">
                 {sections.map((section) => {
                   const Icon = section.icon
@@ -63,8 +88,8 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
                       onClick={() => setActiveSection(section.id)}
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                         activeSection === section.id
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                          : 'text-muted-foreground hover:bg-muted'
                       }`}
                     >
                       <Icon className="h-4 w-4" />
@@ -77,16 +102,16 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
           </div>
 
           {/* Content */}
-          <div className="flex-1">
-            <div className="bg-white rounded-lg shadow p-8">
+          <div className="flex-1 min-w-0">
+            <div className="bg-card rounded-lg shadow p-4 sm:p-8">
               {/* Getting Started */}
               {activeSection === 'getting-started' && (
                 <div className="prose max-w-none">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Home className="h-6 w-6 text-blue-600" />
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Home className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                     Начало работы
                   </h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-muted-foreground mb-6 text-sm sm:text-base">
                     PASEKA IT CRM - это система управления проектами и клиентами для небольших IT-команд. Система помогает отслеживать проекты, задачи, и взаимодействие с клиентами.
                   </p>
 
@@ -143,11 +168,11 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
               {/* Clients */}
               {activeSection === 'clients' && (
                 <div className="prose max-w-none">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Users className="h-6 w-6 text-blue-600" />
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                     Клиенты
                   </h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-muted-foreground mb-6 text-sm sm:text-base">
                     Раздел "Клиенты" позволяет вести базу контактов и компаний с которыми вы работаете.
                   </p>
 
@@ -161,8 +186,8 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
                     <li><strong>Заметки</strong> - дополнительная информация</li>
                   </ul>
 
-                  <h3 className="text-lg font-semibold mb-3">Источники клиентов</h3>
-                  <div className="grid grid-cols-2 gap-3 mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3">Источники клиентов</h3>
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-6">
                     <div className="p-3 bg-orange-50 rounded-lg">
                       <span className="font-medium text-orange-700">WARM</span>
                       <p className="text-sm text-gray-600">Тёплый контакт</p>
@@ -186,11 +211,11 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
               {/* Projects */}
               {activeSection === 'projects' && (
                 <div className="prose max-w-none">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <FolderKanban className="h-6 w-6 text-blue-600" />
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <FolderKanban className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                     Проекты
                   </h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-muted-foreground mb-6 text-sm sm:text-base">
                     Проекты - это основная сущность системы. Каждый проект связан с клиентом и содержит всю информацию о работе.
                   </p>
 
@@ -262,16 +287,16 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
               {/* Tasks */}
               {activeSection === 'tasks' && (
                 <div className="prose max-w-none">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <CheckSquare className="h-6 w-6 text-blue-600" />
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <CheckSquare className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                     Задачи
                   </h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-muted-foreground mb-6 text-sm sm:text-base">
                     Задачи помогают отслеживать работу по проектам. Доступны два представления: таблица и Kanban-доска.
                   </p>
 
-                  <h3 className="text-lg font-semibold mb-3">Статусы задач</h3>
-                  <div className="grid grid-cols-2 gap-3 mb-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3">Статусы задач</h3>
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-6">
                     <div className="p-3 bg-gray-100 rounded-lg">
                       <span className="font-medium">TODO</span>
                       <p className="text-sm text-gray-600">К выполнению</p>
@@ -320,11 +345,11 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
               {/* AI */}
               {activeSection === 'ai' && (
                 <div className="prose max-w-none">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Bot className="h-6 w-6 text-blue-600" />
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                     AI Ассистент
                   </h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-muted-foreground mb-6 text-sm sm:text-base">
                     AI ассистент использует OpenRouter API для анализа проектов и генерации решений.
                   </p>
 
@@ -367,11 +392,11 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
               {/* Telegram */}
               {activeSection === 'telegram' && (
                 <div className="prose max-w-none">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <MessageSquare className="h-6 w-6 text-blue-600" />
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                     Telegram уведомления
                   </h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-muted-foreground mb-6 text-sm sm:text-base">
                     Система может отправлять уведомления о важных событиях в Telegram чат или группу.
                   </p>
 
@@ -417,11 +442,11 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
               {/* Admin */}
               {activeSection === 'admin' && (
                 <div className="prose max-w-none">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Settings className="h-6 w-6 text-blue-600" />
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Settings className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                     Администрирование
                   </h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-muted-foreground mb-6 text-sm sm:text-base">
                     Раздел администрирования доступен только пользователям с ролью ADMIN.
                   </p>
 

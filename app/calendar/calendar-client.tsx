@@ -291,25 +291,36 @@ export default function CalendarClient({
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/calendar" userRole={user.role}>
       {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={goToPrevMonth}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToNextMonth}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={goToToday}>
-              Сегодня
-            </Button>
-            <h2 className="text-xl font-semibold text-gray-900">
+      <div className="flex flex-col gap-4 mb-6">
+          {/* Title and navigation row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3" onClick={goToPrevMonth}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3" onClick={goToNextMonth}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={goToToday} className="hidden sm:inline-flex">
+                Сегодня
+              </Button>
+            </div>
+            <h2 className="text-base sm:text-xl font-semibold text-foreground capitalize">
               {format(currentDate, 'LLLL yyyy', { locale: ru })}
             </h2>
+            <Button
+              size="sm"
+              className="sm:hidden"
+              onClick={() => { setSelectedDate(new Date()); setIsDialogOpen(true); }}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Filters row */}
+          <div className="flex items-center gap-2 sm:gap-4">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
                 <SelectValue placeholder="Тип события" />
               </SelectTrigger>
               <SelectContent>
@@ -322,21 +333,25 @@ export default function CalendarClient({
               </SelectContent>
             </Select>
 
-            <Button onClick={() => { setSelectedDate(new Date()); setIsDialogOpen(true); }}>
+            <Button onClick={() => { setSelectedDate(new Date()); setIsDialogOpen(true); }} className="hidden sm:inline-flex">
               <Plus className="h-4 w-4 mr-2" />
               Добавить событие
+            </Button>
+
+            <Button variant="ghost" size="sm" onClick={goToToday} className="sm:hidden">
+              Сегодня
             </Button>
           </div>
         </div>
 
         {/* Calendar Grid */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-card rounded-lg shadow overflow-hidden overflow-x-auto">
           {/* Weekday Headers */}
-          <div className="grid grid-cols-7 border-b">
+          <div className="grid grid-cols-7 border-b min-w-[350px]">
             {weekDays.map((day) => (
               <div
                 key={day}
-                className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                className="px-1 sm:px-2 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider bg-muted/50"
               >
                 {day}
               </div>
@@ -344,7 +359,7 @@ export default function CalendarClient({
           </div>
 
           {/* Calendar Days */}
-          <div className="grid grid-cols-7">
+          <div className="grid grid-cols-7 min-w-[350px]">
             {days.map((day, index) => {
               const dateKey = format(day, 'yyyy-MM-dd')
               const dayEvents = eventsByDate[dateKey] || []
@@ -354,43 +369,63 @@ export default function CalendarClient({
               return (
                 <div
                   key={index}
-                  className={`min-h-[120px] border-b border-r p-2 cursor-pointer hover:bg-gray-50 transition-colors ${
-                    !isCurrentMonth ? 'bg-gray-50' : ''
+                  className={`min-h-[60px] sm:min-h-[120px] border-b border-r border-border p-1 sm:p-2 cursor-pointer hover:bg-muted/50 active:bg-muted transition-colors touch-manipulation ${
+                    !isCurrentMonth ? 'bg-muted/30' : ''
                   }`}
                   onClick={() => handleDayClick(day)}
                 >
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-0.5 sm:mb-1">
                     <span
-                      className={`text-sm font-medium ${
+                      className={`text-xs sm:text-sm font-medium ${
                         isTodayDate
-                          ? 'h-6 w-6 flex items-center justify-center rounded-full bg-blue-600 text-white'
+                          ? 'h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center rounded-full bg-blue-600 text-white'
                           : isCurrentMonth
-                          ? 'text-gray-900'
-                          : 'text-gray-400'
+                          ? 'text-foreground'
+                          : 'text-muted-foreground'
                       }`}
                     >
                       {format(day, 'd')}
                     </span>
                   </div>
 
-                  <div className="space-y-1">
-                    {dayEvents.slice(0, 3).map((event) => (
-                      <div
-                        key={event.id}
-                        className={`text-xs px-1.5 py-0.5 rounded truncate text-white cursor-pointer hover:opacity-80 ${
-                          eventTypeColors[event.type] || 'bg-gray-500'
-                        }`}
-                        title={event.title}
-                        onClick={(e) => handleEventClick(event, e)}
-                      >
-                        {event.title}
-                      </div>
-                    ))}
-                    {dayEvents.length > 3 && (
-                      <div className="text-xs text-gray-500 px-1.5">
-                        +{dayEvents.length - 3} ещё
-                      </div>
-                    )}
+                  {/* Mobile: show dots, Desktop: show event names */}
+                  <div className="space-y-0.5 sm:space-y-1">
+                    {/* Mobile dots */}
+                    <div className="flex gap-0.5 flex-wrap sm:hidden">
+                      {dayEvents.slice(0, 4).map((event) => (
+                        <div
+                          key={event.id}
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            eventTypeColors[event.type] || 'bg-gray-500'
+                          }`}
+                          onClick={(e) => handleEventClick(event, e)}
+                        />
+                      ))}
+                      {dayEvents.length > 4 && (
+                        <span className="text-[8px] text-muted-foreground">+{dayEvents.length - 4}</span>
+                      )}
+                    </div>
+
+                    {/* Desktop event labels */}
+                    <div className="hidden sm:block space-y-1">
+                      {dayEvents.slice(0, 3).map((event) => (
+                        <div
+                          key={event.id}
+                          className={`text-xs px-1.5 py-0.5 rounded truncate text-white cursor-pointer hover:opacity-80 ${
+                            eventTypeColors[event.type] || 'bg-gray-500'
+                          }`}
+                          title={event.title}
+                          onClick={(e) => handleEventClick(event, e)}
+                        >
+                          {event.title}
+                        </div>
+                      ))}
+                      {dayEvents.length > 3 && (
+                        <div className="text-xs text-muted-foreground px-1.5">
+                          +{dayEvents.length - 3} ещё
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )
@@ -399,11 +434,11 @@ export default function CalendarClient({
         </div>
 
         {/* Legend */}
-      <div className="mt-4 flex items-center gap-4 flex-wrap">
+      <div className="mt-4 flex items-center gap-2 sm:gap-4 flex-wrap">
         {Object.entries(eventTypeLabels).map(([type, label]) => (
-          <div key={type} className="flex items-center gap-1.5">
-            <div className={`w-3 h-3 rounded ${eventTypeColors[type]}`} />
-            <span className="text-xs text-gray-600">{label}</span>
+          <div key={type} className="flex items-center gap-1 sm:gap-1.5">
+            <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded ${eventTypeColors[type]}`} />
+            <span className="text-[10px] sm:text-xs text-muted-foreground">{label}</span>
           </div>
         ))}
       </div>

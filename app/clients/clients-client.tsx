@@ -178,20 +178,21 @@ export default function ClientsClient({
 
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/clients" userRole={user.role}>
-      <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Клиенты</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              {filteredClients.length} из {clients.length} клиентов
-            </p>
-          </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Добавить клиента
-              </Button>
-            </DialogTrigger>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Клиенты</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {filteredClients.length} из {clients.length} клиентов
+          </p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Добавить клиента
+            </Button>
+          </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <form onSubmit={handleSubmit}>
                 <DialogHeader>
@@ -382,8 +383,8 @@ export default function ClientsClient({
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-card rounded-lg shadow p-3 sm:p-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -422,118 +423,69 @@ export default function ClientsClient({
           </div>
         </div>
 
-        {/* Clients Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Клиент
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Контакты
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Источник
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Статус
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Проекты
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredClients.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    {clients.length === 0 ? (
-                      <div>
-                        <Users className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                        <p className="text-lg font-medium">Нет клиентов</p>
-                        <p className="text-sm mt-1">
-                          Добавьте первого клиента, чтобы начать работу
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-lg font-medium">Ничего не найдено</p>
-                        <p className="text-sm mt-1">
-                          Попробуйте изменить параметры поиска
-                        </p>
-                      </div>
-                    )}
-                  </td>
-                </tr>
+        {/* Mobile Cards */}
+        <div className="md:hidden space-y-3">
+          {filteredClients.length === 0 ? (
+            <div className="bg-card rounded-lg shadow p-8 text-center text-muted-foreground">
+              {clients.length === 0 ? (
+                <div>
+                  <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                  <p className="text-lg font-medium">Нет клиентов</p>
+                  <p className="text-sm mt-1">Добавьте первого клиента</p>
+                </div>
               ) : (
-                filteredClients.map((client) => (
-                  <tr
-                    key={client.id}
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => router.push(`/clients/${client.id}`)}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 flex-shrink-0">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-blue-600 font-medium text-sm">
-                              {client.name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {client.name}
-                          </div>
-                          {client.company && (
-                            <div className="text-sm text-gray-500 flex items-center">
-                              <Building2 className="h-3 w-3 mr-1" />
-                              {client.company}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {client.email && (
-                          <div className="flex items-center mb-1">
-                            <Mail className="h-3 w-3 mr-2 text-gray-400" />
-                            {client.email}
-                          </div>
-                        )}
-                        {client.phone && (
-                          <div className="flex items-center mb-1">
-                            <Phone className="h-3 w-3 mr-2 text-gray-400" />
-                            {client.phone}
-                          </div>
-                        )}
-                        {client.website && (
-                          <div className="flex items-center">
-                            <Globe className="h-3 w-3 mr-2 text-gray-400" />
-                            <a
-                              href={client.website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {new URL(client.website).hostname}
-                            </a>
-                          </div>
-                        )}
-                        {!client.email && !client.phone && !client.website && (
-                          <span className="text-gray-400">—</span>
+                <div>
+                  <p className="text-lg font-medium">Ничего не найдено</p>
+                  <p className="text-sm mt-1">Попробуйте изменить параметры поиска</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            filteredClients.map((client) => (
+              <div
+                key={client.id}
+                className="bg-card rounded-lg shadow p-4 active:bg-muted transition-colors touch-manipulation"
+                onClick={() => router.push(`/clients/${client.id}`)}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="text-primary font-medium text-sm">
+                      {client.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-foreground truncate">{client.name}</h3>
+                        {client.company && (
+                          <p className="text-sm text-muted-foreground flex items-center gap-1 truncate">
+                            <Building2 className="h-3 w-3 shrink-0" />
+                            {client.company}
+                          </p>
                         )}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="text-xs shrink-0">
                         {sourceLabels[client.source] || client.source}
                       </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-muted-foreground">
+                      {client.email && (
+                        <span className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          <span className="truncate max-w-[150px]">{client.email}</span>
+                        </span>
+                      )}
+                      {client.phone && (
+                        <span className="flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          {client.phone}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-muted-foreground">
+                        {client._count.projects} проектов
+                      </span>
                       <Badge
                         variant={
                           client.status === 'ACTIVE'
@@ -542,18 +494,152 @@ export default function ClientsClient({
                             ? 'warning'
                             : 'secondary'
                         }
+                        className="text-xs"
                       >
                         {statusLabels[client.status] || client.status}
                       </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {client._count.projects} проект(ов)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block bg-card rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Клиент
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Контакты
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Источник
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Статус
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Проекты
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-card divide-y divide-border">
+                {filteredClients.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                      {clients.length === 0 ? (
+                        <div>
+                          <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                          <p className="text-lg font-medium">Нет клиентов</p>
+                          <p className="text-sm mt-1">
+                            Добавьте первого клиента, чтобы начать работу
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-lg font-medium">Ничего не найдено</p>
+                          <p className="text-sm mt-1">
+                            Попробуйте изменить параметры поиска
+                          </p>
+                        </div>
+                      )}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredClients.map((client) => (
+                    <tr
+                      key={client.id}
+                      className="hover:bg-muted/50 cursor-pointer"
+                      onClick={() => router.push(`/clients/${client.id}`)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 flex-shrink-0">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-primary font-medium text-sm">
+                                {client.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-foreground">
+                              {client.name}
+                            </div>
+                            {client.company && (
+                              <div className="text-sm text-muted-foreground flex items-center">
+                                <Building2 className="h-3 w-3 mr-1" />
+                                {client.company}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-foreground">
+                          {client.email && (
+                            <div className="flex items-center mb-1">
+                              <Mail className="h-3 w-3 mr-2 text-muted-foreground" />
+                              {client.email}
+                            </div>
+                          )}
+                          {client.phone && (
+                            <div className="flex items-center mb-1">
+                              <Phone className="h-3 w-3 mr-2 text-muted-foreground" />
+                              {client.phone}
+                            </div>
+                          )}
+                          {client.website && (
+                            <div className="flex items-center">
+                              <Globe className="h-3 w-3 mr-2 text-muted-foreground" />
+                              <a
+                                href={client.website}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {new URL(client.website).hostname}
+                              </a>
+                            </div>
+                          )}
+                          {!client.email && !client.phone && !client.website && (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge variant="secondary">
+                          {sourceLabels[client.source] || client.source}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge
+                          variant={
+                            client.status === 'ACTIVE'
+                              ? 'success'
+                              : client.status === 'INACTIVE'
+                              ? 'warning'
+                              : 'secondary'
+                          }
+                        >
+                          {statusLabels[client.status] || client.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {client._count.projects} проект(ов)
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
     </AppLayout>
   )

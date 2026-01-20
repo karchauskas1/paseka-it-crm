@@ -355,48 +355,48 @@ export default function AdminClient({
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/admin" userRole={user.role}>
       <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Администрирование</h2>
-          <p className="mt-1 text-sm text-gray-600">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Администрирование</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Управление пользователями, настройками и интеграциями
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-card rounded-lg shadow p-3 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg w-fit mb-2 sm:mb-0">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Пользователи</p>
-                <p className="text-2xl font-semibold text-gray-900">
+              <div className="sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Пользователи</p>
+                <p className="text-lg sm:text-2xl font-semibold text-foreground">
                   {workspace._count.users}
                 </p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <FolderKanban className="h-6 w-6 text-green-600" />
+          <div className="bg-card rounded-lg shadow p-3 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg w-fit mb-2 sm:mb-0">
+                <FolderKanban className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Проекты</p>
-                <p className="text-2xl font-semibold text-gray-900">
+              <div className="sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Проекты</p>
+                <p className="text-lg sm:text-2xl font-semibold text-foreground">
                   {workspace._count.projects}
                 </p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Building2 className="h-6 w-6 text-purple-600" />
+          <div className="bg-card rounded-lg shadow p-3 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg w-fit mb-2 sm:mb-0">
+                <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Клиенты</p>
-                <p className="text-2xl font-semibold text-gray-900">
+              <div className="sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Клиенты</p>
+                <p className="text-lg sm:text-2xl font-semibold text-foreground">
                   {workspace._count.clients}
                 </p>
               </div>
@@ -406,92 +406,148 @@ export default function AdminClient({
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="users">
-              <Users className="h-4 w-4 mr-2" />
-              Пользователи
+          <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap sm:flex-nowrap">
+            <TabsTrigger value="users" className="text-xs sm:text-sm">
+              <Users className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Пользователи</span>
             </TabsTrigger>
-            <TabsTrigger value="invites">
-              <Mail className="h-4 w-4 mr-2" />
-              Приглашения
+            <TabsTrigger value="invites" className="text-xs sm:text-sm">
+              <Mail className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Приглашения</span>
             </TabsTrigger>
-            <TabsTrigger value="custom-fields">
-              <FolderKanban className="h-4 w-4 mr-2" />
-              Кастомные поля
+            <TabsTrigger value="custom-fields" className="text-xs sm:text-sm">
+              <FolderKanban className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Кастомные поля</span>
             </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="h-4 w-4 mr-2" />
-              Настройки
+            <TabsTrigger value="settings" className="text-xs sm:text-sm">
+              <Settings className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Настройки</span>
             </TabsTrigger>
-            <TabsTrigger value="integrations">
-              <Bot className="h-4 w-4 mr-2" />
-              Интеграции
+            <TabsTrigger value="integrations" className="text-xs sm:text-sm">
+              <Bot className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Интеграции</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Users Tab */}
           <TabsContent value="users">
-            <div className="bg-white rounded-lg shadow">
-              <div className="p-4 border-b flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Пользователи workspace</h3>
-                <Button onClick={() => setIsCreateUserOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Добавить
+            <div className="bg-card rounded-lg shadow">
+              <div className="p-3 sm:p-4 border-b border-border flex items-center justify-between">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground">Пользователи workspace</h3>
+                <Button onClick={() => setIsCreateUserOpen(true)} size="sm">
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Добавить</span>
                 </Button>
               </div>
-              <div className="divide-y">
+              <div className="divide-y divide-border">
                 {users.map((u) => (
                   <div
                     key={u.id}
-                    className="p-4 flex items-center justify-between hover:bg-gray-50"
+                    className="p-3 sm:p-4 hover:bg-muted/50 active:bg-muted transition-colors touch-manipulation"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        {u.role === 'ADMIN' ? (
-                          <Shield className="h-5 w-5 text-gray-600" />
-                        ) : (
-                          <User className="h-5 w-5 text-gray-600" />
+                    {/* Mobile Layout */}
+                    <div className="md:hidden">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                          {u.role === 'ADMIN' ? (
+                            <Shield className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <User className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground text-sm truncate">
+                            {u.name}
+                            {u.id === user.id && (
+                              <span className="ml-1 text-xs text-muted-foreground">(вы)</span>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                        </div>
+                        <Badge variant={u.role === 'ADMIN' ? 'info' : 'default'} className="text-xs shrink-0">
+                          {roleLabels[u.role]}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">
+                          {u._count.projects} проект. • {u._count.tasks} задач
+                        </span>
+                        {u.id !== user.id && (
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => {
+                                setSelectedUser(u)
+                                setIsEditUserOpen(true)
+                              }}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => handleDeleteUser(u.id)}
+                            >
+                              <Trash2 className="h-3 w-3 text-red-500" />
+                            </Button>
+                          </div>
                         )}
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {u.name}
-                          {u.id === user.id && (
-                            <span className="ml-2 text-sm text-gray-500">(вы)</span>
-                          )}
-                        </p>
-                        <p className="text-sm text-gray-500">{u.email}</p>
-                      </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right text-sm text-gray-500">
-                        <p>{u._count.projects} проектов</p>
-                        <p>{u._count.tasks} задач</p>
-                      </div>
-                      <Badge variant={u.role === 'ADMIN' ? 'info' : 'default'}>
-                        {roleLabels[u.role]}
-                      </Badge>
-                      {u.id !== user.id && (
-                        <div className="flex gap-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedUser(u)
-                              setIsEditUserOpen(true)
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteUser(u.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
+
+                    {/* Desktop Layout */}
+                    <div className="hidden md:flex md:items-center md:justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          {u.role === 'ADMIN' ? (
+                            <Shield className="h-5 w-5 text-muted-foreground" />
+                          ) : (
+                            <User className="h-5 w-5 text-muted-foreground" />
+                          )}
                         </div>
-                      )}
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {u.name}
+                            {u.id === user.id && (
+                              <span className="ml-2 text-sm text-muted-foreground">(вы)</span>
+                            )}
+                          </p>
+                          <p className="text-sm text-muted-foreground">{u.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right text-sm text-muted-foreground">
+                          <p>{u._count.projects} проектов</p>
+                          <p>{u._count.tasks} задач</p>
+                        </div>
+                        <Badge variant={u.role === 'ADMIN' ? 'info' : 'default'}>
+                          {roleLabels[u.role]}
+                        </Badge>
+                        {u.id !== user.id && (
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedUser(u)
+                                setIsEditUserOpen(true)
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteUser(u.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -501,42 +557,42 @@ export default function AdminClient({
 
           {/* Invites Tab */}
           <TabsContent value="invites">
-            <div className="bg-white rounded-lg shadow">
-              <div className="p-4 border-b flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Приглашения</h3>
-                <Button onClick={() => {
+            <div className="bg-card rounded-lg shadow">
+              <div className="p-3 sm:p-4 border-b border-border flex items-center justify-between">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground">Приглашения</h3>
+                <Button size="sm" onClick={() => {
                   setCreatedInviteUrl('')
                   setNewInvite({ email: '', role: 'MEMBER' })
                   setIsCreateInviteOpen(true)
                 }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Создать приглашение
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Создать</span>
                 </Button>
               </div>
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
                 {invites.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">Нет активных приглашений</p>
+                  <p className="text-muted-foreground text-center py-8">Нет активных приглашений</p>
                 ) : (
                   <div className="space-y-3">
                     {invites.filter(i => !i.usedAt && new Date(i.expiresAt) > new Date()).map((invite) => (
-                      <div key={invite.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <LinkIcon className="h-5 w-5 text-blue-600" />
+                      <div key={invite.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border border-border rounded-lg gap-3">
+                        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg shrink-0">
+                            <LinkIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                           </div>
-                          <div>
-                            <p className="font-medium">
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground text-sm truncate">
                               {invite.email || 'Без email (любой может использовать)'}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-xs sm:text-sm text-muted-foreground">
                               Роль: {roleLabels[invite.role]} • Создал: {invite.createdBy.name}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-muted-foreground/70">
                               Истекает: {new Date(invite.expiresAt).toLocaleDateString('ru-RU')}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 self-end sm:self-auto">
                           <Button
                             variant="outline"
                             size="sm"
@@ -562,15 +618,15 @@ export default function AdminClient({
 
           {/* Custom Fields Tab */}
           <TabsContent value="custom-fields">
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg shadow p-4 sm:p-6">
               <CustomFieldManager entityType="client" workspaceId={workspace.id} />
             </div>
           </TabsContent>
 
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold mb-4">Настройки workspace</h3>
+            <div className="bg-card rounded-lg shadow p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4">Настройки workspace</h3>
               <div className="space-y-4 max-w-md">
                 <div className="grid gap-2">
                   <Label htmlFor="workspaceName">Название workspace</Label>

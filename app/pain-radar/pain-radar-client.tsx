@@ -130,35 +130,35 @@ export function PainRadarClient({
     <AppLayout user={user} workspace={workspace} currentPage="/pain-radar" userRole={user.role}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Pain Radar</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">Pain Radar</h1>
+          <p className="text-sm text-muted-foreground">
             Анализ болей бизнеса через мониторинг социальных сетей
           </p>
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">
-            <BarChart3 className="mr-2 h-4 w-4" />
-            Обзор
+      <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm">
+            <BarChart3 className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Обзор</span>
           </TabsTrigger>
-          <TabsTrigger value="pains">
-            <TrendingUp className="mr-2 h-4 w-4" />
-            Боли
+          <TabsTrigger value="pains" className="text-xs sm:text-sm">
+            <TrendingUp className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Боли</span>
           </TabsTrigger>
-          <TabsTrigger value="posts" onClick={loadPosts}>
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Посты
+          <TabsTrigger value="posts" onClick={loadPosts} className="text-xs sm:text-sm">
+            <MessageSquare className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Посты</span>
           </TabsTrigger>
-          <TabsTrigger value="keywords">
-            <FileText className="mr-2 h-4 w-4" />
-            Ключевые слова
+          <TabsTrigger value="keywords" className="text-xs sm:text-sm">
+            <FileText className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Ключевые слова</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+          <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Всего болей</CardTitle>
@@ -221,14 +221,14 @@ export function PainRadarClient({
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Недавние боли</CardTitle>
-              <CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Недавние боли</CardTitle>
+              <CardDescription className="text-sm">
                 Последние извлеченные боли из социальных сетей
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+              <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                 {pains.slice(0, 10).map((pain) => (
                   <PainCard
                     key={pain.id}
@@ -241,7 +241,7 @@ export function PainRadarClient({
           </Card>
         </TabsContent>
 
-        <TabsContent value="pains" className="space-y-6">
+        <TabsContent value="pains" className="space-y-4 sm:space-y-6">
           <PainFilters onFilterChange={setFilters} />
 
           {isLoadingPains ? (
@@ -249,7 +249,7 @@ export function PainRadarClient({
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
               {pains.map((pain) => (
                 <PainCard
                   key={pain.id}
