@@ -145,26 +145,31 @@ export function UserMenu({ user, workspace, userRole }: UserMenuProps) {
 
     setIsSubmittingFeedback(true)
     try {
+      // Создаём заголовок из первых слов сообщения
+      const title = feedbackText.trim().split('\n')[0].slice(0, 100) || 'Обратная связь'
+
       const res = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: feedbackType,
-          message: feedbackText,
+          title: title,
+          description: feedbackText.trim(),
           workspaceId: workspace.id,
         }),
       })
 
       if (!res.ok) {
-        throw new Error('Ошибка отправки')
+        const error = await res.json()
+        throw new Error(error.error || 'Ошибка отправки')
       }
 
       toast.success('Спасибо за обратную связь!')
       setFeedbackDialogOpen(false)
       setFeedbackText('')
       setFeedbackType('BUG')
-    } catch (error) {
-      toast.error('Не удалось отправить сообщение')
+    } catch (error: any) {
+      toast.error(error.message || 'Не удалось отправить сообщение')
     } finally {
       setIsSubmittingFeedback(false)
     }
