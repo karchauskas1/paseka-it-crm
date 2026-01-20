@@ -648,6 +648,7 @@ model Touch {
   contactEmail String? @map("contact_email")
   contactPhone String? @map("contact_phone")
   contactCompany String? @map("contact_company")
+  socialMedia  String? @map("social_media") // Ссылка на соцсети (Telegram, Instagram, и т.д.)
   source      String?  // Откуда контакт (LinkedIn, конференция, и т.д.)
 
   // Статус касания

@@ -90,6 +90,7 @@ export async function PATCH(
       contactEmail,
       contactPhone,
       contactCompany,
+      socialMedia,
       source,
       status,
       description,
@@ -103,6 +104,7 @@ export async function PATCH(
     if (contactEmail !== undefined) updateData.contactEmail = contactEmail
     if (contactPhone !== undefined) updateData.contactPhone = contactPhone
     if (contactCompany !== undefined) updateData.contactCompany = contactCompany
+    if (socialMedia !== undefined) updateData.socialMedia = socialMedia
     if (source !== undefined) updateData.source = source
     if (description !== undefined) updateData.description = description
     if (response !== undefined) updateData.response = response

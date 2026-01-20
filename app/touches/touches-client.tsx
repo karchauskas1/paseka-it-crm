@@ -40,6 +40,7 @@ import {
   CalendarClock,
   Sparkles,
   Loader2,
+  AtSign,
 } from 'lucide-react'
 
 interface Touch {
@@ -48,6 +49,7 @@ interface Touch {
   contactEmail: string | null
   contactPhone: string | null
   contactCompany: string | null
+  socialMedia: string | null
   source: string | null
   status: string
   description: string | null
@@ -101,6 +103,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
     contactEmail: '',
     contactPhone: '',
     contactCompany: '',
+    socialMedia: '',
     source: '',
     description: '',
     followUpAt: '',
@@ -133,6 +136,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
       contactEmail: '',
       contactPhone: '',
       contactCompany: '',
+      socialMedia: '',
       source: '',
       description: '',
       followUpAt: '',
@@ -153,6 +157,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
       contactEmail: touch.contactEmail || '',
       contactPhone: touch.contactPhone || '',
       contactCompany: touch.contactCompany || '',
+      socialMedia: touch.socialMedia || '',
       source: touch.source || '',
       description: touch.description || '',
       followUpAt: touch.followUpAt ? touch.followUpAt.split('T')[0] : '',
@@ -345,7 +350,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                         </Badge>
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-2 flex-wrap">
                         {touch.contactCompany && (
                           <span className="flex items-center gap-1">
                             <Building2 className="h-4 w-4" />
@@ -363,6 +368,17 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                             <Phone className="h-4 w-4" />
                             {touch.contactPhone}
                           </span>
+                        )}
+                        {touch.socialMedia && (
+                          <a
+                            href={touch.socialMedia.startsWith('http') ? touch.socialMedia : `https://${touch.socialMedia}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                          >
+                            <AtSign className="h-4 w-4" />
+                            Соцсети
+                          </a>
                         )}
                       </div>
 
@@ -522,15 +538,25 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Источник</Label>
+                <Label>Соцсети</Label>
                 <Input
-                  value={formData.source}
+                  value={formData.socialMedia}
                   onChange={(e) =>
-                    setFormData({ ...formData, source: e.target.value })
+                    setFormData({ ...formData, socialMedia: e.target.value })
                   }
-                  placeholder="LinkedIn, конференция..."
+                  placeholder="@username или ссылка"
                 />
               </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>Источник</Label>
+              <Input
+                value={formData.source}
+                onChange={(e) =>
+                  setFormData({ ...formData, source: e.target.value })
+                }
+                placeholder="LinkedIn, конференция..."
+              />
             </div>
             <div className="grid gap-2">
               <Label>Описание</Label>
@@ -617,14 +643,24 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Источник</Label>
+                <Label>Соцсети</Label>
                 <Input
-                  value={formData.source}
+                  value={formData.socialMedia}
                   onChange={(e) =>
-                    setFormData({ ...formData, source: e.target.value })
+                    setFormData({ ...formData, socialMedia: e.target.value })
                   }
+                  placeholder="@username или ссылка"
                 />
               </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>Источник</Label>
+              <Input
+                value={formData.source}
+                onChange={(e) =>
+                  setFormData({ ...formData, source: e.target.value })
+                }
+              />
             </div>
             <div className="grid gap-2">
               <Label>Статус</Label>

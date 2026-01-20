@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -28,7 +28,7 @@ import { taskStatusLabels, priorityLabels } from '@/lib/validations/task'
 import { InlineText, InlineTextarea } from '@/components/inline-edit'
 import { ProgressBar, FinanceBlock, ActivitySidebar } from '@/components/project'
 import { AppLayout } from '@/components/layout'
-import { Sparkles, Loader2, Activity, FileText, Trash2, Pencil } from 'lucide-react'
+import { Sparkles, Loader2, Activity, FileText, Trash2, Pencil, Upload, Download, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function ProjectDetailClient({ project: initialProject, user, teamMembers, workspace }: any) {
@@ -123,11 +123,14 @@ export default function ProjectDetailClient({ project: initialProject, user, tea
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...taskForm,
+          title: taskForm.title,
+          description: taskForm.description || undefined,
+          status: taskForm.status,
+          priority: taskForm.priority,
           projectId: project.id,
           workspaceId: project.workspaceId,
-          assigneeId: taskForm.assigneeId || undefined,
-          dueDate: taskForm.dueDate || undefined,
+          assigneeId: taskForm.assigneeId && taskForm.assigneeId !== '' ? taskForm.assigneeId : undefined,
+          dueDate: taskForm.dueDate && taskForm.dueDate !== '' ? taskForm.dueDate : undefined,
         }),
       })
       if (!res.ok) throw new Error('Ошибка создания задачи')
@@ -470,7 +473,36 @@ ${architectureForm.constraints}` : ''}
             <p className="text-sm text-muted-foreground mt-1">Клиент: {project.client.name}</p>
           </div>
           <div className="flex items-center gap-3">
-            <Badge className={getStatusColor(project.status)}>{getStatusLabel(project.status)}</Badge>
+            <Select
+              value={project.status}
+              onValueChange={async (value) => {
+                try {
+                  const res = await fetch(`/api/projects/${project.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: value }),
+                  })
+                  if (!res.ok) throw new Error('Ошибка обновления')
+                  setProject({ ...project, status: value })
+                  toast.success('Статус обновлён')
+                } catch (error) {
+                  toast.error('Ошибка обновления статуса')
+                }
+              }}
+            >
+              <SelectTrigger className={`w-[160px] ${getStatusColor(project.status)}`}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="LEAD">Лид</SelectItem>
+                <SelectItem value="QUALIFICATION">Квалификация</SelectItem>
+                <SelectItem value="BRIEFING">Брифинг</SelectItem>
+                <SelectItem value="IN_PROGRESS">В работе</SelectItem>
+                <SelectItem value="ON_HOLD">На паузе</SelectItem>
+                <SelectItem value="COMPLETED">Завершён</SelectItem>
+                <SelectItem value="REJECTED">Отклонён</SelectItem>
+              </SelectContent>
+            </Select>
             <Button
               variant="outline"
               size="sm"
@@ -569,7 +601,7 @@ ${architectureForm.constraints}` : ''}
         {activeTab === 'milestones' && (
           <MilestonesTab project={project} onCreateMilestone={() => setIsMilestoneDialogOpen(true)} />
         )}
-        {activeTab === 'documents' && <DocumentsTab project={project} />}
+        {activeTab === 'documents' && <DocumentsTab project={project} onDocumentsUpdate={() => router.refresh()} />}
         {activeTab === 'comments' && (
           <CommentsTab
             project={project}
@@ -632,10 +664,10 @@ ${architectureForm.constraints}` : ''}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Исполнитель</Label>
-                <Select value={taskForm.assigneeId} onValueChange={(v) => setTaskForm({ ...taskForm, assigneeId: v })}>
+                <Select value={taskForm.assigneeId || 'none'} onValueChange={(v) => setTaskForm({ ...taskForm, assigneeId: v === 'none' ? '' : v })}>
                   <SelectTrigger><SelectValue placeholder="Не назначен" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Не назначен</SelectItem>
+                    <SelectItem value="none">Не назначен</SelectItem>
                     {teamMembers.map((m: any) => (
                       <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                     ))}
@@ -1234,29 +1266,152 @@ function MilestonesTab({ project, onCreateMilestone }: any) {
   )
 }
 
-function DocumentsTab({ project }: any) {
+function DocumentsTab({ project, onDocumentsUpdate }: any) {
+  const [isUploading, setIsUploading] = useState(false)
+  const [selectedType, setSelectedType] = useState('OTHER')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const typeLabels: Record<string, string> = {
+    CONTRACT: 'Договор',
+    BRIEF: 'Бриф',
+    INVOICE: 'Счёт',
+    PRESENTATION: 'Презентация',
+    OTHER: 'Другое',
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Файл слишком большой. Максимальный размер: 10MB')
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('projectId', project.id)
+      formData.append('type', selectedType)
+
+      const res = await fetch('/api/documents', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Ошибка загрузки')
+      }
+
+      toast.success('Документ загружен')
+      onDocumentsUpdate?.()
+    } catch (error: any) {
+      toast.error(error.message)
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleDelete = async (docId: string) => {
+    if (!confirm('Удалить этот документ?')) return
+
+    try {
+      const res = await fetch(`/api/documents/${docId}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) throw new Error('Ошибка удаления')
+
+      toast.success('Документ удалён')
+      onDocumentsUpdate?.()
+    } catch (error: any) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleDownload = (doc: any) => {
+    const link = document.createElement('a')
+    link.href = doc.url
+    link.download = doc.name
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold">Документы</h2>
-        <Button>Загрузить документ</Button>
+        <div className="flex items-center gap-2">
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(typeLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4 mr-2" />
+            )}
+            {isUploading ? 'Загрузка...' : 'Загрузить документ'}
+          </Button>
+        </div>
       </div>
       {project.documents && project.documents.length > 0 ? (
         <div className="space-y-3">
           {project.documents.map((doc: any) => (
             <div key={doc.id} className="flex items-center justify-between border rounded-lg p-4">
-              <div>
-                <h3 className="font-medium text-gray-900">{doc.name}</h3>
-                <p className="text-sm text-gray-600 mt-1">{doc.type} • Версия {doc.version} • {new Date(doc.uploadedAt).toLocaleDateString('ru-RU')}</p>
+              <div className="flex items-center gap-3">
+                <FileText className="h-8 w-8 text-gray-400" />
+                <div>
+                  <h3 className="font-medium text-gray-900">{doc.name}</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {typeLabels[doc.type] || doc.type} • Версия {doc.version} • {new Date(doc.uploadedAt).toLocaleDateString('ru-RU')}
+                    {doc.size && ` • ${(doc.size / 1024).toFixed(1)} KB`}
+                  </p>
+                </div>
               </div>
-              <Button variant="outline" size="sm">Скачать</Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleDownload(doc)}>
+                  <Download className="h-4 w-4 mr-1" />
+                  Скачать
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(doc.id)}>
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
       ) : (
         <div className="text-center py-8">
+          <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">Нет документов</p>
-          <Button>Загрузить первый документ</Button>
+          <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+            <Upload className="h-4 w-4 mr-2" />
+            Загрузить первый документ
+          </Button>
         </div>
       )}
     </div>

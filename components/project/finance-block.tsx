@@ -19,9 +19,11 @@ function formatCurrency(value: number | null): string {
 }
 
 export function FinanceBlock({ budget, revenue, className }: FinanceBlockProps) {
-  const profit = (revenue || 0) - (budget || 0)
-  const margin = budget && budget > 0 && revenue ? ((revenue - budget) / budget) * 100 : 0
-  const isProfit = profit >= 0
+  // Показываем прибыль/убыток только если есть и бюджет и выручка
+  const hasFinanceData = budget !== null && revenue !== null
+  const profit = hasFinanceData ? revenue - budget : null
+  const margin = budget && budget > 0 && revenue !== null ? ((revenue - budget) / budget) * 100 : null
+  const isProfit = profit !== null ? profit >= 0 : true
 
   return (
     <div className={cn('bg-white rounded-lg border p-4', className)}>
@@ -56,27 +58,28 @@ export function FinanceBlock({ budget, revenue, className }: FinanceBlockProps) 
         {/* Прибыль / Убыток */}
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            {isProfit ? (
+            {profit === null ? (
+              <DollarSign className="h-3.5 w-3.5" />
+            ) : isProfit ? (
               <TrendingUp className="h-3.5 w-3.5" />
             ) : (
               <TrendingDown className="h-3.5 w-3.5" />
             )}
-            <span>{isProfit ? 'Прибыль' : 'Убыток'}</span>
+            <span>{profit === null ? 'Результат' : isProfit ? 'Прибыль' : 'Убыток'}</span>
           </div>
           <div
             className={cn(
               'text-lg font-semibold',
-              isProfit ? 'text-green-600' : 'text-red-600'
+              profit === null ? 'text-gray-400' : isProfit ? 'text-green-600' : 'text-red-600'
             )}
           >
-            {isProfit ? '+' : ''}
-            {formatCurrency(profit)}
+            {profit === null ? '—' : `${isProfit ? '+' : ''}${formatCurrency(profit)}`}
           </div>
         </div>
       </div>
 
       {/* Маржинальность */}
-      {budget && budget > 0 && revenue !== null && (
+      {margin !== null && (
         <div className="mt-4 pt-4 border-t">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Маржинальность</span>
