@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { getCurrentUser, validateWorkspaceAccess } from '@/lib/auth'
 import { scanRequestSchema } from '@/lib/validations/pain-radar'
 import { searchReddit, mapRedditPostToDb } from '@/lib/social/reddit'
+import { searchWeb, mapWebPostToDb } from '@/lib/social/web-search'
 import { socialRateLimiter, withRetry } from '@/lib/social/rate-limiter'
 import { RedditAPIError } from '@/lib/pain-radar/errors'
 import { translateToEnglish } from '@/lib/ai'
@@ -92,19 +93,38 @@ async function runScan(
   userId: string
 ) {
   try {
+    // Get scan details to check platform
+    const scanRecord = await db.painScan.findUnique({
+      where: { id: scanId },
+    })
+
+    const platform = scanRecord?.platform || 'REDDIT'
+
     // Check rate limit
-    await socialRateLimiter.waitForSlot('REDDIT')
+    await socialRateLimiter.waitForSlot(platform)
 
-    // Translate Russian keywords to English for Reddit search
-    const searchKeyword = await translateToEnglish(keyword)
-    console.log(`Scanning Reddit: "${keyword}" → "${searchKeyword}"`)
+    let posts: any[] = []
 
-    // Search Reddit with retry logic
-    const posts = await withRetry(
-      () => searchReddit(searchKeyword, limit),
-      3,
-      1000
-    )
+    if (platform === 'WEB') {
+      // Search web (Google/DuckDuckGo)
+      console.log(`Scanning Web: "${keyword}"`)
+      posts = await withRetry(
+        () => searchWeb(keyword, limit),
+        3,
+        1000
+      )
+    } else {
+      // Translate Russian keywords to English for Reddit search
+      const searchKeyword = await translateToEnglish(keyword)
+      console.log(`Scanning Reddit: "${keyword}" → "${searchKeyword}"`)
+
+      // Search Reddit with retry logic
+      posts = await withRetry(
+        () => searchReddit(searchKeyword, limit),
+        3,
+        1000
+      )
+    }
 
     let postsNew = 0
     const savedPosts: any[] = []
@@ -112,13 +132,13 @@ async function runScan(
     // Save posts to database with deduplication
     for (const post of posts) {
       try {
-        const postData = mapRedditPostToDb(post)
+        const postData = platform === 'WEB' ? mapWebPostToDb(post) : mapRedditPostToDb(post)
 
         // Check if post already exists
         const existing = await db.socialPost.findUnique({
           where: {
             platform_platformId: {
-              platform: 'REDDIT',
+              platform: platform,
               platformId: post.platformId,
             },
           },

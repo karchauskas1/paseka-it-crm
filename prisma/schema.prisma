@@ -856,6 +856,7 @@ enum SocialPlatform {
   THREADS
   INSTAGRAM
   PIKABU
+  WEB
 }
 
 model ExtractedPain {

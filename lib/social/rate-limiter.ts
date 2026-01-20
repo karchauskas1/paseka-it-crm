@@ -11,6 +11,7 @@ const RATE_LIMITS: Record<SocialPlatform, RateLimitConfig> = {
   THREADS: { maxRequests: 100, windowMs: 60 * 60 * 1000 }, // TBD
   INSTAGRAM: { maxRequests: 200, windowMs: 60 * 60 * 1000 }, // TBD
   PIKABU: { maxRequests: 60, windowMs: 60 * 1000 }, // TBD
+  WEB: { maxRequests: 30, windowMs: 60 * 1000 }, // 30/min for web search
 }
 
 export class SocialAPIRateLimiter {
