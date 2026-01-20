@@ -9,6 +9,8 @@ const MODEL = 'openai/gpt-4-turbo' // GPT-4 Turbo
 
 // Helper function to call OpenRouter API with OpenAI format
 async function callOpenRouter(messages: Array<{ role: string; content: string }>, maxTokens: number = 500) {
+  console.log(`[OpenRouter] API Key exists: ${!!OPENROUTER_API_KEY}, starts with: ${OPENROUTER_API_KEY?.substring(0, 10)}...`)
+
   if (!OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY не настроен. Добавьте API ключ в настройки окружения.')
   }
@@ -31,10 +33,12 @@ async function callOpenRouter(messages: Array<{ role: string; content: string }>
 
   if (!response.ok) {
     const errorText = await response.text()
+    console.error(`[OpenRouter] API Error ${response.status}:`, errorText)
     let errorMessage = `OpenRouter API error: ${response.status}`
 
     if (response.status === 401) {
       errorMessage = 'Неверный API ключ OpenRouter. Проверьте OPENROUTER_API_KEY в настройках.'
+      console.error(`[OpenRouter] 401 Unauthorized - Key format: ${OPENROUTER_API_KEY?.substring(0, 15)}...`)
     } else if (response.status === 402) {
       errorMessage = 'Недостаточно средств на счёте OpenRouter. Пополните баланс.'
     } else if (response.status === 429) {
@@ -43,6 +47,7 @@ async function callOpenRouter(messages: Array<{ role: string; content: string }>
       try {
         const errorJson = JSON.parse(errorText)
         errorMessage = errorJson.error?.message || errorMessage
+        console.error(`[OpenRouter] Error JSON:`, errorJson)
       } catch {
         errorMessage = `${errorMessage} - ${errorText}`
       }
