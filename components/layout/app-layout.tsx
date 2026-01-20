@@ -31,6 +31,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { migrateUserSettings } from '@/lib/utils/migrate-settings'
 
 interface AppLayoutProps {
   user: any
@@ -74,6 +75,9 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
   useEffect(() => {
     setMounted(true)
 
+    // Migrate old settings format to new one
+    migrateUserSettings()
+
     // Check mobile
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
@@ -84,10 +88,23 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
     checkMobile()
     window.addEventListener('resize', checkMobile)
 
-    // Load saved nav layout
-    const savedLayout = localStorage.getItem('navLayout') as 'top' | 'sidebar' | null
-    if (savedLayout) {
-      setNavLayout(savedLayout)
+    // Load saved nav layout (try new format first, fallback to old)
+    try {
+      const settings = localStorage.getItem('userSettings')
+      if (settings) {
+        const parsed = JSON.parse(settings)
+        if (parsed.navLayout) {
+          setNavLayout(parsed.navLayout)
+        }
+      } else {
+        // Fallback to old format
+        const savedLayout = localStorage.getItem('navLayout') as 'top' | 'sidebar' | null
+        if (savedLayout) {
+          setNavLayout(savedLayout)
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load nav layout:', e)
     }
 
     // Listen for nav layout changes from UserMenu
