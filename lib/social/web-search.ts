@@ -181,7 +181,7 @@ export function mapWebPostToDb(post: WebSearchPost) {
     },
     likes: post.score,
     comments: post.comments,
-    engagement: calculateEngagement(post.score, post.comments),
+    engagement: calculateEngagement({ likes: post.score, comments: post.comments, shares: 0 }),
     publishedAt: post.createdAt,
   }
 }
