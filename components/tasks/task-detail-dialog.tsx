@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Dialog,
@@ -68,41 +68,73 @@ export function TaskDetailDialog({
   const [isDeleting, setIsDeleting] = useState(false)
 
   const [formData, setFormData] = useState({
-    title: task?.title || '',
-    description: task?.description || '',
-    status: task?.status || 'TODO',
-    priority: task?.priority || 'MEDIUM',
-    complexity: task?.complexity || 'MEDIUM',
-    dueDate: task?.dueDate?.split('T')[0] || '',
-    projectId: task?.projectId || '',
-    assigneeId: task?.assigneeId || '',
+    title: '',
+    description: '',
+    status: 'TODO',
+    priority: 'MEDIUM',
+    complexity: 'MEDIUM',
+    dueDate: '',
+    projectId: '',
+    assigneeId: '',
   })
 
   // Update formData when task changes
-  if (task && formData.title !== task.title) {
-    setFormData({
-      title: task.title,
-      description: task.description || '',
-      status: task.status,
-      priority: task.priority,
-      complexity: task.complexity || 'MEDIUM',
-      dueDate: task.dueDate?.split('T')[0] || '',
-      projectId: task.projectId || '',
-      assigneeId: task.assigneeId || '',
-    })
-  }
+  useEffect(() => {
+    if (task) {
+      // Parse dueDate properly - handle both ISO string and date string formats
+      let dueDateValue = ''
+      if (task.dueDate) {
+        try {
+          const date = new Date(task.dueDate)
+          if (!isNaN(date.getTime())) {
+            dueDateValue = date.toISOString().split('T')[0]
+          }
+        } catch {
+          dueDateValue = ''
+        }
+      }
+
+      setFormData({
+        title: task.title,
+        description: task.description || '',
+        status: task.status,
+        priority: task.priority,
+        complexity: task.complexity || 'MEDIUM',
+        dueDate: dueDateValue,
+        projectId: task.projectId || '',
+        assigneeId: task.assigneeId || '',
+      })
+    }
+  }, [task?.id])
 
   const handleUpdate = async () => {
     if (!task) return
 
     setIsLoading(true)
     try {
+      // Prepare dueDate - ensure proper ISO format
+      let dueDateISO: string | null = null
+      if (formData.dueDate) {
+        try {
+          // Parse date as local date (yyyy-mm-dd format from input type="date")
+          const [year, month, day] = formData.dueDate.split('-').map(Number)
+          const date = new Date(year, month - 1, day, 12, 0, 0) // noon to avoid timezone issues
+          if (!isNaN(date.getTime())) {
+            dueDateISO = date.toISOString()
+          }
+        } catch {
+          dueDateISO = null
+        }
+      }
+
       const res = await fetch(`/api/tasks/${task.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
+          dueDate: dueDateISO,
+          projectId: formData.projectId || null,
+          assigneeId: formData.assigneeId || null,
         }),
       })
 

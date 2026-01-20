@@ -43,6 +43,12 @@ import {
   Check,
   Users,
   Crown,
+  MessageSquare,
+  Bug,
+  Lightbulb,
+  List,
+  PanelLeft,
+  PanelTop,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -71,8 +77,13 @@ interface Invite {
 export function UserMenu({ user, workspace, userRole }: UserMenuProps) {
   const router = useRouter()
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system')
+  const [navLayout, setNavLayout] = useState<'top' | 'sidebar'>('top')
   const [invitesOpen, setInvitesOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false)
+  const [feedbackType, setFeedbackType] = useState<'BUG' | 'FEATURE' | 'OTHER'>('BUG')
+  const [feedbackText, setFeedbackText] = useState('')
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false)
   const [invites, setInvites] = useState<Invite[]>([])
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
   const [newInvite, setNewInvite] = useState({ role: 'MEMBER' })
@@ -87,6 +98,14 @@ export function UserMenu({ user, workspace, userRole }: UserMenuProps) {
     if (savedTheme) {
       setTheme(savedTheme)
       applyTheme(savedTheme)
+    }
+
+    // Загружаем настройку навигации
+    const savedNavLayout = localStorage.getItem('navLayout') as 'top' | 'sidebar' | null
+    if (savedNavLayout) {
+      setNavLayout(savedNavLayout)
+      // Dispatch event для обновления layout
+      window.dispatchEvent(new CustomEvent('navLayoutChange', { detail: savedNavLayout }))
     }
   }, [])
 
@@ -109,6 +128,46 @@ export function UserMenu({ user, workspace, userRole }: UserMenuProps) {
     localStorage.setItem('theme', newTheme)
     applyTheme(newTheme)
     toast.success(`Тема изменена на ${newTheme === 'light' ? 'светлую' : newTheme === 'dark' ? 'тёмную' : 'системную'}`)
+  }
+
+  const handleNavLayoutChange = (newLayout: 'top' | 'sidebar') => {
+    setNavLayout(newLayout)
+    localStorage.setItem('navLayout', newLayout)
+    window.dispatchEvent(new CustomEvent('navLayoutChange', { detail: newLayout }))
+    toast.success(`Навигация изменена на ${newLayout === 'top' ? 'верхнюю панель' : 'боковое меню'}`)
+  }
+
+  const handleSubmitFeedback = async () => {
+    if (!feedbackText.trim()) {
+      toast.error('Введите текст сообщения')
+      return
+    }
+
+    setIsSubmittingFeedback(true)
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: feedbackType,
+          message: feedbackText,
+          workspaceId: workspace.id,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Ошибка отправки')
+      }
+
+      toast.success('Спасибо за обратную связь!')
+      setFeedbackDialogOpen(false)
+      setFeedbackText('')
+      setFeedbackType('BUG')
+    } catch (error) {
+      toast.error('Не удалось отправить сообщение')
+    } finally {
+      setIsSubmittingFeedback(false)
+    }
   }
 
   const handleLogout = async () => {
@@ -301,6 +360,50 @@ export function UserMenu({ user, workspace, userRole }: UserMenuProps) {
             </DropdownMenuSubContent>
           </DropdownMenuSub>
 
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              {navLayout === 'top' && <PanelTop className="mr-2 h-4 w-4" />}
+              {navLayout === 'sidebar' && <PanelLeft className="mr-2 h-4 w-4" />}
+              Навигация
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onClick={() => handleNavLayoutChange('top')}>
+                <PanelTop className="mr-2 h-4 w-4" />
+                Верхняя панель
+                {navLayout === 'top' && <Check className="ml-auto h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleNavLayoutChange('sidebar')}>
+                <PanelLeft className="mr-2 h-4 w-4" />
+                Боковое меню
+                {navLayout === 'sidebar' && <Check className="ml-auto h-4 w-4" />}
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Обратная связь
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onClick={() => { setFeedbackType('BUG'); setFeedbackDialogOpen(true) }}>
+                <Bug className="mr-2 h-4 w-4" />
+                Сообщить о баге
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setFeedbackType('FEATURE'); setFeedbackDialogOpen(true) }}>
+                <Lightbulb className="mr-2 h-4 w-4" />
+                Предложение
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push('/feedback')}>
+                <List className="mr-2 h-4 w-4" />
+                Открыть список
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+
           {isAdminOrOwner && (
             <DropdownMenuItem onClick={() => router.push('/admin')}>
               <Settings className="mr-2 h-4 w-4" />
@@ -457,6 +560,59 @@ export function UserMenu({ user, workspace, userRole }: UserMenuProps) {
             <p className="text-sm text-gray-500">
               Для изменения данных профиля обратитесь к администратору
             </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог обратной связи */}
+      <Dialog open={feedbackDialogOpen} onOpenChange={setFeedbackDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {feedbackType === 'BUG' ? 'Сообщить о баге' : 'Предложение'}
+            </DialogTitle>
+            <DialogDescription>
+              {feedbackType === 'BUG'
+                ? 'Опишите проблему, с которой вы столкнулись'
+                : 'Поделитесь вашими идеями по улучшению системы'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Тип</Label>
+              <Select
+                value={feedbackType}
+                onValueChange={(value) => setFeedbackType(value as 'BUG' | 'FEATURE' | 'OTHER')}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BUG">Баг / Ошибка</SelectItem>
+                  <SelectItem value="FEATURE">Предложение / Идея</SelectItem>
+                  <SelectItem value="OTHER">Другое</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Сообщение</Label>
+              <textarea
+                className="w-full min-h-[120px] p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={feedbackType === 'BUG'
+                  ? 'Опишите шаги для воспроизведения бага...'
+                  : 'Опишите вашу идею...'}
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setFeedbackDialogOpen(false)}>
+                Отмена
+              </Button>
+              <Button onClick={handleSubmitFeedback} disabled={isSubmittingFeedback}>
+                {isSubmittingFeedback ? 'Отправка...' : 'Отправить'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

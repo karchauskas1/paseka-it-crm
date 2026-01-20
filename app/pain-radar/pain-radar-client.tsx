@@ -9,6 +9,7 @@ import { PainFilters } from '@/components/pain-radar/pain-filters'
 import { PostSelector } from '@/components/pain-radar/post-selector'
 import { useRouter } from 'next/navigation'
 import { Loader2, TrendingUp, FileText, MessageSquare, BarChart3 } from 'lucide-react'
+import { AppLayout } from '@/components/layout'
 import type { PainCategory, PainSeverity, SocialPlatform } from '@prisma/client'
 
 interface Keyword {
@@ -42,12 +43,16 @@ interface PainRadarClientProps {
   workspaceId: string
   initialKeywords: Keyword[]
   initialPains: Pain[]
+  user: any
+  workspace: any
 }
 
 export function PainRadarClient({
   workspaceId,
   initialKeywords,
   initialPains,
+  user,
+  workspace,
 }: PainRadarClientProps) {
   const router = useRouter()
   const [keywords, setKeywords] = useState(initialKeywords)
@@ -114,8 +119,8 @@ export function PainRadarClient({
   }, [filters])
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <AppLayout user={user} workspace={workspace} currentPage="/pain-radar" userRole={user.role}>
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Pain Radar</h1>
           <p className="text-muted-foreground">
@@ -270,6 +275,6 @@ export function PainRadarClient({
           />
         </TabsContent>
       </Tabs>
-    </div>
+    </AppLayout>
   )
 }

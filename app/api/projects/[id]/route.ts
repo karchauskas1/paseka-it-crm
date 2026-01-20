@@ -27,6 +27,12 @@ export async function GET(
                 email: true,
               },
             },
+            createdBy: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
           orderBy: {
             createdAt: 'desc',

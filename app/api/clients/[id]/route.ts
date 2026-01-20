@@ -189,7 +189,7 @@ export async function DELETE(
     // Prevent deletion if client has projects
     if (existingClient._count.projects > 0) {
       return NextResponse.json(
-        { error: 'Cannot delete client with existing projects. Delete projects first.' },
+        { error: 'Невозможно удалить клиента с существующими проектами. Сначала удалите проекты.' },
         { status: 400 }
       )
     }

@@ -72,11 +72,13 @@ ${context?.consequences ? `Последствия: ${context.consequences}\n` : 
 2. Потенциальные последствия, если проблема не будет решена
 3. Возможные направления решения (2-3 варианта)
 
-Будь конкретным и практичным. Ответ дай структурированно.
+Будь конкретным и практичным.
+
+ВАЖНО: Пиши простым текстом без markdown-разметки. Не используй символы #, *, **, _. Просто пиши обычным человеческим языком с переносами строк для разделения абзацев.
     `
 
     console.log('Sending pain analysis request to AI...')
-    const content = await callOpenRouter([{ role: 'user', content: prompt }], 1000)
+    const content = await callOpenRouter([{ role: 'user', content: prompt }], 200)
     console.log('AI response received')
     return content
   } catch (error: any) {
@@ -473,5 +475,121 @@ export async function translateToEnglish(text: string): Promise<string> {
   } catch (error) {
     console.error('Translation error:', error)
     return text // Return original if translation fails
+  }
+}
+
+// ==================== CLIENT & TOUCH AI ANALYSIS ====================
+
+/**
+ * Analyze client data and provide insights
+ */
+export async function analyzeClient(clientData: {
+  name: string
+  company?: string
+  source: string
+  status: string
+  notes?: string
+  projectsCount: number
+  activeProjectsCount: number
+  completedProjectsCount: number
+  touches?: Array<{ type: string; date: string; notes?: string }>
+}): Promise<string> {
+  try {
+    if (!process.env.OPENROUTER_API_KEY) {
+      throw new Error('AI API key not configured')
+    }
+
+    const prompt = `
+Ты - эксперт по работе с клиентами и продажам в IT-компании.
+
+Данные клиента:
+- Имя: ${clientData.name}
+${clientData.company ? `- Компания: ${clientData.company}` : ''}
+- Источник: ${clientData.source}
+- Статус: ${clientData.status}
+- Проектов: ${clientData.projectsCount} (активных: ${clientData.activeProjectsCount}, завершённых: ${clientData.completedProjectsCount})
+${clientData.notes ? `- Заметки: ${clientData.notes}` : ''}
+${clientData.touches && clientData.touches.length > 0 ? `
+- Последние касания:
+${clientData.touches.slice(0, 5).map(t => `  • ${t.type} (${t.date})${t.notes ? `: ${t.notes}` : ''}`).join('\n')}
+` : ''}
+
+Проанализируй клиента и дай рекомендации:
+1. Оценка текущего статуса отношений с клиентом
+2. Рекомендации по дальнейшему взаимодействию
+3. Потенциальные возможности для продаж/upsell
+4. На что обратить внимание при следующем контакте
+
+Будь конкретным и практичным.
+
+ВАЖНО: Пиши простым текстом без markdown-разметки. Не используй символы #, *, **, _. Просто пиши обычным человеческим языком с переносами строк для разделения абзацев.
+    `
+
+    console.log('Sending client analysis request to AI...')
+    const content = await callOpenRouter([{ role: 'user', content: prompt }], 200)
+    console.log('AI client analysis received')
+    return content
+  } catch (error: any) {
+    console.error('Client Analysis Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Analyze a touch/interaction and provide next steps
+ */
+export async function analyzeTouch(touchData: {
+  type: string
+  date: string
+  notes?: string
+  result?: string
+  clientName: string
+  clientCompany?: string
+  previousTouches?: Array<{ type: string; date: string; notes?: string }>
+}): Promise<string> {
+  try {
+    if (!process.env.OPENROUTER_API_KEY) {
+      throw new Error('AI API key not configured')
+    }
+
+    const touchTypeLabels: Record<string, string> = {
+      CALL: 'Звонок',
+      EMAIL: 'Email',
+      MEETING: 'Встреча',
+      DEMO: 'Демо',
+      PROPOSAL: 'КП',
+      OTHER: 'Другое',
+    }
+
+    const prompt = `
+Ты - эксперт по продажам и работе с клиентами в IT-компании.
+
+Данные касания:
+- Тип: ${touchTypeLabels[touchData.type] || touchData.type}
+- Дата: ${touchData.date}
+- Клиент: ${touchData.clientName}${touchData.clientCompany ? ` (${touchData.clientCompany})` : ''}
+${touchData.notes ? `- Описание: ${touchData.notes}` : ''}
+${touchData.result ? `- Результат: ${touchData.result}` : ''}
+${touchData.previousTouches && touchData.previousTouches.length > 0 ? `
+- Предыдущие касания:
+${touchData.previousTouches.slice(0, 5).map(t => `  • ${touchTypeLabels[t.type] || t.type} (${t.date})${t.notes ? `: ${t.notes}` : ''}`).join('\n')}
+` : ''}
+
+Проанализируй это касание и предложи:
+1. Оценка эффективности касания
+2. Рекомендуемые следующие шаги (конкретные действия)
+3. Оптимальное время для следующего контакта
+4. На что обратить внимание и о чём помнить
+
+Будь конкретным и практичным. Дай actionable рекомендации.
+    `
+
+    console.log('Sending touch analysis request to AI...')
+    const content = await callOpenRouter([{ role: 'user', content: prompt }], 200)
+    console.log('AI touch analysis received')
+    return content
+  } catch (error: any) {
+    console.error('Touch Analysis Error:', error)
+    throw error
   }
 }

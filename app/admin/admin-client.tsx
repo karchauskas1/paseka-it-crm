@@ -51,8 +51,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { CustomFieldManager } from '@/components/custom-fields/custom-field-manager'
-import { FeedbackButton } from '@/components/feedback'
-import { NotificationBell } from '@/components/notifications/notification-bell'
+import { AppLayout } from '@/components/layout'
 
 interface AdminClientProps {
   user: any
@@ -354,81 +353,8 @@ export default function AdminClient({
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
-              <p className="text-sm text-gray-600">{workspace.name}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <NotificationBell />
-              <span className="text-sm text-gray-700">{user.name}</span>
-              <Badge variant="info">
-                <Shield className="h-3 w-3 mr-1" />
-                Админ
-              </Badge>
-              <Button onClick={handleLogout} variant="outline" size="sm">
-                Выйти
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <Link
-              href="/dashboard"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/projects"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Проекты
-            </Link>
-            <Link
-              href="/clients"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Клиенты
-            </Link>
-            <Link
-              href="/tasks"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Задачи
-            </Link>
-            <Link
-              href="/admin"
-              className="py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600"
-            >
-              Администрирование
-            </Link>
-            <Link
-              href="/guide"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Гайд
-            </Link>
-            <div className="flex-1" />
-            <div className="flex items-center py-2">
-              <FeedbackButton workspaceId={workspace.id} />
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
+    <AppLayout user={user} workspace={workspace} currentPage="/admin" userRole={user.role}>
+      <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Администрирование</h2>
           <p className="mt-1 text-sm text-gray-600">
             Управление пользователями, настройками и интеграциями
@@ -838,7 +764,6 @@ export default function AdminClient({
             </div>
           </TabsContent>
         </Tabs>
-      </main>
 
       {/* Create User Dialog */}
       <Dialog open={isCreateUserOpen} onOpenChange={setIsCreateUserOpen}>
@@ -1081,6 +1006,6 @@ export default function AdminClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AppLayout>
   )
 }

@@ -63,7 +63,7 @@ export function CustomFieldManager({ entityType, workspaceId }: CustomFieldManag
   const fetchFields = async () => {
     try {
       setIsLoading(true)
-      const res = await fetch(`/api/custom-fields?entityType=${entityType}`)
+      const res = await fetch(`/api/custom-fields?entityType=${entityType}&workspaceId=${workspaceId}`)
       if (res.ok) {
         const data = await res.json()
         setFields(data.fields)
@@ -141,6 +141,7 @@ export function CustomFieldManager({ entityType, workspaceId }: CustomFieldManag
 
       if (!editingField) {
         body.entityType = entityType
+        body.workspaceId = workspaceId
         body.order = fields.length
       }
 

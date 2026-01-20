@@ -24,9 +24,7 @@ import {
   RefreshCw,
   Calendar,
 } from 'lucide-react'
-import { UserMenu } from '@/components/layout/user-menu'
-import { FeedbackButton } from '@/components/feedback'
-import { NotificationBell } from '@/components/notifications/notification-bell'
+import { AppLayout } from '@/components/layout'
 
 interface Activity {
   id: string
@@ -144,94 +142,8 @@ export default function ActivityClient({
   const sortedDays = Object.keys(groupedByDay).sort((a, b) => b.localeCompare(a))
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
-              <p className="text-sm text-gray-600">{workspace.name}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <NotificationBell />
-              <UserMenu user={user} workspace={workspace} userRole={user.role} />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <Link
-              href="/dashboard"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/projects"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Проекты
-            </Link>
-            <Link
-              href="/clients"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Клиенты
-            </Link>
-            <Link
-              href="/tasks"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Задачи
-            </Link>
-            <Link
-              href="/calendar"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Календарь
-            </Link>
-            <Link
-              href="/activity"
-              className="py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600"
-            >
-              Активность
-            </Link>
-                        <Link
-              href={`/pain-radar?workspace=${workspace.id}`}
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Pain Radar
-            </Link>
-{(user.role === 'ADMIN' || user.role === 'OWNER') && (
-              <Link
-                href="/admin"
-                className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              >
-                Администрирование
-              </Link>
-            )}
-            <Link
-              href="/guide"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Гайд
-            </Link>
-            <div className="flex-1" />
-            <div className="flex items-center py-2">
-              <FeedbackButton workspaceId={workspace.id} />
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
+    <AppLayout user={user} workspace={workspace} currentPage="/activity" userRole={user.role}>
+      <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Активность</h2>
             <p className="mt-1 text-sm text-gray-600">
@@ -338,20 +250,19 @@ export default function ActivityClient({
             ))
           )}
 
-          {hasMore && (
-            <div className="text-center">
-              <Button
-                variant="outline"
-                onClick={() => fetchActivities(false)}
-                disabled={loading}
-              >
-                {loading ? 'Загрузка...' : 'Загрузить ещё'}
-              </Button>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+        {hasMore && (
+          <div className="text-center">
+            <Button
+              variant="outline"
+              onClick={() => fetchActivities(false)}
+              disabled={loading}
+            >
+              {loading ? 'Загрузка...' : 'Загрузить ещё'}
+            </Button>
+          </div>
+        )}
+      </div>
+    </AppLayout>
   )
 }
 

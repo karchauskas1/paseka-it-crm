@@ -9,7 +9,6 @@ import { PainCard } from '@/components/pain-radar/pain-card'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowLeft,
   ExternalLink,
   Sparkles,
   Link as LinkIcon,
@@ -19,6 +18,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import Link from 'next/link'
+import { AppLayout } from '@/components/layout'
 import type { PainCategory, PainSeverity, SocialPlatform, ProjectStatus } from '@prisma/client'
 
 interface PainDetailClientProps {
@@ -69,6 +69,8 @@ interface PainDetailClientProps {
     }
   }>
   workspaceId: string
+  user: any
+  workspace: any
 }
 
 const categoryLabels: Record<PainCategory, string> = {
@@ -102,6 +104,8 @@ export function PainDetailClient({
   linkedProjects,
   similarPains,
   workspaceId,
+  user,
+  workspace,
 }: PainDetailClientProps) {
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false)
   const [isFindingProjects, setIsFindingProjects] = useState(false)
@@ -176,18 +180,7 @@ export function PainDetailClient({
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push(`/pain-radar?workspace=${workspaceId}`)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-      </div>
-
+    <AppLayout user={user} workspace={workspace} currentPage="/pain-radar" userRole={user.role}>
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <Card>
@@ -439,6 +432,6 @@ export function PainDetailClient({
           )}
         </div>
       </div>
-    </div>
+    </AppLayout>
   )
 }

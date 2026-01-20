@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import {
@@ -13,9 +12,7 @@ import {
   TeamWorkload,
   PeriodSelector,
 } from '@/components/dashboard'
-import { UserMenu } from '@/components/layout/user-menu'
-import { FeedbackButton } from '@/components/feedback'
-import { NotificationBell } from '@/components/notifications/notification-bell'
+import { AppLayout } from '@/components/layout'
 import { RefreshCw } from 'lucide-react'
 
 interface DashboardClientProps {
@@ -59,7 +56,6 @@ export default function DashboardClient({
   metrics,
   recentProjects,
 }: DashboardClientProps) {
-  const router = useRouter()
   const [period, setPeriod] = useState('month')
   const [extendedMetrics, setExtendedMetrics] = useState<ExtendedMetrics | null>(null)
   const [loading, setLoading] = useState(true)
@@ -83,195 +79,102 @@ export default function DashboardClient({
     fetchExtendedMetrics()
   }, [period])
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    router.push('/login')
-    router.refresh()
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">PASEKA IT CRM</h1>
-              <p className="text-sm text-muted-foreground">{workspace.name}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <NotificationBell />
-              <UserMenu user={user} workspace={workspace} userRole={workspace.role} />
-            </div>
-          </div>
+    <AppLayout user={user} workspace={workspace} currentPage="/dashboard" userRole={user.role}>
+      {/* Header with period selector */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Добро пожаловать, {user.name}!</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Обзор вашей работы и текущих проектов
+          </p>
         </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-card border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <Link
-              href="/dashboard"
-              className="py-4 px-1 border-b-2 border-primary font-medium text-sm text-primary"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/projects"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Проекты
-            </Link>
-            <Link
-              href="/clients"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Клиенты
-            </Link>
-            <Link
-              href="/tasks"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Задачи
-            </Link>
-            <Link
-              href="/calendar"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Календарь
-            </Link>
-            <Link
-              href="/activity"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Активность
-            </Link>
-            <Link
-              href={`/pain-radar?workspace=${workspace.id}`}
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Pain Radar
-            </Link>
-            {(user.role === 'ADMIN' || user.role === 'OWNER') && (
-              <Link
-                href="/admin"
-                className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-              >
-                Администрирование
-              </Link>
-            )}
-            <Link
-              href="/guide"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Гайд
-            </Link>
-            <div className="flex-1" />
-            <div className="flex items-center py-2">
-              <FeedbackButton workspaceId={workspace.id} />
-            </div>
-          </div>
+        <div className="flex items-center gap-4">
+          <PeriodSelector value={period} onChange={setPeriod} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchExtendedMetrics}
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
-      </nav>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header with period selector */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Добро пожаловать, {user.name}!</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Обзор вашей работы и текущих проектов
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <PeriodSelector value={period} onChange={setPeriod} />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchExtendedMetrics}
-              disabled={loading}
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+      {/* Extended Metrics Grid */}
+      {extendedMetrics && (
+        <div className="mb-8">
+          <MetricsGrid metrics={extendedMetrics.metrics} period={period} />
+        </div>
+      )}
+
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Left Column - Funnel */}
+        <div className="lg:col-span-1">
+          {extendedMetrics && <ProjectFunnel funnel={extendedMetrics.funnel} />}
+        </div>
+
+        {/* Middle Column - Tasks */}
+        <div className="lg:col-span-1 space-y-6">
+          {extendedMetrics && <TodayTasks tasks={extendedMetrics.todayTasks} />}
+          {extendedMetrics && <UpcomingDeadlines tasks={extendedMetrics.upcomingDeadlines} />}
+        </div>
+
+        {/* Right Column - Team & Activity */}
+        <div className="lg:col-span-1 space-y-6">
+          {extendedMetrics && <TeamWorkload members={extendedMetrics.teamWorkload} />}
+          {extendedMetrics && <ActivityFeed activities={extendedMetrics.recentActivities} />}
+        </div>
+      </div>
+
+      {/* Recent Projects */}
+      <div className="bg-card rounded-lg shadow border">
+        <div className="px-6 py-4 border-b flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">Последние проекты</h3>
+          <Link href="/projects">
+            <Button variant="outline" size="sm">
+              Все проекты
             </Button>
-          </div>
+          </Link>
         </div>
-
-        {/* Extended Metrics Grid */}
-        {extendedMetrics && (
-          <div className="mb-8">
-            <MetricsGrid metrics={extendedMetrics.metrics} period={period} />
-          </div>
-        )}
-
-        {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Left Column - Funnel */}
-          <div className="lg:col-span-1">
-            {extendedMetrics && <ProjectFunnel funnel={extendedMetrics.funnel} />}
-          </div>
-
-          {/* Middle Column - Tasks */}
-          <div className="lg:col-span-1 space-y-6">
-            {extendedMetrics && <TodayTasks tasks={extendedMetrics.todayTasks} />}
-            {extendedMetrics && <UpcomingDeadlines tasks={extendedMetrics.upcomingDeadlines} />}
-          </div>
-
-          {/* Right Column - Team & Activity */}
-          <div className="lg:col-span-1 space-y-6">
-            {extendedMetrics && <TeamWorkload members={extendedMetrics.teamWorkload} />}
-            {extendedMetrics && <ActivityFeed activities={extendedMetrics.recentActivities} />}
-          </div>
-        </div>
-
-        {/* Recent Projects */}
-        <div className="bg-white rounded-lg shadow border">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Последние проекты</h3>
-            <Link href="/projects">
-              <Button variant="outline" size="sm">
-                Все проекты
-              </Button>
-            </Link>
-          </div>
-          <div className="divide-y divide-gray-200">
-            {recentProjects.length === 0 ? (
-              <div className="px-6 py-8 text-center text-gray-500">
-                <p>Нет проектов</p>
-                <Link href="/projects/new">
-                  <Button className="mt-4">Создать первый проект</Button>
-                </Link>
-              </div>
-            ) : (
-              recentProjects.map((project) => (
-                <Link
-                  key={project.id}
-                  href={`/projects/${project.id}`}
-                  className="block px-6 py-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{project.name}</h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {project.client.name} • {project._count.tasks} задач
-                      </p>
-                    </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded ${getStatusColor(
-                        project.status
-                      )}`}
-                    >
-                      {getStatusLabel(project.status)}
-                    </span>
+        <div className="divide-y">
+          {recentProjects.length === 0 ? (
+            <div className="px-6 py-8 text-center text-muted-foreground">
+              <p>Нет проектов</p>
+              <Link href="/projects/new">
+                <Button className="mt-4">Создать первый проект</Button>
+              </Link>
+            </div>
+          ) : (
+            recentProjects.map((project) => (
+              <Link
+                key={project.id}
+                href={`/projects/${project.id}`}
+                className="block px-6 py-4 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="font-medium text-foreground">{project.name}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {project.client.name} • {project._count.tasks} задач
+                    </p>
                   </div>
-                </Link>
-              ))
-            )}
-          </div>
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded ${getStatusColor(
+                      project.status
+                    )}`}
+                  >
+                    {getStatusLabel(project.status)}
+                  </span>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   )
 }
 

@@ -36,11 +36,9 @@ import {
 } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from 'lucide-react'
-import { UserMenu } from '@/components/layout/user-menu'
+import { AppLayout } from '@/components/layout'
 import { TaskDetailDialog } from '@/components/tasks/task-detail-dialog'
 import { useToast } from '@/lib/hooks/use-toast'
-import { FeedbackButton } from '@/components/feedback'
-import { NotificationBell } from '@/components/notifications/notification-bell'
 
 interface Event {
   id: string
@@ -256,95 +254,9 @@ export default function CalendarClient({
   const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
-              <p className="text-sm text-gray-600">{workspace.name}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <NotificationBell />
-              <UserMenu user={user} workspace={workspace} userRole={user.role} />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <Link
-              href="/dashboard"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/projects"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Проекты
-            </Link>
-            <Link
-              href="/clients"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Клиенты
-            </Link>
-            <Link
-              href="/tasks"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Задачи
-            </Link>
-            <Link
-              href="/calendar"
-              className="py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600"
-            >
-              Календарь
-            </Link>
-            <Link
-              href="/activity"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Активность
-            </Link>
-                        <Link
-              href={`/pain-radar?workspace=${workspace.id}`}
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Pain Radar
-            </Link>
-{(user.role === 'ADMIN' || user.role === 'OWNER') && (
-              <Link
-                href="/admin"
-                className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              >
-                Администрирование
-              </Link>
-            )}
-            <Link
-              href="/guide"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Гайд
-            </Link>
-            <div className="flex-1" />
-            <div className="flex items-center py-2">
-              <FeedbackButton workspaceId={workspace.id} />
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Calendar Header */}
-        <div className="flex items-center justify-between mb-6">
+    <AppLayout user={user} workspace={workspace} currentPage="/calendar" userRole={user.role}>
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <Button variant="outline" size="sm" onClick={goToPrevMonth}>
               <ChevronLeft className="h-4 w-4" />
@@ -452,15 +364,14 @@ export default function CalendarClient({
         </div>
 
         {/* Legend */}
-        <div className="mt-4 flex items-center gap-4 flex-wrap">
-          {Object.entries(eventTypeLabels).map(([type, label]) => (
-            <div key={type} className="flex items-center gap-1.5">
-              <div className={`w-3 h-3 rounded ${eventTypeColors[type]}`} />
-              <span className="text-xs text-gray-600">{label}</span>
-            </div>
-          ))}
-        </div>
-      </main>
+      <div className="mt-4 flex items-center gap-4 flex-wrap">
+        {Object.entries(eventTypeLabels).map(([type, label]) => (
+          <div key={type} className="flex items-center gap-1.5">
+            <div className={`w-3 h-3 rounded ${eventTypeColors[type]}`} />
+            <span className="text-xs text-gray-600">{label}</span>
+          </div>
+        ))}
+      </div>
 
       {/* Create Event Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -583,6 +494,6 @@ export default function CalendarClient({
         projects={projects}
         users={teamMembers}
       />
-    </div>
+    </AppLayout>
   )
 }

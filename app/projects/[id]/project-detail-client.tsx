@@ -27,10 +27,11 @@ import { useToast } from '@/lib/hooks/use-toast'
 import { taskStatusLabels, priorityLabels } from '@/lib/validations/task'
 import { InlineText, InlineTextarea } from '@/components/inline-edit'
 import { ProgressBar, FinanceBlock, ActivitySidebar } from '@/components/project'
-import { Home, Sparkles, Loader2, Activity, FileText } from 'lucide-react'
+import { AppLayout } from '@/components/layout'
+import { Sparkles, Loader2, Activity, FileText, Trash2, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 
-export default function ProjectDetailClient({ project: initialProject, user, teamMembers }: any) {
+export default function ProjectDetailClient({ project: initialProject, user, teamMembers, workspace }: any) {
   const router = useRouter()
   const { toast: showToast } = useToast()
   const [project, setProject] = useState(initialProject)
@@ -41,8 +42,20 @@ export default function ProjectDetailClient({ project: initialProject, user, tea
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false)
   const [isArchitectureDialogOpen, setIsArchitectureDialogOpen] = useState(false)
   const [isMilestoneDialogOpen, setIsMilestoneDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [isAIAnalyzing, setIsAIAnalyzing] = useState(false)
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null)
+
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    name: initialProject.name,
+    status: initialProject.status,
+    priority: initialProject.priority,
+    type: initialProject.type,
+    description: initialProject.description || '',
+  })
 
   // Form states
   const [taskForm, setTaskForm] = useState({
@@ -402,56 +415,115 @@ ${architectureForm.constraints}` : ''}
     }
   }
 
+  const handleEditProject = async () => {
+    setIsSubmitting(true)
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      })
+      if (!res.ok) throw new Error('Ошибка обновления проекта')
+      const data = await res.json()
+      setProject({ ...project, ...data.project })
+      setIsEditDialogOpen(false)
+      showToast({ title: 'Проект обновлён', variant: 'success' })
+      router.refresh()
+    } catch (error) {
+      showToast({ title: 'Ошибка обновления проекта', variant: 'destructive' })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteProject = async () => {
+    setIsDeleting(true)
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Ошибка удаления проекта')
+      }
+      toast.success('Проект удалён')
+      router.push('/projects')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Ошибка удаления проекта')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900 flex items-center">
-                  <Home className="h-4 w-4 mr-1" />
-                  Dashboard
-                </Link>
-                <span className="text-gray-400">/</span>
-                <Link href="/projects" className="text-sm text-gray-600 hover:text-gray-900">
-                  Проекты
-                </Link>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
-              <p className="text-sm text-gray-600 mt-1">Клиент: {project.client.name}</p>
+    <AppLayout user={user} workspace={workspace} currentPage="/projects" userRole={user.role}>
+      {/* Project Header */}
+      <div className="bg-card rounded-lg shadow p-4 mb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Link href="/projects" className="text-sm text-muted-foreground hover:text-foreground">
+                ← Проекты
+              </Link>
             </div>
-            <div className="flex items-center gap-3">
-              <Badge className={getStatusColor(project.status)}>{getStatusLabel(project.status)}</Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSaveAsTemplate}
-                disabled={isSavingTemplate}
-              >
-                {isSavingTemplate ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <FileText className="h-4 w-4 mr-2" />
-                )}
-                Сохранить как шаблон
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsActivitySidebarOpen(true)}
-              >
-                <Activity className="h-4 w-4 mr-2" />
-                История
-              </Button>
-              <Button>Редактировать</Button>
-            </div>
+            <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
+            <p className="text-sm text-muted-foreground mt-1">Клиент: {project.client.name}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Badge className={getStatusColor(project.status)}>{getStatusLabel(project.status)}</Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveAsTemplate}
+              disabled={isSavingTemplate}
+            >
+              {isSavingTemplate ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4 mr-2" />
+              )}
+              Сохранить как шаблон
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsActivitySidebarOpen(true)}
+            >
+              <Activity className="h-4 w-4 mr-2" />
+              История
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setEditForm({
+                  name: project.name,
+                  status: project.status,
+                  priority: project.priority,
+                  type: project.type,
+                  description: project.description || '',
+                })
+                setIsEditDialogOpen(true)
+              }}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Редактировать
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Удалить
+            </Button>
           </div>
         </div>
-      </header>
+      </div>
 
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Project Tabs */}
+      <div className="bg-card rounded-lg shadow mb-4">
+        <div className="px-4">
           <div className="flex space-x-8 overflow-x-auto">
             {tabs.map((tab) => (
               <button
@@ -459,8 +531,8 @@ ${architectureForm.constraints}` : ''}
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
               >
                 {tab.label}
@@ -470,7 +542,8 @@ ${architectureForm.constraints}` : ''}
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Tab Content */}
+      <div>
         {activeTab === 'overview' && <OverviewTab project={project} updateProjectField={updateProjectField} />}
         {activeTab === 'pain' && (
           <PainTab
@@ -506,7 +579,7 @@ ${architectureForm.constraints}` : ''}
             isSubmitting={isSubmitting}
           />
         )}
-      </main>
+      </div>
 
       {/* Task Dialog */}
       <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
@@ -742,7 +815,106 @@ ${architectureForm.constraints}` : ''}
         isOpen={isActivitySidebarOpen}
         onClose={() => setIsActivitySidebarOpen(!isActivitySidebarOpen)}
       />
-    </div>
+
+      {/* Edit Project Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Редактировать проект</DialogTitle>
+            <DialogDescription>Измените информацию о проекте</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Название *</Label>
+              <Input
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                placeholder="Название проекта"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Статус</Label>
+                <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LEAD">Лид</SelectItem>
+                    <SelectItem value="QUALIFICATION">Квалификация</SelectItem>
+                    <SelectItem value="BRIEFING">Брифинг</SelectItem>
+                    <SelectItem value="IN_PROGRESS">В работе</SelectItem>
+                    <SelectItem value="ON_HOLD">На паузе</SelectItem>
+                    <SelectItem value="COMPLETED">Завершён</SelectItem>
+                    <SelectItem value="REJECTED">Отклонён</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Приоритет</Label>
+                <Select value={editForm.priority} onValueChange={(v) => setEditForm({ ...editForm, priority: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(priorityLabels).map(([v, l]) => (
+                      <SelectItem key={v} value={v}>{l}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>Тип проекта</Label>
+              <Select value={editForm.type} onValueChange={(v) => setEditForm({ ...editForm, type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MONEY">Деньги</SelectItem>
+                  <SelectItem value="GROWTH">Рост</SelectItem>
+                  <SelectItem value="INVESTMENT">Инвестиция</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Описание</Label>
+              <Textarea
+                value={editForm.description}
+                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Отмена</Button>
+            <Button onClick={handleEditProject} disabled={isSubmitting}>
+              {isSubmitting ? 'Сохранение...' : 'Сохранить'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Project Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Удалить проект</DialogTitle>
+            <DialogDescription>
+              Вы уверены, что хотите удалить проект "{project.name}"? Это действие нельзя отменить.
+              Все задачи, комментарии и документы проекта будут удалены.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Отмена</Button>
+            <Button variant="destructive" onClick={handleDeleteProject} disabled={isDeleting}>
+              {isDeleting ? 'Удаление...' : 'Удалить'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Activity Sidebar */}
+      <ActivitySidebar
+        isOpen={isActivitySidebarOpen}
+        onClose={() => setIsActivitySidebarOpen(false)}
+        projectId={project.id}
+      />
+    </AppLayout>
   )
 }
 
@@ -989,15 +1161,30 @@ function TasksTab({ project, teamMembers, onCreateTask }: any) {
         {project.tasks && project.tasks.length > 0 ? (
           <div className="space-y-3">
             {project.tasks.map((task: any) => (
-              <div key={task.id} className="border rounded-lg p-4 hover:bg-gray-50">
+              <div key={task.id} className="border-l-4 border-l-blue-500 border rounded-lg p-4 hover:bg-blue-50/50 bg-blue-50/20 transition-colors">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900">{task.title}</h3>
                     {task.description && <p className="text-sm text-gray-600 mt-1 line-clamp-2">{task.description}</p>}
-                    <div className="flex items-center gap-4 mt-3">
+                    <div className="flex items-center gap-4 mt-3 flex-wrap">
                       <Badge className={getTaskStatusColor(task.status)}>{getTaskStatusLabel(task.status)}</Badge>
-                      {task.assignee && <span className="text-xs text-gray-600">{task.assignee.name}</span>}
-                      {task.dueDate && <span className="text-xs text-gray-600">До: {new Date(task.dueDate).toLocaleDateString('ru-RU')}</span>}
+                      {task.assignee && (
+                        <span className="text-xs text-gray-600 flex items-center">
+                          <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                          Исполнитель: {task.assignee.name}
+                        </span>
+                      )}
+                      {task.createdBy && (
+                        <span className="text-xs text-gray-500 flex items-center">
+                          <span className="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>
+                          Создал: {task.createdBy.name}
+                        </span>
+                      )}
+                      {task.dueDate && (
+                        <span className="text-xs text-gray-600">
+                          До: {new Date(task.dueDate).toLocaleDateString('ru-RU')}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

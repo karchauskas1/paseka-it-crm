@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dialog'
 import { useToast } from '@/lib/hooks/use-toast'
 import { sourceLabels, statusLabels } from '@/lib/validations/client'
+import { AppLayout } from '@/components/layout'
 import {
   ArrowLeft,
   Building2,
@@ -35,6 +36,8 @@ import {
   Calendar,
   FileText,
   Trash2,
+  Sparkles,
+  Loader2,
 } from 'lucide-react'
 
 interface ClientDetailClientProps {
@@ -54,6 +57,8 @@ export default function ClientDetailClient({
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     name: client.name,
@@ -156,82 +161,43 @@ export default function ClientDetailClient({
     }
   }
 
+  const handleAiAnalysis = async () => {
+    setIsAnalyzing(true)
+    setAiAnalysis(null)
+    try {
+      const res = await fetch('/api/ai/analyze-client', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId: client.id }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Ошибка AI анализа')
+      }
+
+      const data = await res.json()
+      setAiAnalysis(data.analysis)
+      toast({
+        title: 'Анализ завершён',
+        description: 'AI проанализировал клиента',
+        variant: 'success',
+      })
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      })
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
-              <p className="text-sm text-gray-600">{workspace.name}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700">{user.name}</span>
-              <Button onClick={handleLogout} variant="outline" size="sm">
-                Выйти
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <Link
-              href="/dashboard"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/projects"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Проекты
-            </Link>
-            <Link
-              href="/clients"
-              className="py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600"
-            >
-              Клиенты
-            </Link>
-            <Link
-              href="/tasks"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Задачи
-            </Link>
-            {user.role === 'ADMIN' && (
-              <Link
-                href="/admin"
-                className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              >
-                Администрирование
-              </Link>
-            )}
-            <Link
-              href={`/pain-radar?workspace=${workspace.id}`}
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Pain Radar
-            </Link>
-            <Link
-              href="/guide"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            >
-              Гайд
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
-        <div className="mb-6">
+    <AppLayout user={user} workspace={workspace} currentPage="/clients" userRole={user.role}>
+      {/* Breadcrumb */}
+      <div className="mb-6">
           <Link
             href="/clients"
             className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
@@ -393,6 +359,39 @@ export default function ClientDetailClient({
               </div>
             </div>
 
+            {/* AI Analysis */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <Sparkles className="h-5 w-5 mr-2 text-purple-500" />
+                AI Анализ
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Получите AI-рекомендации по работе с этим клиентом
+              </p>
+              <Button
+                onClick={handleAiAnalysis}
+                disabled={isAnalyzing}
+                className="w-full bg-purple-600 hover:bg-purple-700"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Анализирую...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Запросить анализ
+                  </>
+                )}
+              </Button>
+              {aiAnalysis && (
+                <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiAnalysis}</p>
+                </div>
+              )}
+            </div>
+
             {/* Danger Zone */}
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold mb-4 text-red-600">
@@ -413,7 +412,6 @@ export default function ClientDetailClient({
             </div>
           </div>
         </div>
-      </main>
 
       {/* Edit Dialog */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
@@ -560,6 +558,6 @@ export default function ClientDetailClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AppLayout>
   )
 }

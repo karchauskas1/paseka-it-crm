@@ -8,8 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { UserMenu } from '@/components/layout/user-menu'
-import { NotificationBell } from '@/components/notifications/notification-bell'
+import { AppLayout } from '@/components/layout'
 import {
   Dialog,
   DialogContent,
@@ -35,7 +34,6 @@ import {
 } from '@/lib/validations/feedback'
 import { priorityLabels, priorityColors } from '@/lib/validations/task'
 import { Plus, Search, User, Calendar, Trash2 } from 'lucide-react'
-import { FeedbackButton } from '@/components/feedback'
 
 interface FeedbackClientProps {
   user: any
@@ -184,100 +182,8 @@ export default function FeedbackClient({
   const isAdmin = user.role === 'ADMIN' || user.role === 'OWNER'
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">PASEKA IT CRM</h1>
-              <p className="text-sm text-muted-foreground">{workspace.name}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <NotificationBell />
-              <UserMenu user={user} workspace={workspace} userRole={user.role} />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-card border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <Link
-              href="/dashboard"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/projects"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Проекты
-            </Link>
-            <Link
-              href="/clients"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Клиенты
-            </Link>
-            <Link
-              href="/tasks"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Задачи
-            </Link>
-            <Link
-              href="/calendar"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Календарь
-            </Link>
-            <Link
-              href="/activity"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Активность
-            </Link>
-                        <Link
-              href={`/pain-radar?workspace=${workspace.id}`}
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Pain Radar
-            </Link>
-<Link
-              href="/feedback"
-              className="py-4 px-1 border-b-2 border-primary font-medium text-sm text-primary"
-            >
-              Обратная связь
-            </Link>
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-              >
-                Администрирование
-              </Link>
-            )}
-            <Link
-              href="/guide"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
-            >
-              Гайд
-            </Link>
-            <div className="flex-1" />
-            <div className="flex items-center py-2">
-              <FeedbackButton workspaceId={workspace.id} />
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
+    <AppLayout user={user} workspace={workspace} currentPage="/feedback" userRole={user.role}>
+      <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-foreground">Обратная связь</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -562,7 +468,6 @@ export default function FeedbackClient({
             </tbody>
           </table>
         </div>
-      </main>
-    </div>
+    </AppLayout>
   )
 }

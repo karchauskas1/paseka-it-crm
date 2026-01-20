@@ -35,11 +35,16 @@ export default async function PainDetailPage({
         userId: user.id,
       },
     },
+    include: {
+      workspace: true,
+    },
   })
 
   if (!membership) {
     redirect('/pain-radar')
   }
+
+  const workspace = membership.workspace
 
   // Get pain details
   const pain = await db.extractedPain.findUnique({
@@ -107,6 +112,8 @@ export default async function PainDetailPage({
       linkedProjects={linkedProjects}
       similarPains={similarPains}
       workspaceId={workspaceId}
+      user={user}
+      workspace={workspace}
     />
   )
 }

@@ -44,11 +44,16 @@ export default async function PainRadarPage({
         userId: user.id,
       },
     },
+    include: {
+      workspace: true,
+    },
   })
 
   if (!membership) {
     redirect('/pain-radar')
   }
+
+  const workspace = membership.workspace
 
   // Get initial data
   const [keywords, recentPains] = await Promise.all([
@@ -85,6 +90,8 @@ export default async function PainRadarPage({
       workspaceId={workspaceId}
       initialKeywords={keywords}
       initialPains={recentPains}
+      user={user}
+      workspace={workspace}
     />
   )
 }

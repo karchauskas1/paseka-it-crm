@@ -42,6 +42,7 @@ model User {
   createdEvents Event[] @relation("EventCreator")
   createdFeedback Feedback[] @relation("FeedbackCreator")
   createdPainKeywords PainKeyword[] @relation("PainKeywordCreator")
+  createdTouches Touch[] @relation("TouchCreator")
 
   @@map("users")
 }
@@ -74,6 +75,7 @@ model Workspace {
   painKeywords    PainKeyword[]
   extractedPains  ExtractedPain[]
   painScans       PainScan[]
+  touches         Touch[]
 
   @@map("workspaces")
 }
@@ -633,6 +635,55 @@ enum CommunicationType {
   EMAIL
   MEETING
   NOTE
+}
+
+// ==================== TOUCHES (КАСАНИЯ) ====================
+
+model Touch {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+
+  // Контактная информация
+  contactName  String  @map("contact_name")
+  contactEmail String? @map("contact_email")
+  contactPhone String? @map("contact_phone")
+  contactCompany String? @map("contact_company")
+  source      String?  // Откуда контакт (LinkedIn, конференция, и т.д.)
+
+  // Статус касания
+  status      TouchStatus @default(WAITING)
+
+  // Описание
+  description String?  // Описание контакта/о чём говорили
+  response    String?  // Что ответили
+
+  // Даты
+  contactedAt DateTime @default(now()) @map("contacted_at")
+  respondedAt DateTime? @map("responded_at")
+  followUpAt  DateTime? @map("follow_up_at") // Когда напомнить
+
+  // Конвертация в клиента
+  convertedToClientId String? @unique @map("converted_to_client_id")
+  convertedAt DateTime? @map("converted_at")
+
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy   User      @relation("TouchCreator", fields: [createdById], references: [id])
+
+  @@index([workspaceId])
+  @@index([status])
+  @@map("touches")
+}
+
+enum TouchStatus {
+  WAITING    // Ждём ответа
+  RESPONDED  // Ответил
+  NO_RESPONSE // Не ответил
+  FOLLOW_UP  // Нужно связаться повторно
+  CONVERTED  // Конвертирован в клиента
 }
 
 // ==================== INVITES ====================

@@ -138,6 +138,7 @@ export default async function ProjectDetailPage({
       project={serializedProject}
       user={user}
       teamMembers={teamMembers}
+      workspace={workspaceMember?.workspace}
     />
   )
 }
