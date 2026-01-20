@@ -104,8 +104,8 @@ export function PostSelector({ posts, workspaceId, onAnalyzeComplete }: PostSele
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3 sm:gap-4">
           <Checkbox
             id="select-all"
             checked={selectedPosts.size === unanalyzedPosts.length && unanalyzedPosts.length > 0}
@@ -118,6 +118,8 @@ export function PostSelector({ posts, workspaceId, onAnalyzeComplete }: PostSele
         <Button
           onClick={handleAnalyze}
           disabled={isAnalyzing || selectedPosts.size === 0}
+          size="sm"
+          className="sm:size-default w-full sm:w-auto"
         >
           {isAnalyzing ? (
             <>
@@ -127,7 +129,8 @@ export function PostSelector({ posts, workspaceId, onAnalyzeComplete }: PostSele
           ) : (
             <>
               <Sparkles className="mr-2 h-4 w-4" />
-              Анализировать выбранные ({selectedPosts.size})
+              <span className="sm:hidden">Анализ ({selectedPosts.size})</span>
+              <span className="hidden sm:inline">Анализировать выбранные ({selectedPosts.size})</span>
             </>
           )}
         </Button>

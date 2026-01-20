@@ -478,8 +478,8 @@ export default function AIChatClient({ user, workspace }: AIChatClientProps) {
           </div>
 
           {/* Input area */}
-          <div className="border-t p-3 md:p-4 bg-card pb-safe">
-            <div className="flex gap-2 md:gap-3">
+          <div className="border-t p-3 px-4 md:p-4 bg-card pb-safe">
+            <div className="flex gap-2 md:gap-3 items-end">
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

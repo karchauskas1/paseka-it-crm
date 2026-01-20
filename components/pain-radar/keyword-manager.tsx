@@ -157,15 +157,15 @@ export function KeywordManager({ keywords, workspaceId, onUpdate }: KeywordManag
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Ключевые слова</h3>
+        <h3 className="text-base sm:text-lg font-semibold">Ключевые слова</h3>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Добавить
+            <Button size="sm" className="sm:size-default">
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Добавить</span>
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Добавить ключевое слово</DialogTitle>
               <DialogDescription>
@@ -215,7 +215,69 @@ export function KeywordManager({ keywords, workspaceId, onUpdate }: KeywordManag
         </Dialog>
       </div>
 
-      <div className="border rounded-lg">
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {keywords.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Нет ключевых слов
+          </div>
+        ) : (
+          keywords.map((kw) => (
+            <div
+              key={kw.id}
+              className="bg-card border rounded-lg p-4 space-y-3"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{kw.keyword}</p>
+                  {kw.category && (
+                    <Badge variant="outline" className="text-xs mt-1">
+                      {kw.category}
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2"
+                  onClick={() => toggleActive(kw.id, kw.isActive)}
+                >
+                  {kw.isActive ? (
+                    <Badge variant="default" className="text-xs">Активно</Badge>
+                  ) : (
+                    <Badge variant="secondary" className="text-xs">Неактивно</Badge>
+                  )}
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{kw._count.posts} постов</span>
+                  <span>{kw._count.scans} сканов</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <ScanTrigger
+                    keywordId={kw.id}
+                    keyword={kw.keyword}
+                    workspaceId={workspaceId}
+                    onScanComplete={onUpdate}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => handleDelete(kw.id)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
