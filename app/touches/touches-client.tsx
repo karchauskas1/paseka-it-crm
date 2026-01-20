@@ -23,6 +23,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { AppLayout } from '@/components/layout'
 import { toast } from 'sonner'
 import {
@@ -299,6 +305,26 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
     }
   }
 
+  const handleStatusChange = async (touchId: string, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/touches/${touchId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Ошибка обновления статуса')
+      }
+
+      toast.success('Статус обновлён')
+      fetchTouches()
+    } catch (error: any) {
+      toast.error(error.message)
+    }
+  }
+
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/touches" userRole={userRole}>
       {/* Header */}
@@ -356,9 +382,27 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                 <div className="md:hidden">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-semibold text-foreground">{touch.contactName}</h3>
-                    <Badge className={`${statusColors[touch.status]} text-xs shrink-0`}>
-                      {statusLabels[touch.status]}
-                    </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Badge className={`${statusColors[touch.status]} text-xs shrink-0 cursor-pointer hover:opacity-80 transition-opacity`}>
+                          {statusLabels[touch.status]}
+                        </Badge>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        {Object.entries(statusLabels).map(([key, label]) => (
+                          <DropdownMenuItem
+                            key={key}
+                            onClick={() => handleStatusChange(touch.id, key)}
+                            className={touch.status === key ? 'bg-muted' : ''}
+                          >
+                            <Badge className={`${statusColors[key]} text-xs mr-2`}>
+                              {label}
+                            </Badge>
+                            {touch.status === key && <span className="ml-auto">✓</span>}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-2">
@@ -443,7 +487,27 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold text-foreground">{touch.contactName}</h3>
-                        <Badge className={statusColors[touch.status]}>{statusLabels[touch.status]}</Badge>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Badge className={`${statusColors[touch.status]} cursor-pointer hover:opacity-80 transition-opacity`}>
+                              {statusLabels[touch.status]}
+                            </Badge>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-56">
+                            {Object.entries(statusLabels).map(([key, label]) => (
+                              <DropdownMenuItem
+                                key={key}
+                                onClick={() => handleStatusChange(touch.id, key)}
+                                className={touch.status === key ? 'bg-muted' : ''}
+                              >
+                                <Badge className={`${statusColors[key]} text-xs mr-2`}>
+                                  {label}
+                                </Badge>
+                                {touch.status === key && <span className="ml-auto">✓</span>}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
 
                       <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2 flex-wrap">
