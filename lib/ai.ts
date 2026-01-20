@@ -13,6 +13,8 @@ async function callOpenRouter(messages: Array<{ role: string; content: string }>
     throw new Error('OPENROUTER_API_KEY не настроен. Добавьте API ключ в настройки окружения.')
   }
 
+  console.log(`[OpenRouter] Calling API with model: ${MODEL}, maxTokens: ${maxTokens}`)
+
   const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
     method: 'POST',
     headers: {
@@ -50,7 +52,9 @@ async function callOpenRouter(messages: Array<{ role: string; content: string }>
   }
 
   const data = await response.json()
-  return data.choices[0].message.content
+  const content = data.choices[0].message.content
+  console.log(`[OpenRouter] Response OK, content length: ${content?.length || 0}`)
+  return content
 }
 
 export interface AIContext {
@@ -280,9 +284,10 @@ ${context ? `Контекст поиска: ${context}\n` : ''}
 Будь точным и конкретным.
 `
 
+    console.log(`[AI] Sending ${posts.length} posts to AI for analysis`)
     const content = await callOpenRouter([{ role: 'user', content: prompt }], 4000)
-
-    
+    console.log(`[AI] Received response length: ${content.length} chars`)
+    console.log(`[AI] First 500 chars of response:`, content.substring(0, 500))
 
     // Parse JSON from response
     let result
@@ -290,12 +295,15 @@ ${context ? `Контекст поиска: ${context}\n` : ''}
       // Try to extract JSON from response
       const jsonMatch = content.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {
-        console.error('No JSON found in AI response:', content)
+        console.error('[AI] No JSON found in AI response:', content)
         throw new Error('No JSON found in response')
       }
+      console.log(`[AI] Extracted JSON length: ${jsonMatch[0].length} chars`)
       result = JSON.parse(jsonMatch[0])
+      console.log(`[AI] Parsed result:`, JSON.stringify(result).substring(0, 200))
     } catch (parseError) {
-      console.error('Failed to parse AI response:', content)
+      console.error('[AI] Failed to parse AI response:', content)
+      console.error('[AI] Parse error:', parseError)
       throw new AIAnalysisError('Invalid AI response format')
     }
 
