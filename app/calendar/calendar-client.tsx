@@ -94,6 +94,8 @@ export default function CalendarClient({
   const [selectedTask, setSelectedTask] = useState<any>(null)
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false)
   const [teamMembers, setTeamMembers] = useState<any[]>([])
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [isEventDetailOpen, setIsEventDetailOpen] = useState(false)
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
@@ -175,6 +177,39 @@ export default function CalendarClient({
           variant: 'destructive',
         })
       }
+    } else {
+      // For other event types, open event detail dialog
+      setSelectedEvent(event)
+      setIsEventDetailOpen(true)
+    }
+  }
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        toast({
+          title: 'Успешно',
+          description: 'Событие удалено',
+        })
+        setIsEventDetailOpen(false)
+        setSelectedEvent(null)
+        fetchEvents()
+      } else {
+        toast({
+          title: 'Ошибка',
+          description: 'Не удалось удалить событие',
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить событие',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -494,6 +529,87 @@ export default function CalendarClient({
         projects={projects}
         users={teamMembers}
       />
+
+      {/* Event Detail Dialog */}
+      <Dialog open={isEventDetailOpen} onOpenChange={setIsEventDetailOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded ${selectedEvent ? eventTypeColors[selectedEvent.type] : ''}`} />
+              {selectedEvent?.title}
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedEvent && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground text-xs">Тип</Label>
+                  <p className="text-sm font-medium">{eventTypeLabels[selectedEvent.type]}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs">Дата и время</Label>
+                  <p className="text-sm font-medium">
+                    {format(new Date(selectedEvent.startDate), 'dd.MM.yyyy HH:mm', { locale: ru })}
+                  </p>
+                </div>
+              </div>
+
+              {selectedEvent.description && (
+                <div>
+                  <Label className="text-muted-foreground text-xs">Описание</Label>
+                  <p className="text-sm mt-1">{selectedEvent.description}</p>
+                </div>
+              )}
+
+              {selectedEvent.project && (
+                <div>
+                  <Label className="text-muted-foreground text-xs">Проект</Label>
+                  <p className="text-sm mt-1">
+                    <Link
+                      href={`/projects/${selectedEvent.project.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {selectedEvent.project.name}
+                    </Link>
+                  </p>
+                </div>
+              )}
+
+              {selectedEvent.client && (
+                <div>
+                  <Label className="text-muted-foreground text-xs">Клиент</Label>
+                  <p className="text-sm mt-1">
+                    <Link
+                      href={`/clients/${selectedEvent.client.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {selectedEvent.client.name}
+                    </Link>
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <Label className="text-muted-foreground text-xs">Создал</Label>
+                <p className="text-sm mt-1">{selectedEvent.createdBy.name}</p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <Button
+              variant="destructive"
+              onClick={() => selectedEvent && handleDeleteEvent(selectedEvent.id)}
+            >
+              Удалить
+            </Button>
+            <Button variant="outline" onClick={() => setIsEventDetailOpen(false)}>
+              Закрыть
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   )
 }

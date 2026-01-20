@@ -18,6 +18,7 @@ import {
   BookOpen,
   Menu,
   X,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -49,6 +50,7 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
     { href: '/calendar', label: 'Календарь', icon: Calendar },
     { href: '/activity', label: 'Активность', icon: Activity },
     { href: '/pain-radar', label: 'Pain Radar', icon: Radar },
+    { href: '/ai-chat', label: 'AI Чат', icon: Sparkles },
   ]
 
   const effectiveRole = userRole || user.role

@@ -67,8 +67,16 @@ export function PainRadarClient({
     search?: string
   }>({})
 
-  const refreshKeywords = () => {
-    router.refresh()
+  const refreshKeywords = async () => {
+    try {
+      const response = await fetch(`/api/pain-radar/keywords?workspaceId=${workspaceId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setKeywords(data.keywords)
+      }
+    } catch (error) {
+      console.error('Failed to refresh keywords:', error)
+    }
   }
 
   const refreshPains = async () => {

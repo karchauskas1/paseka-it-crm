@@ -680,11 +680,12 @@ model Touch {
 }
 
 enum TouchStatus {
-  WAITING    // Ждём ответа
-  RESPONDED  // Ответил
-  NO_RESPONSE // Не ответил
-  FOLLOW_UP  // Нужно связаться повторно
-  CONVERTED  // Конвертирован в клиента
+  WAITING        // Ждём ответа
+  WAITING_US     // Ждут нашего ответа
+  RESPONDED      // Ответил
+  NO_RESPONSE    // Не ответил
+  FOLLOW_UP      // Нужно связаться повторно
+  CONVERTED      // Конвертирован в клиента
 }
 
 // ==================== INVITES ====================

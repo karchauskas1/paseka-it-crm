@@ -72,6 +72,7 @@ interface TouchesClientProps {
 
 const statusLabels: Record<string, string> = {
   WAITING: 'Ждём ответа',
+  WAITING_US: 'Ждут нашего ответа',
   RESPONDED: 'Ответил',
   NO_RESPONSE: 'Не ответил',
   FOLLOW_UP: 'Повторно связаться',
@@ -80,6 +81,7 @@ const statusLabels: Record<string, string> = {
 
 const statusColors: Record<string, string> = {
   WAITING: 'bg-yellow-100 text-yellow-800',
+  WAITING_US: 'bg-orange-100 text-orange-800',
   RESPONDED: 'bg-green-100 text-green-800',
   NO_RESPONSE: 'bg-red-100 text-red-800',
   FOLLOW_UP: 'bg-blue-100 text-blue-800',
@@ -314,6 +316,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
               <SelectContent>
                 <SelectItem value="all">Все</SelectItem>
                 <SelectItem value="WAITING">Ждём ответа</SelectItem>
+                <SelectItem value="WAITING_US">Ждут нашего ответа</SelectItem>
                 <SelectItem value="RESPONDED">Ответили</SelectItem>
                 <SelectItem value="NO_RESPONSE">Не ответили</SelectItem>
                 <SelectItem value="FOLLOW_UP">Повторно связаться</SelectItem>
@@ -673,6 +676,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="WAITING">Ждём ответа</SelectItem>
+                  <SelectItem value="WAITING_US">Ждут нашего ответа</SelectItem>
                   <SelectItem value="RESPONDED">Ответил</SelectItem>
                   <SelectItem value="NO_RESPONSE">Не ответил</SelectItem>
                   <SelectItem value="FOLLOW_UP">Повторно связаться</SelectItem>

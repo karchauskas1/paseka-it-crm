@@ -71,7 +71,7 @@ export default function ClientsClient({
   useEffect(() => {
     const fetchCustomFields = async () => {
       try {
-        const res = await fetch('/api/custom-fields?entityType=client')
+        const res = await fetch(`/api/custom-fields?entityType=CLIENT&workspaceId=${workspace.id}`)
         if (res.ok) {
           const data = await res.json()
           setCustomFields(data.fields)
@@ -81,7 +81,7 @@ export default function ClientsClient({
       }
     }
     fetchCustomFields()
-  }, [])
+  }, [workspace.id])
 
   const filteredClients = clients.filter((client) => {
     if (!client || !client.name) return false
