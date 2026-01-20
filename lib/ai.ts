@@ -280,7 +280,7 @@ ${context ? `Контекст поиска: ${context}\n` : ''}
 Будь точным и конкретным.
 `
 
-    const content = await callOpenRouter([{ role: 'user', content: prompt }], 300)
+    const content = await callOpenRouter([{ role: 'user', content: prompt }], 4000)
 
     
 
