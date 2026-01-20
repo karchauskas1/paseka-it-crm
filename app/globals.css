@@ -27,25 +27,25 @@
   }
 
   .dark {
-    --background: 220 15% 12%;
+    --background: 222 15% 8%;
     --foreground: 210 40% 98%;
-    --card: 220 15% 16%;
+    --card: 222 15% 12%;
     --card-foreground: 210 40% 98%;
-    --popover: 220 15% 16%;
+    --popover: 222 15% 12%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 220 15% 20%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 15% 18%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 220 15% 20%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 220 15% 20%;
+    --muted: 222 15% 18%;
+    --muted-foreground: 215 20.2% 70%;
+    --accent: 222 15% 18%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 220 15% 25%;
-    --input: 220 15% 25%;
-    --ring: 224.3 76.3% 48%;
+    --border: 222 15% 22%;
+    --input: 222 15% 18%;
+    --ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -204,12 +204,77 @@
   }
 }
 
-/* Dark mode specific mobile fixes */
-@media (prefers-color-scheme: dark) {
-  /* Better contrast for mobile dark mode */
-  .dark input,
-  .dark textarea,
-  .dark select {
-    background-color: hsl(var(--card));
-  }
+/* Dark mode improvements */
+.dark {
+  /* Better text contrast */
+  color-scheme: dark;
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: hsl(var(--input));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
+}
+
+/* Ensure text is always visible */
+.dark [data-slate-node="element"],
+.dark [data-slate-leaf] {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Better table visibility */
+.dark table {
+  border-color: hsl(var(--border));
+}
+
+.dark th,
+.dark td {
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+/* Better card visibility */
+.dark .bg-card {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+/* Better muted text visibility */
+.dark .text-muted-foreground {
+  color: hsl(var(--muted-foreground));
+  opacity: 1;
+}
+
+/* Ensure buttons are visible */
+.dark button {
+  color: inherit;
+}
+
+.dark .bg-primary {
+  color: hsl(var(--primary-foreground));
+}
+
+/* Better popover/dropdown visibility */
+.dark [role="menu"],
+.dark [role="listbox"],
+.dark [role="dialog"] {
+  background-color: hsl(var(--popover));
+  border-color: hsl(var(--border));
+}
+
+/* Better link visibility */
+.dark a {
+  color: hsl(var(--primary));
+}
+
+.dark a:hover {
+  color: hsl(217.2 91.2% 70%);
 }

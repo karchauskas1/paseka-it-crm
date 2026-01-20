@@ -491,13 +491,15 @@ export default function AIChatClient({ user, workspace }: AIChatClientProps) {
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                size="icon"
-                className="h-11 w-11 md:h-auto md:w-auto md:px-4 self-end shrink-0 touch-manipulation"
+                className="h-[44px] w-[44px] md:h-10 md:w-auto md:px-4 self-end shrink-0 touch-manipulation rounded-full md:rounded-md"
               >
                 {isLoading ? (
                   <Loader2 className="h-5 w-5 md:h-4 md:w-4 animate-spin" />
                 ) : (
-                  <Send className="h-5 w-5 md:h-4 md:w-4" />
+                  <>
+                    <Send className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                    <span className="hidden md:inline">Отправить</span>
+                  </>
                 )}
               </Button>
             </div>
