@@ -4,6 +4,13 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/lib/hooks/use-toast'
 import { Loader2, Radar } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { ChevronDown } from 'lucide-react'
 
 interface ScanTriggerProps {
   keywordId: string
@@ -19,9 +26,11 @@ export function ScanTrigger({
   onScanComplete,
 }: ScanTriggerProps) {
   const [isScanning, setIsScanning] = useState(false)
+  const [platform, setPlatform] = useState<'REDDIT' | 'WEB'>('WEB')
   const { toast } = useToast()
 
-  const handleScan = async () => {
+  const handleScan = async (selectedPlatform?: 'REDDIT' | 'WEB') => {
+    const platformToUse = selectedPlatform || platform
     setIsScanning(true)
 
     try {
@@ -33,6 +42,7 @@ export function ScanTrigger({
           workspaceId,
           keywordId,
           limit: 50,
+          platform: platformToUse,
         }),
       })
 
@@ -104,23 +114,46 @@ export function ScanTrigger({
   }
 
   return (
-    <Button
-      onClick={handleScan}
-      disabled={isScanning}
-      size="sm"
-      variant="outline"
-    >
-      {isScanning ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Сканирование...
-        </>
-      ) : (
-        <>
-          <Radar className="mr-2 h-4 w-4" />
-          Сканировать
-        </>
-      )}
-    </Button>
+    <div className="flex gap-1">
+      <Button
+        onClick={() => handleScan()}
+        disabled={isScanning}
+        size="sm"
+        variant="outline"
+        className="flex-1"
+      >
+        {isScanning ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Сканирование...
+          </>
+        ) : (
+          <>
+            <Radar className="mr-2 h-4 w-4" />
+            Сканировать ({platform === 'WEB' ? 'Web' : 'Reddit'})
+          </>
+        )}
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={isScanning}
+            className="px-2"
+          >
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setPlatform('WEB')}>
+            🌐 Web Search {platform === 'WEB' && '✓'}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setPlatform('REDDIT')}>
+            🔴 Reddit {platform === 'REDDIT' && '✓'}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }
