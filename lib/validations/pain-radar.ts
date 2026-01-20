@@ -24,7 +24,7 @@ export const scanRequestSchema = z.object({
   workspaceId: z.string().uuid('Invalid workspace ID'),
   keywordId: z.string().uuid('Invalid keyword ID'),
   limit: z.number().int().min(1).max(100).default(50),
-  platform: z.enum(['REDDIT']).default('REDDIT'), // Для MVP только Reddit
+  platform: z.enum(['REDDIT', 'WEB', 'TWITTER', 'THREADS', 'INSTAGRAM', 'PIKABU']).default('WEB'),
 })
 
 // Post analysis schemas
