@@ -844,6 +844,10 @@ model SocialPost {
   isAnalyzed  Boolean  @default(false) @map("is_analyzed")
   analyzedAt  DateTime? @map("analyzed_at")
 
+  // Двухступенчатый AI анализ
+  filterScore Int?     @map("filter_score") // 0-100, Stage 1 (Haiku)
+  filteredAt  DateTime? @map("filtered_at")
+
   keyword     PainKeyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
   pains       ExtractedPain[]
 
@@ -856,11 +860,15 @@ model SocialPost {
 
 enum SocialPlatform {
   REDDIT
-  TWITTER
-  THREADS
-  INSTAGRAM
-  PIKABU
-  WEB
+  HACKERNEWS     // Hacker News через Algolia API
+  HABR           // Habr через RSS
+  VCRU           // VC.ru через RSS
+  TELEGRAM       // Telegram через Bot API
+  PIKABU         // Pikabu (Phase 2)
+  TWITTER        // Twitter/X (платный)
+  THREADS        // Threads (требует Business)
+  INSTAGRAM      // Instagram (существующий)
+  WEB            // Web источники (существующий)
 }
 
 model ExtractedPain {

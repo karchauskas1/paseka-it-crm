@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getCurrentUser, validateWorkspaceAccess } from '@/lib/auth'
-import { analyzeRequestSchema } from '@/lib/validations/pain-radar'
+import { filterRelevantPosts, getFilterStats } from '@/lib/ai/filter-posts'
 import { extractPainsFromPosts } from '@/lib/ai'
-import { AIAnalysisError } from '@/lib/pain-radar/errors'
-import { PAIN_RADAR_LIMITS } from '@/lib/pain-radar/constants'
 
-// POST /api/pain-radar/analyze - Analyze selected posts with AI
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser()
@@ -15,30 +12,40 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
+    const { postIds, workspaceId } = body
 
-    // Validate request
-    const validatedData = analyzeRequestSchema.parse(body)
-    const { postIds, workspaceId } = validatedData
+    if (!workspaceId || !postIds || !Array.isArray(postIds)) {
+      return NextResponse.json(
+        { error: 'Workspace ID and post IDs required' },
+        { status: 400 }
+      )
+    }
 
-    // Validate workspace access
-    const hasAccess = await validateWorkspaceAccess(user.id, workspaceId)
-    if (!hasAccess) {
+    if (postIds.length === 0) {
+      return NextResponse.json({ error: 'No posts selected' }, { status: 400 })
+    }
+
+    if (postIds.length > 50) {
+      return NextResponse.json(
+        { error: 'Maximum 50 posts per batch' },
+        { status: 400 }
+      )
+    }
+
+    const member = await db.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: user.id } },
+    })
+
+    if (!member) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Get posts
+    console.log('[Pain Radar] Starting analysis for', postIds.length, 'posts')
+
     const posts = await db.socialPost.findMany({
       where: {
         id: { in: postIds },
         keyword: { workspaceId },
-      },
-      include: {
-        keyword: {
-          select: {
-            keyword: true,
-            category: true,
-          },
-        },
       },
     })
 
@@ -46,117 +53,119 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No posts found' }, { status: 404 })
     }
 
-    // Process posts in batches
-    const batchSize = PAIN_RADAR_LIMITS.MAX_BATCH_SIZE
-    let totalPainsExtracted = 0
-    const allExtractedPains: any[] = []
+    console.log('[Pain Radar] Stage 1: Filtering with Haiku')
 
-    for (let i = 0; i < posts.length; i += batchSize) {
-      const batch = posts.slice(i, i + batchSize)
+    const filterResults = await filterRelevantPosts(
+      posts.map(p => ({
+        id: p.id,
+        platform: p.platform,
+        title: p.content.substring(0, 100),
+        content: p.content,
+        author: p.author,
+      }))
+    )
 
-      try {
-        console.log(`[AI Analysis] Processing batch ${i}-${i + batchSize}, ${batch.length} posts`)
+    const filterStats = getFilterStats(filterResults)
+    console.log('[Pain Radar] Filter stats:', filterStats)
 
-        // Extract pains from batch
-        const results = await extractPainsFromPosts(
-          batch.map(p => ({
-            id: p.id,
-            content: p.content,
-            author: p.author,
-          })),
-          batch[0]?.keyword.category || undefined
-        )
-
-        console.log(`[AI Analysis] Received results:`, JSON.stringify(results, null, 2))
-        console.log(`[AI Analysis] Results count: ${results.length}, Total pains in results: ${results.reduce((sum, r) => sum + r.pains.length, 0)}`)
-
-        // Save extracted pains to database
-        for (const result of results) {
-          const post = batch.find(p => p.id === result.postId)
-          if (!post) {
-            console.warn(`[AI Analysis] Post not found for result:`, result.postId)
-            continue
-          }
-
-          console.log(`[AI Analysis] Post ${result.postId}: ${result.pains.length} pains found`)
-
-          for (const pain of result.pains) {
-            const extractedPain = await db.extractedPain.create({
-              data: {
-                postId: result.postId,
-                workspaceId,
-                painText: pain.painText,
-                category: pain.category,
-                severity: pain.severity,
-                sentiment: pain.sentiment,
-                confidence: pain.confidence,
-                keywords: pain.keywords,
-                context: post.content.substring(0, 500), // First 500 chars as context
-              },
-            })
-
-            allExtractedPains.push(extractedPain)
-            totalPainsExtracted++
-          }
-
-          // Mark post as analyzed
-          await db.socialPost.update({
-            where: { id: result.postId },
-            data: {
-              isAnalyzed: true,
-              analyzedAt: new Date(),
-            },
-          })
-        }
-      } catch (error) {
-        console.error(`[AI Analysis] Error analyzing batch ${i}-${i + batchSize}:`, error)
-        console.error(`[AI Analysis] Error details:`, {
-          message: error instanceof Error ? error.message : 'Unknown error',
-          stack: error instanceof Error ? error.stack : undefined,
-          batch: batch.map(p => ({ id: p.id, contentLength: p.content.length }))
+    await Promise.all(
+      filterResults.map(result =>
+        db.socialPost.update({
+          where: { id: result.postId },
+          data: {
+            filterScore: result.score,
+            filteredAt: new Date(),
+          },
         })
-        // Continue with next batch
+      )
+    )
+
+    const relevantPostIds = filterResults
+      .filter(r => r.score >= 50)
+      .map(r => r.postId)
+
+    console.log(
+      '[Pain Radar] Stage 2: Deep analysis for',
+      relevantPostIds.length,
+      'relevant posts'
+    )
+
+    if (relevantPostIds.length === 0) {
+      return NextResponse.json({
+        analyzed: posts.length,
+        filtered: 0,
+        painsExtracted: 0,
+        pains: [],
+        filterStats,
+      })
+    }
+
+    const relevantPosts = posts.filter(p => relevantPostIds.includes(p.id))
+
+    const analysisResults = await extractPainsFromPosts(
+      relevantPosts.map(p => ({
+        id: p.id,
+        content: p.content,
+        author: p.author,
+      }))
+    )
+
+    console.log('[Pain Radar] Extracted pains from', analysisResults.length, 'posts')
+
+    const allPains = []
+    for (const result of analysisResults) {
+      for (const pain of result.pains) {
+        const created = await db.extractedPain.create({
+          data: {
+            postId: result.postId,
+            workspaceId,
+            painText: pain.painText,
+            category: pain.category,
+            severity: pain.severity,
+            sentiment: pain.sentiment,
+            confidence: pain.confidence,
+            keywords: pain.keywords,
+            context: pain.context,
+          },
+        })
+        allPains.push(created)
       }
     }
 
-    // Log activity
+    await Promise.all(
+      relevantPostIds.map(postId =>
+        db.socialPost.update({
+          where: { id: postId },
+          data: {
+            isAnalyzed: true,
+            analyzedAt: new Date(),
+          },
+        })
+      )
+    )
+
     await db.activity.create({
       data: {
         workspaceId,
-        userId: user.id,
         type: 'CREATE',
-        action: 'pain_radar.analyze',
         entityType: 'pain_analysis',
         entityId: workspaceId,
-        newValue: {
-          postsAnalyzed: posts.length,
-          painsExtracted: totalPainsExtracted,
-        },
+        action: 'Analyzed ' + posts.length + ' posts, extracted ' + allPains.length + ' pains',
+        userId: user.id,
       },
     })
 
+    console.log('[Pain Radar] Analysis completed:', allPains.length, 'pains extracted')
+
     return NextResponse.json({
       analyzed: posts.length,
-      painsExtracted: totalPainsExtracted,
-      pains: allExtractedPains,
+      filtered: relevantPostIds.length,
+      painsExtracted: allPains.length,
+      pains: allPains,
+      filterStats,
     })
   } catch (error: any) {
-    console.error('Analyze error:', error)
-
-    if (error instanceof AIAnalysisError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode })
-    }
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    console.error('[Pain Radar] Analysis error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

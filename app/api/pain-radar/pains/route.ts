@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getCurrentUser, validateWorkspaceAccess } from '@/lib/auth'
-import { painFilterSchema } from '@/lib/validations/pain-radar'
-import type { PainCategory, PainSeverity } from '@prisma/client'
 
-// GET /api/pain-radar/pains - Get list of extracted pains with filters
 export async function GET(request: Request) {
   try {
     const user = await getCurrentUser()
@@ -14,136 +11,89 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId')
+    const category = searchParams.get('category')
+    const severity = searchParams.get('severity')
+    const search = searchParams.get('search')
+    const sortBy = searchParams.get('sortBy') || 'createdAt'
+    const limit = parseInt(searchParams.get('limit') || '50')
+    const offset = parseInt(searchParams.get('offset') || '0')
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'workspaceId is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Workspace ID required' }, { status: 400 })
     }
 
-    // Validate workspace access
-    const hasAccess = await validateWorkspaceAccess(user.id, workspaceId)
-    if (!hasAccess) {
+    const member = await db.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: user.id } },
+    })
+
+    if (!member) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Parse and validate filters - convert null to undefined for Zod
-    const filters = {
-      category: searchParams.get('category') || undefined,
-      severity: searchParams.get('severity') || undefined,
-      dateFrom: searchParams.get('dateFrom') || undefined,
-      dateTo: searchParams.get('dateTo') || undefined,
-      sortBy: searchParams.get('sortBy') || 'createdAt',
-      limit: parseInt(searchParams.get('limit') || '50'),
-      offset: parseInt(searchParams.get('offset') || '0'),
-    }
-
-    const validatedFilters = painFilterSchema.parse(filters)
-    const search = searchParams.get('search')
-
-    // Build where clause
     const where: any = {
       workspaceId,
+      ...(category && { category }),
+      ...(severity && { severity }),
+      ...(search && {
+        OR: [
+          { painText: { contains: search, mode: 'insensitive' } },
+          { keywords: { has: search } },
+        ],
+      }),
     }
 
-    if (validatedFilters.category) {
-      where.category = validatedFilters.category
-    }
-
-    if (validatedFilters.severity) {
-      where.severity = validatedFilters.severity
-    }
-
-    if (validatedFilters.dateFrom || validatedFilters.dateTo) {
-      where.createdAt = {}
-      if (validatedFilters.dateFrom) {
-        where.createdAt.gte = new Date(validatedFilters.dateFrom)
-      }
-      if (validatedFilters.dateTo) {
-        where.createdAt.lte = new Date(validatedFilters.dateTo)
-      }
-    }
-
-    if (search) {
-      where.OR = [
-        { painText: { contains: search, mode: 'insensitive' } },
-        { keywords: { has: search } },
-      ]
-    }
-
-    // Determine sort order
     const orderBy: any = {}
-    if (validatedFilters.sortBy === 'frequency') {
+    if (sortBy === 'frequency') {
       orderBy.frequency = 'desc'
-    } else if (validatedFilters.sortBy === 'trend') {
+    } else if (sortBy === 'trend') {
       orderBy.trend = 'desc'
     } else {
       orderBy.createdAt = 'desc'
     }
 
-    // Get pains with pagination
-    const [pains, total] = await Promise.all([
+    const [pains, total, aggregations] = await Promise.all([
       db.extractedPain.findMany({
         where,
         include: {
           post: {
             select: {
-              id: true,
-              author: true,
               url: true,
+              author: true,
               platform: true,
               publishedAt: true,
             },
           },
         },
         orderBy,
-        take: Math.min(validatedFilters.limit, 100),
-        skip: validatedFilters.offset,
+        take: limit,
+        skip: offset,
       }),
       db.extractedPain.count({ where }),
-    ])
-
-    // Get aggregations
-    const [categoryAggregation, severityAggregation] = await Promise.all([
       db.extractedPain.groupBy({
-        by: ['category'],
-        _count: true,
+        by: ['category', 'severity'],
         where: { workspaceId },
-      }),
-      db.extractedPain.groupBy({
-        by: ['severity'],
         _count: true,
-        where: { workspaceId },
       }),
     ])
 
-    const aggregations = {
-      byCategory: Object.fromEntries(
-        categoryAggregation.map(item => [item.category, item._count])
-      ),
-      bySeverity: Object.fromEntries(
-        severityAggregation.map(item => [item.severity, item._count])
-      ),
-    }
+    const byCategory: Record<string, number> = {}
+    const bySeverity: Record<string, number> = {}
+
+    aggregations.forEach(agg => {
+      byCategory[agg.category] = (byCategory[agg.category] || 0) + agg._count
+      bySeverity[agg.severity] = (bySeverity[agg.severity] || 0) + agg._count
+    })
 
     return NextResponse.json({
       pains,
       total,
-      limit: validatedFilters.limit,
-      offset: validatedFilters.offset,
-      aggregations,
+      aggregations: {
+        byCategory,
+        bySeverity,
+      },
     })
   } catch (error: any) {
-    console.error('Get pains error:', error)
-
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    console.error('Pains GET error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

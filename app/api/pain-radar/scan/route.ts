@@ -1,15 +1,9 @@
 import { NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getCurrentUser, validateWorkspaceAccess } from '@/lib/auth'
-import { scanRequestSchema } from '@/lib/validations/pain-radar'
-import { searchReddit, mapRedditPostToDb } from '@/lib/social/reddit'
-import { searchWeb, mapWebPostToDb } from '@/lib/social/web-search'
-import { socialRateLimiter, withRetry } from '@/lib/social/rate-limiter'
-import { RedditAPIError } from '@/lib/pain-radar/errors'
-import { translateToEnglish } from '@/lib/ai'
-import { z } from 'zod'
+import { searchAllPlatforms } from '@/lib/social/unified-search'
+import { SocialPlatform } from '@prisma/client'
 
-// POST /api/pain-radar/scan - Start Reddit scan
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser()
@@ -18,203 +12,164 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const validatedData = scanRequestSchema.parse(body)
-    const { workspaceId, keywordId, limit, platform } = validatedData
+    const { workspaceId, keywordId, platforms, limit = 50 } = body
 
-    // Validate workspace access
-    const hasAccess = await validateWorkspaceAccess(user.id, workspaceId)
-    if (!hasAccess) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    // Get keyword
-    const keyword = await db.painKeyword.findUnique({
-      where: { id: keywordId },
-    })
-
-    if (!keyword) {
-      return NextResponse.json({ error: 'Keyword not found' }, { status: 404 })
-    }
-
-    if (!keyword.isActive) {
+    if (!workspaceId || !keywordId) {
       return NextResponse.json(
-        { error: 'Keyword is inactive' },
+        { error: 'Workspace ID and Keyword ID required' },
         { status: 400 }
       )
     }
 
-    // Create scan record
+    // Проверить доступ к workspace
+    const member = await db.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId: user.id,
+        },
+      },
+    })
+
+    if (!member) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // Получить keyword
+    const keyword = await db.painKeyword.findUnique({
+      where: { id: keywordId },
+    })
+
+    if (!keyword || keyword.workspaceId !== workspaceId) {
+      return NextResponse.json({ error: 'Keyword not found' }, { status: 404 })
+    }
+
+    // Создать PainScan запись
     const scan = await db.painScan.create({
       data: {
         keywordId,
         workspaceId,
-        platform,
+        platform: 'HACKERNEWS' as SocialPlatform,
         status: 'RUNNING',
         startedAt: new Date(),
       },
     })
 
-    // Run scan asynchronously (don't await - return immediately)
-    runScan(scan.id, keyword.keyword, keywordId, workspaceId, limit, user.id).catch(
-      error => {
-        console.error('Scan background error:', error)
-      }
-    )
+    try {
+      console.log('[Pain Radar] Starting scan for keyword:', keyword.keyword)
 
-    return NextResponse.json({
-      scanId: scan.id,
-      status: 'RUNNING',
-      message: 'Scan started successfully',
-    })
-  } catch (error) {
-    console.error('Start scan error:', error)
+      const selectedPlatforms = platforms || ['HACKERNEWS', 'HABR', 'VCRU', 'TELEGRAM']
 
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
+      const result = await searchAllPlatforms({
+        keyword: keyword.keyword,
+        platforms: selectedPlatforms as SocialPlatform[],
+        limit,
+      })
 
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
+      console.log('[Pain Radar] Found posts:', result.posts.length)
 
-// Background scan function
-async function runScan(
-  scanId: string,
-  keyword: string,
-  keywordId: string,
-  workspaceId: string,
-  limit: number,
-  userId: string
-) {
-  try {
-    // Get scan details to check platform
-    const scanRecord = await db.painScan.findUnique({
-      where: { id: scanId },
-    })
+      let postsNew = 0
+      let postsFound = result.posts.length
 
-    const platform = scanRecord?.platform || 'REDDIT'
-
-    // Check rate limit
-    await socialRateLimiter.waitForSlot(platform)
-
-    let posts: any[] = []
-
-    if (platform === 'WEB') {
-      // Search web (Google/DuckDuckGo)
-      console.log(`Scanning Web: "${keyword}"`)
-      posts = await withRetry(
-        () => searchWeb(keyword, limit),
-        3,
-        1000
-      )
-    } else {
-      // Translate Russian keywords to English for Reddit search
-      const searchKeyword = await translateToEnglish(keyword)
-      console.log(`Scanning Reddit: "${keyword}" → "${searchKeyword}"`)
-
-      // Search Reddit with retry logic
-      posts = await withRetry(
-        () => searchReddit(searchKeyword, limit),
-        3,
-        1000
-      )
-    }
-
-    let postsNew = 0
-    const savedPosts: any[] = []
-
-    // Save posts to database with deduplication
-    for (const post of posts) {
-      try {
-        const postData = platform === 'WEB' ? mapWebPostToDb(post) : mapRedditPostToDb(post)
-
-        // Check if post already exists
-        const existing = await db.socialPost.findUnique({
-          where: {
-            platform_platformId: {
-              platform: platform,
-              platformId: post.platformId,
-            },
-          },
-        })
-
-        if (existing) {
-          // Update if content changed
-          if (existing.content !== postData.content) {
-            const updated = await db.socialPost.update({
-              where: { id: existing.id },
-              data: {
-                content: postData.content,
-                likes: postData.likes,
-                comments: postData.comments,
-                engagement: postData.engagement,
+      for (const post of result.posts) {
+        try {
+          const existing = await db.socialPost.findUnique({
+            where: {
+              platform_platformId: {
+                platform: post.platform,
+                platformId: post.platformId,
               },
-            })
-            savedPosts.push(updated)
-          } else {
-            savedPosts.push(existing)
-          }
-        } else {
-          // Create new post
-          const newPost = await db.socialPost.create({
-            data: {
-              ...postData,
-              keywordId,
             },
           })
-          savedPosts.push(newPost)
-          postsNew++
+
+          if (existing) {
+            if (existing.likes !== post.score || existing.comments !== post.comments) {
+              await db.socialPost.update({
+                where: { id: existing.id },
+                data: {
+                  likes: post.score,
+                  comments: post.comments,
+                  shares: post.shares,
+                  engagement: post.engagement,
+                },
+              })
+            }
+          } else {
+            await db.socialPost.create({
+              data: {
+                keywordId,
+                platform: post.platform,
+                platformId: post.platformId,
+                author: post.author,
+                authorUrl: post.authorUrl,
+                content: post.content,
+                url: post.url,
+                likes: post.score,
+                comments: post.comments,
+                shares: post.shares,
+                engagement: post.engagement,
+                publishedAt: post.createdAt,
+              },
+            })
+            postsNew++
+          }
+        } catch (postError) {
+          console.error('[Pain Radar] Error saving post:', postError)
         }
-      } catch (postError) {
-        console.error('Error saving post:', postError)
-        // Continue with other posts
       }
-    }
 
-    // Update scan status
-    await db.painScan.update({
-      where: { id: scanId },
-      data: {
-        status: 'COMPLETED',
-        postsFound: posts.length,
-        postsNew,
-        completedAt: new Date(),
-      },
-    })
-
-    // Log activity
-    await db.activity.create({
-      data: {
-        workspaceId,
-        type: 'CREATE',
-        entityType: 'pain_scan',
-        entityId: scanId,
-        action: 'completed',
-        newValue: {
-          keyword,
-          postsFound: posts.length,
+      await db.painScan.update({
+        where: { id: scan.id },
+        data: {
+          status: 'COMPLETED',
+          postsFound,
           postsNew,
+          completedAt: new Date(),
         },
-        userId,
-      },
-    })
-  } catch (error: any) {
-    console.error('Scan execution error:', error)
+      })
 
-    // Update scan with error
-    await db.painScan.update({
-      where: { id: scanId },
-      data: {
-        status: 'FAILED',
-        errorMessage: error.message || 'Unknown error',
-        completedAt: new Date(),
-      },
-    })
+      await db.activity.create({
+        data: {
+          workspaceId,
+          type: 'CREATE',
+          entityType: 'pain_scan',
+          entityId: scan.id,
+          action: 'Scanned ' + postsFound + ' posts for keyword ' + keyword.keyword + ' (' + postsNew + ' new)',
+          userId: user.id,
+        },
+      })
+
+      console.log('[Pain Radar] Scan completed:', postsFound, 'found,', postsNew, 'new')
+
+      return NextResponse.json({
+        scanId: scan.id,
+        status: 'COMPLETED',
+        postsFound,
+        postsNew,
+        errors: result.stats.errors,
+      })
+    } catch (scanError: any) {
+      await db.painScan.update({
+        where: { id: scan.id },
+        data: {
+          status: 'FAILED',
+          errorMessage: scanError.message,
+          completedAt: new Date(),
+        },
+      })
+
+      console.error('[Pain Radar] Scan error:', scanError)
+
+      return NextResponse.json(
+        { error: 'Scan failed', message: scanError.message, scanId: scan.id },
+        { status: 500 }
+      )
+    }
+  } catch (error: any) {
+    console.error('[Pain Radar] API error:', error)
+    return NextResponse.json(
+      { error: error.message || 'Failed to start scan' },
+      { status: 500 }
+    )
   }
 }

@@ -3,340 +3,211 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useToast } from '@/lib/hooks/use-toast'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { Pencil, Trash2, Plus, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Edit2, Check, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { ScanTrigger } from './scan-trigger'
 
 interface Keyword {
   id: string
   keyword: string
-  category: string | null
+  category?: string | null
   isActive: boolean
-  _count: {
+  createdAt: string
+  _count?: {
     posts: number
     scans: number
   }
 }
 
 interface KeywordManagerProps {
-  keywords: Keyword[]
   workspaceId: string
+  keywords: Keyword[]
   onUpdate: () => void
 }
 
-export function KeywordManager({ keywords, workspaceId, onUpdate }: KeywordManagerProps) {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+export function KeywordManager({ workspaceId, keywords, onUpdate }: KeywordManagerProps) {
   const [newKeyword, setNewKeyword] = useState('')
   const [newCategory, setNewCategory] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { toast } = useToast()
+  const [adding, setAdding] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
 
   const handleAdd = async () => {
     if (!newKeyword.trim()) {
-      toast({
-        variant: 'destructive',
-        title: 'Ошибка',
-        description: 'Введите ключевое слово',
-      })
+      toast.error('Введите ключевое слово')
       return
     }
 
-    setIsSubmitting(true)
-
+    setAdding(true)
     try {
       const response = await fetch('/api/pain-radar/keywords', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           workspaceId,
-          keyword: newKeyword.trim(),
-          category: newCategory.trim() || undefined,
+          keyword: newKeyword,
+          category: newCategory || undefined,
         }),
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to add keyword')
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to add keyword')
       }
 
-      toast({
-        title: 'Успешно',
-        description: 'Ключевое слово добавлено',
-      })
-
+      toast.success('Ключевое слово добавлено')
       setNewKeyword('')
       setNewCategory('')
-      setIsAddDialogOpen(false)
       onUpdate()
     } catch (error: any) {
-      console.error('Add keyword error:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Ошибка',
-        description: error.message || 'Не удалось добавить ключевое слово',
-      })
+      toast.error(error.message)
     } finally {
-      setIsSubmitting(false)
+      setAdding(false)
     }
   }
 
-  const handleDelete = async (keywordId: string) => {
-    if (!confirm('Вы уверены? Все связанные данные будут удалены.')) {
-      return
-    }
+  const handleDelete = async (id: string, keyword: string) => {
+    if (!confirm('Удалить ключевое слово "' + keyword + '"?')) return
 
     try {
-      const response = await fetch(`/api/pain-radar/keywords/${keywordId}`, {
+      const response = await fetch('/api/pain-radar/keywords/' + id, {
         method: 'DELETE',
       })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to delete keyword')
-      }
+      if (!response.ok) throw new Error('Failed to delete')
 
-      toast({
-        title: 'Успешно',
-        description: 'Ключевое слово удалено',
-      })
-
+      toast.success('Удалено')
       onUpdate()
-    } catch (error: any) {
-      console.error('Delete keyword error:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Ошибка',
-        description: error.message || 'Не удалось удалить ключевое слово',
-      })
+    } catch (error) {
+      toast.error('Ошибка удаления')
     }
   }
 
-  const toggleActive = async (keywordId: string, isActive: boolean) => {
+  const handleEdit = async (id: string) => {
+    if (!editValue.trim()) return
+
     try {
-      const response = await fetch(`/api/pain-radar/keywords/${keywordId}`, {
+      const response = await fetch('/api/pain-radar/keywords/' + id, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !isActive }),
+        body: JSON.stringify({ keyword: editValue }),
       })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to update keyword')
-      }
+      if (!response.ok) throw new Error('Failed to update')
 
+      toast.success('Обновлено')
+      setEditingId(null)
       onUpdate()
-    } catch (error: any) {
-      console.error('Toggle active error:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Ошибка',
-        description: error.message || 'Не удалось обновить ключевое слово',
-      })
+    } catch (error) {
+      toast.error('Ошибка обновления')
     }
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-base sm:text-lg font-semibold">Ключевые слова</h3>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="sm:size-default">
-              <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Добавить</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Добавить ключевое слово</DialogTitle>
-              <DialogDescription>
-                Добавьте новое ключевое слово для мониторинга болей
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="keyword">Ключевое слово</Label>
-                <Input
-                  id="keyword"
-                  value={newKeyword}
-                  onChange={(e) => setNewKeyword(e.target.value)}
-                  placeholder="project management"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category">Категория (опционально)</Label>
-                <Input
-                  id="category"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  placeholder="Управление проектами"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsAddDialogOpen(false)}
-                disabled={isSubmitting}
-              >
-                Отмена
-              </Button>
-              <Button onClick={handleAdd} disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Добавление...
-                  </>
-                ) : (
-                  'Добавить'
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Ключевые слова для мониторинга</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Новое ключевое слово"
+            value={newKeyword}
+            onChange={(e) => setNewKeyword(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          />
+          <Input
+            placeholder="Категория (опционально)"
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value)}
+            className="max-w-xs"
+          />
+          <Button onClick={handleAdd} disabled={adding}>
+            <Plus className="h-4 w-4 mr-2" />
+            Добавить
+          </Button>
+        </div>
 
-      {/* Mobile Cards */}
-      <div className="md:hidden space-y-3">
-        {keywords.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Нет ключевых слов
-          </div>
-        ) : (
-          keywords.map((kw) => (
+        <div className="space-y-2">
+          {keywords.map((kw) => (
             <div
               key={kw.id}
-              className="bg-card border rounded-lg p-4 space-y-3"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{kw.keyword}</p>
-                  {kw.category && (
-                    <Badge variant="outline" className="text-xs mt-1">
-                      {kw.category}
-                    </Badge>
-                  )}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2"
-                  onClick={() => toggleActive(kw.id, kw.isActive)}
-                >
-                  {kw.isActive ? (
-                    <Badge variant="default" className="text-xs">Активно</Badge>
-                  ) : (
-                    <Badge variant="secondary" className="text-xs">Неактивно</Badge>
-                  )}
-                </Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>{kw._count.posts} постов</span>
-                  <span>{kw._count.scans} сканов</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <ScanTrigger
-                    keywordId={kw.id}
-                    keyword={kw.keyword}
-                    workspaceId={workspaceId}
-                    onScanComplete={onUpdate}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => handleDelete(kw.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Desktop Table */}
-      <div className="hidden md:block border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ключевое слово</TableHead>
-              <TableHead>Категория</TableHead>
-              <TableHead className="text-center">Постов</TableHead>
-              <TableHead className="text-center">Сканов</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead className="text-right">Действия</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {keywords.map((kw) => (
-              <TableRow key={kw.id}>
-                <TableCell className="font-medium">{kw.keyword}</TableCell>
-                <TableCell>
-                  {kw.category ? (
-                    <Badge variant="outline">{kw.category}</Badge>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">—</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-center">{kw._count.posts}</TableCell>
-                <TableCell className="text-center">{kw._count.scans}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleActive(kw.id, kw.isActive)}
-                  >
-                    {kw.isActive ? (
-                      <Badge variant="default">Активно</Badge>
-                    ) : (
-                      <Badge variant="secondary">Неактивно</Badge>
+              className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center gap-3 flex-1">
+                {editingId === kw.id ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <Input
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      className="max-w-xs"
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEdit(kw.id)}>
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setEditingId(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <span className="font-medium">{kw.keyword}</span>
+                    {kw.category && (
+                      <Badge variant="outline">{kw.category}</Badge>
                     )}
-                  </Button>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
+                    {kw._count && (
+                      <div className="text-sm text-muted-foreground">
+                        {kw._count.posts} постов · {kw._count.scans} сканирований
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {editingId !== kw.id && (
+                  <>
                     <ScanTrigger
                       keywordId={kw.id}
-                      keyword={kw.keyword}
                       workspaceId={workspaceId}
+                      keywordText={kw.keyword}
                       onScanComplete={onUpdate}
                     />
                     <Button
-                      variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(kw.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      variant="ghost"
+                      onClick={() => {
+                        setEditingId(kw.id)
+                        setEditValue(kw.keyword)
+                      }}>
+                      <Edit2 className="h-4 w-4" />
                     </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDelete(kw.id, kw.keyword)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {keywords.length === 0 && (
+            <p className="text-center text-muted-foreground py-8">
+              Нет ключевых слов. Добавьте первое!
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }

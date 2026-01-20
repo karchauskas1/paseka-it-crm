@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getCurrentUser, validateWorkspaceAccess } from '@/lib/auth'
-import { painKeywordSchema } from '@/lib/validations/pain-radar'
-import { z } from 'zod'
 
-// GET /api/pain-radar/keywords - Get all keywords for workspace
 export async function GET(request: Request) {
   try {
     const user = await getCurrentUser()
@@ -16,44 +13,33 @@ export async function GET(request: Request) {
     const workspaceId = searchParams.get('workspaceId')
 
     if (!workspaceId) {
-      return NextResponse.json(
-        { error: 'workspaceId is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Workspace ID required' }, { status: 400 })
     }
 
-    // Validate workspace access
-    const hasAccess = await validateWorkspaceAccess(user.id, workspaceId)
-    if (!hasAccess) {
+    const member = await db.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: user.id } },
+    })
+
+    if (!member) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const keywords = await db.painKeyword.findMany({
       where: { workspaceId },
       include: {
-        _count: {
-          select: {
-            posts: true,
-            scans: true,
-          },
-        },
+        createdBy: { select: { name: true, email: true } },
+        _count: { select: { posts: true, scans: true } },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     })
 
     return NextResponse.json({ keywords })
-  } catch (error) {
-    console.error('Get keywords error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+  } catch (error: any) {
+    console.error('Keywords GET error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
-// POST /api/pain-radar/keywords - Create new keyword
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser()
@@ -62,84 +48,56 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { workspaceId, ...keywordData } = body
+    const { workspaceId, keyword, category } = body
 
-    if (!workspaceId) {
+    if (!workspaceId || !keyword) {
       return NextResponse.json(
-        { error: 'workspaceId is required' },
+        { error: 'Workspace ID and keyword required' },
         { status: 400 }
       )
     }
 
-    // Validate workspace access
-    const hasAccess = await validateWorkspaceAccess(user.id, workspaceId)
-    if (!hasAccess) {
+    if (keyword.length < 2 || keyword.length > 100) {
+      return NextResponse.json(
+        { error: 'Keyword must be 2-100 characters' },
+        { status: 400 }
+      )
+    }
+
+    const member = await db.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: user.id } },
+    })
+
+    if (!member) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Validate keyword data
-    const validatedData = painKeywordSchema.parse(keywordData)
-
-    // Check if keyword already exists
-    const existing = await db.painKeyword.findFirst({
-      where: {
-        workspaceId,
-        keyword: validatedData.keyword,
-      },
-    })
-
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Keyword already exists' },
-        { status: 400 }
-      )
-    }
-
-    // Create keyword
-    const keyword = await db.painKeyword.create({
+    const newKeyword = await db.painKeyword.create({
       data: {
         workspaceId,
-        keyword: validatedData.keyword,
-        category: validatedData.category,
+        keyword: keyword.trim(),
+        category: category?.trim(),
         createdById: user.id,
       },
       include: {
-        _count: {
-          select: {
-            posts: true,
-            scans: true,
-          },
-        },
+        createdBy: { select: { name: true, email: true } },
       },
     })
 
-    // Log activity
     await db.activity.create({
       data: {
         workspaceId,
         type: 'CREATE',
         entityType: 'pain_keyword',
-        entityId: keyword.id,
-        action: 'created',
-        newValue: { keyword: keyword.keyword },
+        entityId: newKeyword.id,
+        action: 'Created keyword: ' + newKeyword.keyword,
         userId: user.id,
       },
     })
 
-    return NextResponse.json({ keyword }, { status: 201 })
-  } catch (error) {
-    console.error('Create keyword error:', error)
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      )
-    }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ keyword: newKeyword })
+  } catch (error: any) {
+    console.error('Keywords POST error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

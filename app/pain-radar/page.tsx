@@ -88,8 +88,11 @@ export default async function PainRadarPage({
   return (
     <PainRadarClient
       workspaceId={workspaceId}
-      initialKeywords={keywords}
-      initialPains={recentPains}
+      initialKeywords={keywords.map(k => ({
+        ...k,
+        createdAt: k.createdAt.toISOString(),
+      }))}
+      initialPains={recentPains as any}
       user={user}
       workspace={workspace}
     />

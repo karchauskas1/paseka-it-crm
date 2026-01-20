@@ -17,6 +17,7 @@ interface Keyword {
   keyword: string
   category: string | null
   isActive: boolean
+  createdAt: string
   _count: {
     posts: number
     scans: number

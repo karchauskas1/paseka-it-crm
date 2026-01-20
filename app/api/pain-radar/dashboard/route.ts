@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getCurrentUser, validateWorkspaceAccess } from '@/lib/auth'
-import type { PainCategory } from '@prisma/client'
 
-// GET /api/pain-radar/dashboard - Get dashboard metrics
 export async function GET(request: Request) {
   try {
     const user = await getCurrentUser()
@@ -16,161 +14,122 @@ export async function GET(request: Request) {
     const period = searchParams.get('period') || '30d'
 
     if (!workspaceId) {
-      return NextResponse.json({ error: 'workspaceId is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Workspace ID required' }, { status: 400 })
     }
 
-    // Validate workspace access
-    const hasAccess = await validateWorkspaceAccess(user.id, workspaceId)
-    if (!hasAccess) {
+    const member = await db.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: user.id } },
+    })
+
+    if (!member) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Calculate date range based on period
-    const now = new Date()
-    const periodDays = period === '7d' ? 7 : period === '30d' ? 30 : 90
-    const startDate = new Date(now.getTime() - periodDays * 24 * 60 * 60 * 1000)
+    const days = period === '7d' ? 7 : period === '30d' ? 30 : 90
+    const dateFrom = new Date()
+    dateFrom.setDate(dateFrom.getDate() - days)
 
-    // Get overview metrics
-    const [totalPains, totalPosts, categoryGroups, avgSentimentResult] = await Promise.all([
-      db.extractedPain.count({
-        where: {
-          workspaceId,
-          createdAt: { gte: startDate },
-        },
-      }),
-      db.socialPost.count({
-        where: {
-          keyword: { workspaceId },
-          fetchedAt: { gte: startDate },
-        },
-      }),
-      db.extractedPain.groupBy({
-        by: ['category'],
-        _count: true,
-        where: {
-          workspaceId,
-          createdAt: { gte: startDate },
-        },
-        orderBy: {
-          _count: {
-            category: 'desc',
+    const [totalPains, totalPosts, topPains, categoryStats, recentScans] =
+      await Promise.all([
+        db.extractedPain.count({
+          where: { workspaceId, createdAt: { gte: dateFrom } },
+        }),
+        db.socialPost.count({
+          where: { keyword: { workspaceId }, fetchedAt: { gte: dateFrom } },
+        }),
+        db.extractedPain.findMany({
+          where: { workspaceId, createdAt: { gte: dateFrom } },
+          include: {
+            post: {
+              select: {
+                url: true,
+                platform: true,
+                author: true,
+              },
+            },
           },
-        },
-      }),
-      db.extractedPain.aggregate({
-        _avg: {
-          sentiment: true,
-        },
-        where: {
-          workspaceId,
-          createdAt: { gte: startDate },
-        },
-      }),
-    ])
-
-    const topCategory = categoryGroups.length > 0 ? categoryGroups[0].category : null
-    const avgSentiment = avgSentimentResult._avg.sentiment || 0
-
-    // Get top pains
-    const topPains = await db.extractedPain.findMany({
-      where: {
-        workspaceId,
-        createdAt: { gte: startDate },
-      },
-      orderBy: [
-        { frequency: 'desc' },
-        { severity: 'desc' },
-      ],
-      take: 10,
-      include: {
-        post: {
-          select: {
-            author: true,
-            url: true,
-            platform: true,
+          orderBy: { frequency: 'desc' },
+          take: 10,
+        }),
+        db.extractedPain.groupBy({
+          by: ['category'],
+          where: { workspaceId, createdAt: { gte: dateFrom } },
+          _count: true,
+          _avg: { sentiment: true },
+        }),
+        db.painScan.findMany({
+          where: { workspaceId, createdAt: { gte: dateFrom } },
+          include: {
+            keyword: { select: { keyword: true } },
           },
-        },
-      },
-    })
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+        }),
+      ])
 
-    // Calculate trends (daily aggregations)
-    const trends: Array<{ date: string; count: number; sentiment: number }> = []
-    const trendsData = await db.$queryRaw<Array<{
-      date: Date
-      count: bigint
-      avg_sentiment: number
-    }>>`
-      SELECT
+    const topCategory =
+      categoryStats.length > 0
+        ? categoryStats.reduce((max, curr) =>
+            curr._count > max._count ? curr : max
+          ).category
+        : null
+
+    const avgSentiment =
+      categoryStats.length > 0
+        ? categoryStats.reduce((sum, curr) => sum + (curr._avg.sentiment || 0), 0) /
+          categoryStats.length
+        : 0
+
+    const trends = await db.$queryRaw`
+      SELECT 
         DATE(created_at) as date,
-        COUNT(*)::int as count,
-        AVG(sentiment)::float as avg_sentiment
+        COUNT(*) as count,
+        AVG(sentiment) as avg_sentiment
       FROM extracted_pains
       WHERE workspace_id = ${workspaceId}
-        AND created_at >= ${startDate}
+        AND created_at >= ${dateFrom}
       GROUP BY DATE(created_at)
       ORDER BY date ASC
     `
 
-    for (const row of trendsData) {
-      trends.push({
-        date: row.date.toISOString().split('T')[0],
-        count: Number(row.count),
-        sentiment: row.avg_sentiment || 0,
-      })
-    }
+    const sentimentCounts = await db.$queryRaw`
+      SELECT
+        CASE
+          WHEN sentiment >= 0.3 THEN 'positive'
+          WHEN sentiment <= -0.3 THEN 'negative'
+          ELSE 'neutral'
+        END as sentiment_type,
+        COUNT(*) as count
+      FROM extracted_pains
+      WHERE workspace_id = ${workspaceId}
+        AND created_at >= ${dateFrom}
+      GROUP BY sentiment_type
+    `
 
-    // Calculate sentiment distribution
-    const sentimentDistribution = {
+    const sentimentDistribution: any = {
       positive: 0,
       neutral: 0,
       negative: 0,
     }
 
-    const pains = await db.extractedPain.findMany({
-      where: {
-        workspaceId,
-        createdAt: { gte: startDate },
-      },
-      select: {
-        sentiment: true,
-      },
+    ;(sentimentCounts as any[]).forEach((row: any) => {
+      sentimentDistribution[row.sentiment_type] = Number(row.count)
     })
-
-    for (const pain of pains) {
-      if (pain.sentiment > 0.2) {
-        sentimentDistribution.positive++
-      } else if (pain.sentiment < -0.2) {
-        sentimentDistribution.negative++
-      } else {
-        sentimentDistribution.neutral++
-      }
-    }
 
     return NextResponse.json({
       overview: {
         totalPains,
         totalPosts,
         topCategory,
-        avgSentiment,
+        avgSentiment: Math.round(avgSentiment * 100) / 100,
       },
-      topPains: topPains.map(pain => ({
-        id: pain.id,
-        painText: pain.painText,
-        frequency: pain.frequency,
-        severity: pain.severity,
-        trend: pain.trend,
-        category: pain.category,
-        sentiment: pain.sentiment,
-        post: pain.post,
-      })),
+      topPains,
       trends,
       sentimentDistribution,
+      recentScans,
     })
-  } catch (error) {
-    console.error('Dashboard error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+  } catch (error: any) {
+    console.error('Dashboard GET error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
