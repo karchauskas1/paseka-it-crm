@@ -2,47 +2,42 @@ import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 
-// Available AI models via OpenRouter
+// Available AI models via OpenRouter (sorted by cost-efficiency)
 const AI_MODELS = {
-  'openai/gpt-4-turbo': {
-    name: 'GPT-4 Turbo',
-    provider: 'OpenAI',
-    description: 'Самая мощная модель GPT-4',
+  'google/gemini-2.0-flash-exp:free': {
+    name: 'Gemini 2.0 Flash ⚡ FREE',
+    provider: 'Google',
+    description: 'БЕСПЛАТНАЯ модель! Быстрая и умная',
+  },
+  'anthropic/claude-3-haiku': {
+    name: 'Claude 3 Haiku 💰',
+    provider: 'Anthropic',
+    description: 'Дешёвая ($0.25/1M), быстрая и качественная',
+  },
+  'anthropic/claude-3.5-sonnet': {
+    name: 'Claude 3.5 Sonnet',
+    provider: 'Anthropic',
+    description: 'Лучший баланс цены/качества ($3/1M)',
   },
   'openai/gpt-3.5-turbo': {
     name: 'GPT-3.5 Turbo',
     provider: 'OpenAI',
-    description: 'Быстрая и экономичная модель',
-  },
-  'anthropic/claude-3-opus': {
-    name: 'Claude 3 Opus',
-    provider: 'Anthropic',
-    description: 'Самая мощная модель Claude',
-  },
-  'anthropic/claude-3-sonnet': {
-    name: 'Claude 3 Sonnet',
-    provider: 'Anthropic',
-    description: 'Баланс скорости и качества',
-  },
-  'anthropic/claude-3-haiku': {
-    name: 'Claude 3 Haiku',
-    provider: 'Anthropic',
-    description: 'Быстрая и лёгкая модель',
+    description: 'Экономичная модель OpenAI',
   },
   'google/gemini-pro': {
     name: 'Gemini Pro',
     provider: 'Google',
-    description: 'Мощная модель от Google',
+    description: 'Мощная модель Google',
   },
   'meta-llama/llama-3-70b-instruct': {
     name: 'Llama 3 70B',
     provider: 'Meta',
-    description: 'Открытая модель от Meta',
+    description: 'Открытая модель Meta',
   },
-  'mistralai/mixtral-8x7b-instruct': {
-    name: 'Mixtral 8x7B',
-    provider: 'Mistral',
-    description: 'MoE модель от Mistral',
+  'openai/gpt-4-turbo': {
+    name: 'GPT-4 Turbo 💎',
+    provider: 'OpenAI',
+    description: 'ДОРОГАЯ! Самая мощная ($10/1M)',
   },
 }
 
@@ -72,7 +67,8 @@ export async function POST(request: Request) {
       )
     }
 
-    const selectedModel = model || 'openai/gpt-4-turbo'
+    // Default to free Gemini model for cost savings
+    const selectedModel = model || 'google/gemini-2.0-flash-exp:free'
 
     if (!AI_MODELS[selectedModel as keyof typeof AI_MODELS]) {
       return NextResponse.json(

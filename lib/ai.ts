@@ -5,17 +5,36 @@ import { PainCategory, PainSeverity } from '@prisma/client'
 // OpenRouter API configuration
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1'
-const MODEL = 'openai/gpt-4-turbo' // GPT-4 Turbo
+
+// Models for different tasks (optimized for cost/performance)
+const MODELS = {
+  // For pain analysis - needs to be smart but not most expensive
+  ANALYSIS: 'anthropic/claude-3.5-sonnet', // $3/1M input, $15/1M output
+  // For translation - simple task, use free model
+  TRANSLATE: 'google/gemini-2.0-flash-exp:free', // FREE!
+  // For chat - fast and cheap
+  CHAT: 'anthropic/claude-3-haiku', // $0.25/1M input, $1.25/1M output
+  // Fallback for any task
+  DEFAULT: 'anthropic/claude-3.5-sonnet',
+}
+
+const MODEL = MODELS.DEFAULT // Default model for backwards compatibility
 
 // Helper function to call OpenRouter API with OpenAI format
-async function callOpenRouter(messages: Array<{ role: string; content: string }>, maxTokens: number = 500) {
+async function callOpenRouter(
+  messages: Array<{ role: string; content: string }>,
+  maxTokens: number = 500,
+  modelOverride?: string
+) {
+  const modelToUse = modelOverride || MODEL
+
   console.log(`[OpenRouter] API Key exists: ${!!OPENROUTER_API_KEY}, starts with: ${OPENROUTER_API_KEY?.substring(0, 10)}...`)
 
   if (!OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY не настроен. Добавьте API ключ в настройки окружения.')
   }
 
-  console.log(`[OpenRouter] Calling API with model: ${MODEL}, maxTokens: ${maxTokens}`)
+  console.log(`[OpenRouter] Calling API with model: ${modelToUse}, maxTokens: ${maxTokens}`)
 
   const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
     method: 'POST',
@@ -25,7 +44,7 @@ async function callOpenRouter(messages: Array<{ role: string; content: string }>
       'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: modelToUse,
       messages,
       max_tokens: maxTokens,
     }),
@@ -290,7 +309,8 @@ ${context ? `Контекст поиска: ${context}\n` : ''}
 `
 
     console.log(`[AI] Sending ${posts.length} posts to AI for analysis`)
-    const content = await callOpenRouter([{ role: 'user', content: prompt }], 4000)
+    // Use Claude 3.5 Sonnet for analysis - best balance of cost/quality
+    const content = await callOpenRouter([{ role: 'user', content: prompt }], 4000, MODELS.ANALYSIS)
     console.log(`[AI] Received response length: ${content.length} chars`)
     console.log(`[AI] First 500 chars of response:`, content.substring(0, 500))
 
@@ -504,7 +524,8 @@ export async function translateToEnglish(text: string): Promise<string> {
 
 Перевод:`
 
-    const content = await callOpenRouter([{ role: 'user', content: prompt }], 200)
+    // Use free Gemini model for translation - simple task
+    const content = await callOpenRouter([{ role: 'user', content: prompt }], 200, MODELS.TRANSLATE)
     return content.trim().replace(/^["']|["']$/g, '')
   } catch (error) {
     console.error('Translation error:', error)
