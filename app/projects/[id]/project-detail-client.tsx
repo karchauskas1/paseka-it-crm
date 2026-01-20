@@ -28,8 +28,9 @@ import { taskStatusLabels, priorityLabels } from '@/lib/validations/task'
 import { InlineText, InlineTextarea } from '@/components/inline-edit'
 import { ProgressBar, FinanceBlock, ActivitySidebar } from '@/components/project'
 import { AppLayout } from '@/components/layout'
-import { Sparkles, Loader2, Activity, FileText, Trash2, Pencil, Upload, Download, X } from 'lucide-react'
+import { Sparkles, Loader2, Activity, FileText, Trash2, Pencil, Upload, Download, X, Eye } from 'lucide-react'
 import { toast } from 'sonner'
+import { DocumentPreview } from '@/components/documents/document-preview'
 
 export default function ProjectDetailClient({ project: initialProject, user, teamMembers, workspace }: any) {
   const router = useRouter()
@@ -83,6 +84,7 @@ export default function ProjectDetailClient({ project: initialProject, user, tea
   const [newComment, setNewComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isActivitySidebarOpen, setIsActivitySidebarOpen] = useState(false)
+  const [previewDocument, setPreviewDocument] = useState<any | null>(null)
 
   // Inline update field
   const updateProjectField = useCallback(async (field: string, value: string) => {
@@ -601,7 +603,7 @@ ${architectureForm.constraints}` : ''}
         {activeTab === 'milestones' && (
           <MilestonesTab project={project} onCreateMilestone={() => setIsMilestoneDialogOpen(true)} />
         )}
-        {activeTab === 'documents' && <DocumentsTab project={project} onDocumentsUpdate={() => router.refresh()} />}
+        {activeTab === 'documents' && <DocumentsTab project={project} onDocumentsUpdate={() => router.refresh()} onPreview={setPreviewDocument} />}
         {activeTab === 'comments' && (
           <CommentsTab
             project={project}
@@ -946,6 +948,15 @@ ${architectureForm.constraints}` : ''}
         onClose={() => setIsActivitySidebarOpen(false)}
         projectId={project.id}
       />
+
+      {/* Document Preview */}
+      {previewDocument && (
+        <DocumentPreview
+          isOpen={!!previewDocument}
+          onClose={() => setPreviewDocument(null)}
+          document={previewDocument}
+        />
+      )}
     </AppLayout>
   )
 }
@@ -1266,7 +1277,7 @@ function MilestonesTab({ project, onCreateMilestone }: any) {
   )
 }
 
-function DocumentsTab({ project, onDocumentsUpdate }: any) {
+function DocumentsTab({ project, onDocumentsUpdate, onPreview }: any) {
   const [isUploading, setIsUploading] = useState(false)
   const [selectedType, setSelectedType] = useState('OTHER')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -1344,6 +1355,10 @@ function DocumentsTab({ project, onDocumentsUpdate }: any) {
     document.body.removeChild(link)
   }
 
+  const handlePreview = (doc: any) => {
+    onPreview(doc)
+  }
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-6">
@@ -1393,6 +1408,10 @@ function DocumentsTab({ project, onDocumentsUpdate }: any) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => handlePreview(doc)}>
+                  <Eye className="h-4 w-4 mr-1" />
+                  Просмотр
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => handleDownload(doc)}>
                   <Download className="h-4 w-4 mr-1" />
                   Скачать

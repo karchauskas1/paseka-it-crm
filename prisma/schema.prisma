@@ -658,6 +658,10 @@ model Touch {
   description String?  // Описание контакта/о чём говорили
   response    String?  // Что ответили
 
+  // AI анализ
+  aiAnalysis  String?  @db.Text // AI анализ касания
+  analyzedAt  DateTime? @map("analyzed_at") // Когда был проведен AI анализ
+
   // Даты
   contactedAt DateTime @default(now()) @map("contacted_at")
   respondedAt DateTime? @map("responded_at")

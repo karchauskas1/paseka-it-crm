@@ -64,6 +64,8 @@ interface Touch {
   respondedAt: string | null
   followUpAt: string | null
   convertedToClientId: string | null
+  aiAnalysis: string | null
+  analyzedAt: string | null
   createdBy: {
     id: string
     name: string
@@ -297,11 +299,34 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
 
       const data = await res.json()
       setAiAnalysis({ touchId, analysis: data.analysis })
-      toast.success('Анализ завершён')
+      toast.success('Анализ завершён и сохранён')
+      fetchTouches() // Refresh to show saved analysis
     } catch (error: any) {
       toast.error(error.message)
     } finally {
       setIsAnalyzing(null)
+    }
+  }
+
+  const handleDeleteAiAnalysis = async (touchId: string) => {
+    if (!confirm('Удалить AI анализ?')) return
+
+    try {
+      const res = await fetch(`/api/touches/${touchId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aiAnalysis: null, analyzedAt: null }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Ошибка удаления анализа')
+      }
+
+      toast.success('AI анализ удалён')
+      setAiAnalysis(null)
+      fetchTouches()
+    } catch (error: any) {
+      toast.error(error.message)
     }
   }
 
@@ -619,14 +644,33 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                   </div>
                 </div>
 
-                {/* AI Analysis Result */}
-                {aiAnalysis?.touchId === touch.id && (
+                {/* AI Analysis Result - показываем свежий анализ или сохраненный */}
+                {(aiAnalysis?.touchId === touch.id || touch.aiAnalysis) && (
                   <div className="mt-3 p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="h-4 w-4 text-purple-600" />
-                      <span className="text-sm font-medium text-purple-700 dark:text-purple-300">AI Анализ</span>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-purple-600" />
+                        <span className="text-sm font-medium text-purple-700 dark:text-purple-300">AI Анализ</span>
+                        {touch.analyzedAt && (
+                          <span className="text-xs text-muted-foreground">
+                            ({new Date(touch.analyzedAt).toLocaleDateString('ru-RU')})
+                          </span>
+                        )}
+                      </div>
+                      {touch.aiAnalysis && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteAiAnalysis(touch.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
-                    <p className="text-sm text-foreground whitespace-pre-wrap">{aiAnalysis.analysis}</p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">
+                      {aiAnalysis?.touchId === touch.id ? aiAnalysis.analysis : touch.aiAnalysis}
+                    </p>
                   </div>
                 )}
               </div>

@@ -5,7 +5,8 @@ import { db } from '@/lib/db'
 // OpenRouter API configuration
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1'
-const MODEL = 'openai/gpt-4-turbo'
+// Use Claude 3 Haiku - much cheaper ($0.25/1M tokens vs $10/1M for GPT-4 Turbo)
+const MODEL = 'anthropic/claude-3-haiku'
 
 async function callOpenRouter(messages: Array<{ role: string; content: string }>, maxTokens: number = 200) {
   const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
@@ -95,10 +96,20 @@ ${touch.followUpAt ? `- Напоминание: ${touch.followUpAt.toLocaleDateS
     `
 
     console.log('Sending touch analysis request to AI...')
-    const analysis = await callOpenRouter([{ role: 'user', content: prompt }], 200)
+    const analysis = await callOpenRouter([{ role: 'user', content: prompt }], 500)
     console.log('AI touch analysis received')
 
-    return NextResponse.json({ analysis })
+    // Save AI analysis to database
+    await db.touch.update({
+      where: { id: touchId },
+      data: {
+        aiAnalysis: analysis,
+        analyzedAt: new Date(),
+      },
+    })
+    console.log('AI analysis saved to database')
+
+    return NextResponse.json({ analysis, savedToDb: true })
   } catch (error: any) {
     console.error('Touch analysis error:', error)
     return NextResponse.json(
