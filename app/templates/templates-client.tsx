@@ -358,12 +358,12 @@ export default function TemplatesClient({
             </div>
             <div className="space-y-2">
               <Label htmlFor="client">Клиент (опционально)</Label>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+              <Select value={selectedClientId || 'none'} onValueChange={(v) => setSelectedClientId(v === 'none' ? '' : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите клиента" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Без клиента</SelectItem>
+                  <SelectItem value="none">Без клиента</SelectItem>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}

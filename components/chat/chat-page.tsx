@@ -5,6 +5,8 @@ import { MessageList } from './message-list'
 import { MessageInput } from './message-input'
 import { ChatSidebar } from './chat-sidebar'
 import { EntityPreviewModal } from './entity-preview-modal'
+import { UserProfileModal } from './user-profile-modal'
+import { TypingIndicator } from './typing-indicator'
 import { useChat, ChatMessage } from '@/lib/hooks/use-chat'
 import { MessageSquare, Loader2, AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -30,6 +32,8 @@ export function ChatPage({ user }: ChatPageProps) {
     sendMessage,
     loadMore,
     markAsRead,
+    typingUsers,
+    handleTyping,
   } = useChat()
 
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null)
@@ -37,6 +41,7 @@ export function ChatPage({ user }: ChatPageProps) {
     type: 'task' | 'project' | 'client' | null
     id: string | null
   }>({ type: null, id: null })
+  const [previewUserId, setPreviewUserId] = useState<string | null>(null)
 
   // Mark as read when viewing channel
   useEffect(() => {
@@ -71,8 +76,11 @@ export function ChatPage({ user }: ChatPageProps) {
   }
 
   const handleUserClick = (userId: string) => {
-    // Could open user profile modal in the future
-    console.log('User clicked:', userId)
+    setPreviewUserId(userId)
+  }
+
+  const closeUserProfile = () => {
+    setPreviewUserId(null)
   }
 
   const closePreview = () => {
@@ -116,11 +124,15 @@ export function ChatPage({ user }: ChatPageProps) {
           onUserClick={handleUserClick}
         />
 
+        {/* Typing indicator */}
+        <TypingIndicator typingUsers={typingUsers} />
+
         {/* Input */}
         <MessageInput
           replyTo={replyTo}
           onCancelReply={handleCancelReply}
           onSend={handleSend}
+          onTyping={handleTyping}
           sending={sendingMessage}
         />
       </div>
@@ -139,6 +151,13 @@ export function ChatPage({ user }: ChatPageProps) {
         id={previewEntity.id}
         isOpen={!!previewEntity.type && !!previewEntity.id}
         onClose={closePreview}
+      />
+
+      {/* User profile modal */}
+      <UserProfileModal
+        userId={previewUserId}
+        isOpen={!!previewUserId}
+        onClose={closeUserProfile}
       />
     </div>
   )

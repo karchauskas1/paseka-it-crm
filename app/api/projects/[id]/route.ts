@@ -17,7 +17,12 @@ export async function GET(
     const project = await db.project.findUnique({
       where: { id },
       include: {
-        client: true,
+        client: {
+          select: { id: true, name: true },
+        },
+        _count: {
+          select: { tasks: true },
+        },
         tasks: {
           include: {
             assignee: {

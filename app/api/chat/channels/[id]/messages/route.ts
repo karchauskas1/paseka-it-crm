@@ -66,6 +66,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             id: true,
             name: true,
             email: true,
+            image: true,
           },
         },
         replyTo: {
@@ -188,6 +189,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
             id: true,
             name: true,
             email: true,
+            image: true,
           },
         },
         replyTo: {

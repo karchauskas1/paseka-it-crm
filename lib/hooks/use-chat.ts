@@ -63,6 +63,11 @@ export interface WorkspaceMember {
   lastSeenAt: string | null
 }
 
+export interface TypingUser {
+  userId: string
+  name: string
+}
+
 export function useChat() {
   const [channels, setChannels] = useState<ChatChannel[]>([])
   const [currentChannel, setCurrentChannel] = useState<ChatChannel | null>(null)
@@ -73,9 +78,12 @@ export function useChat() {
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
   const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([])
 
   const eventSourceRef = useRef<EventSource | null>(null)
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Fetch channels
   const fetchChannels = useCallback(async () => {
@@ -223,6 +231,54 @@ export function useChat() {
     }
   }, [])
 
+  // Send typing status
+  const sendTyping = useCallback(async (isTyping: boolean) => {
+    if (!currentChannel) return
+
+    try {
+      await fetch('/api/chat/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId: currentChannel.id, isTyping }),
+      })
+    } catch (err) {
+      console.error('Typing status failed:', err)
+    }
+  }, [currentChannel])
+
+  // Fetch typing users
+  const fetchTypingUsers = useCallback(async () => {
+    if (!currentChannel) return
+
+    try {
+      const response = await fetch(`/api/chat/typing?channelId=${currentChannel.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setTypingUsers(data.typing)
+      }
+    } catch (err) {
+      console.error('Failed to fetch typing users:', err)
+    }
+  }, [currentChannel])
+
+  // Handle user typing (with debounce)
+  const handleTyping = useCallback(() => {
+    if (!currentChannel) return
+
+    // Send typing status
+    sendTyping(true)
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+
+    // Set timeout to stop typing after 3 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      sendTyping(false)
+    }, 3000)
+  }, [currentChannel, sendTyping])
+
   // Setup SSE connection for real-time updates
   useEffect(() => {
     if (!currentChannel) return
@@ -304,6 +360,23 @@ export function useChat() {
     }
   }, [sendHeartbeat])
 
+  // Poll for typing users
+  useEffect(() => {
+    if (!currentChannel) return
+
+    // Initial fetch
+    fetchTypingUsers()
+
+    // Poll every 2 seconds
+    typingIntervalRef.current = setInterval(fetchTypingUsers, 2000)
+
+    return () => {
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current)
+      }
+    }
+  }, [currentChannel, fetchTypingUsers])
+
   // Initial data fetch
   useEffect(() => {
     fetchChannels()
@@ -335,9 +408,11 @@ export function useChat() {
     sendingMessage,
     error,
     hasMore,
+    typingUsers,
     sendMessage,
     loadMore,
     markAsRead,
+    handleTyping,
     refreshChannels: fetchChannels,
     refreshMembers: fetchMembers,
   }

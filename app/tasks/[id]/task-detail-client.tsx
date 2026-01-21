@@ -592,14 +592,14 @@ export default function TaskDetailClient({
                 <div>
                   <Label className="text-xs text-gray-500">Исполнитель</Label>
                   <Select
-                    value={task.assigneeId ?? ''}
-                    onValueChange={(v) => updateTaskField('assigneeId', v || null)}
+                    value={task.assigneeId || 'none'}
+                    onValueChange={(v) => updateTaskField('assigneeId', v === 'none' ? null : v)}
                   >
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Не назначен" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Не назначен</SelectItem>
+                      <SelectItem value="none">Не назначен</SelectItem>
                       {teamMembers.map((member) => (
                         <SelectItem key={member.id} value={member.id}>
                           {member.name}

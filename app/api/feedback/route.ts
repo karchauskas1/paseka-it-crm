@@ -111,6 +111,37 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    // Notify admins about new feedback
+    const admins = await db.workspaceMember.findMany({
+      where: {
+        workspaceId,
+        role: { in: ['OWNER', 'ADMIN'] },
+        userId: { not: user.id }, // Don't notify the creator
+      },
+      select: { userId: true },
+    })
+
+    const typeLabels: Record<string, string> = {
+      BUG: 'баг-репорт',
+      FEATURE: 'предложение функции',
+      IMPROVEMENT: 'предложение улучшения',
+    }
+
+    const userName = user.name || user.email || 'Пользователь'
+
+    if (admins.length > 0) {
+      await db.notification.createMany({
+        data: admins.map((admin) => ({
+          userId: admin.userId,
+          type: 'NEW_FEEDBACK',
+          title: 'Новая обратная связь',
+          message: `${userName} отправил ${typeLabels[type] || 'сообщение'}: "${title}"`,
+          entityType: 'feedback',
+          entityId: feedback.id,
+        })),
+      })
+    }
+
     return NextResponse.json({ feedback })
   } catch (error) {
     console.error('Create feedback error:', error)

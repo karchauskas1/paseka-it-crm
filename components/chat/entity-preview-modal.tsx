@@ -116,7 +116,9 @@ export function EntityPreviewModal({
         }
 
         const result = await response.json()
-        setData(result)
+        // Handle wrapped responses (e.g., { project: ... })
+        const entityData = result[type] || result
+        setData(entityData)
       } catch (err) {
         setError('Не удалось загрузить данные')
       } finally {

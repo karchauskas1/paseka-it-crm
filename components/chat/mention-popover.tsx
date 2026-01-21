@@ -122,11 +122,15 @@ export function MentionPopover({
     return email.substring(0, 2).toUpperCase()
   }
 
+  // Ensure popup doesn't go off-screen
+  const adjustedTop = Math.max(10, position.top)
+  const adjustedLeft = Math.min(position.left, window.innerWidth - 270)
+
   return (
     <div
       ref={containerRef}
-      className="fixed z-50 bg-popover border rounded-lg shadow-lg min-w-[250px] max-h-[300px] overflow-y-auto"
-      style={{ top: position.top, left: position.left }}
+      className="fixed z-[100] bg-popover border rounded-lg shadow-lg min-w-[250px] max-h-[300px] overflow-y-auto"
+      style={{ top: adjustedTop, left: adjustedLeft }}
     >
       <div className="p-2">
         <div className="text-xs text-muted-foreground px-2 py-1 flex items-center gap-1">

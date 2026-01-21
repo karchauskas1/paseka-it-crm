@@ -618,6 +618,7 @@ enum NotificationType {
   DEADLINE_APPROACHING
   CHAT_MENTION
   CHAT_MESSAGE
+  NEW_FEEDBACK
 }
 
 // ==================== TIME ENTRIES ====================

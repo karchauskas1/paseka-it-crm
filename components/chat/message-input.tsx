@@ -17,6 +17,7 @@ interface MessageInputProps {
     entityLinks: ChatEntityLink[],
     replyToId?: string
   ) => Promise<any>
+  onTyping?: () => void
   disabled?: boolean
   sending?: boolean
 }
@@ -25,6 +26,7 @@ export function MessageInput({
   replyTo,
   onCancelReply,
   onSend,
+  onTyping,
   disabled,
   sending,
 }: MessageInputProps) {
@@ -40,16 +42,17 @@ export function MessageInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const cursorPositionRef = useRef(0)
 
-  // Calculate popover position based on cursor
+  // Calculate popover position based on cursor - show ABOVE the textarea
   const updatePopoverPosition = useCallback(() => {
     if (!textareaRef.current) return
 
     const textarea = textareaRef.current
     const rect = textarea.getBoundingClientRect()
 
-    // Approximate position - top of textarea, left edge
+    // Position above the textarea with some margin
+    // The popup height is approximately 300px max
     setPopoverPosition({
-      top: rect.top - 10,
+      top: rect.top - 320, // Position above textarea
       left: rect.left,
     })
   }, [])
@@ -61,6 +64,9 @@ export function MessageInput({
     cursorPositionRef.current = cursorPos
 
     setContent(value)
+
+    // Notify typing
+    onTyping?.()
 
     // Find the word being typed
     const textBeforeCursor = value.slice(0, cursorPos)
