@@ -131,7 +131,6 @@ export function MessageItem({
       onMouseLeave={() => setShowActions(false)}
     >
       <Avatar className="h-9 w-9 flex-shrink-0">
-        <AvatarImage src={message.author.image || undefined} alt={message.author.name || ''} />
         <AvatarFallback className="text-xs">
           {getInitials(message.author.name, message.author.email)}
         </AvatarFallback>

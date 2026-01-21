@@ -22,7 +22,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         id: true,
         name: true,
         email: true,
-        image: true,
         createdAt: true,
         presence: {
           select: {
@@ -30,7 +29,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             lastSeenAt: true,
           },
         },
-        workspaceMembers: {
+        workspaces: {
           where: {
             workspace: {
               members: {
@@ -51,7 +50,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     }
 
     // Check if users share a workspace
-    if (user.workspaceMembers.length === 0) {
+    if (user.workspaces.length === 0) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
@@ -59,8 +58,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       id: user.id,
       name: user.name,
       email: user.email,
-      image: user.image,
-      role: user.workspaceMembers[0]?.role || 'MEMBER',
+      role: user.workspaces[0]?.role || 'MEMBER',
       createdAt: user.createdAt.toISOString(),
       isOnline: user.presence?.isOnline || false,
       lastSeenAt: user.presence?.lastSeenAt?.toISOString() || null,

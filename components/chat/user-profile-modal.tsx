@@ -23,7 +23,6 @@ interface UserProfile {
   id: string
   name: string | null
   email: string
-  image: string | null
   role: string
   createdAt: string
   isOnline: boolean
@@ -117,7 +116,6 @@ export function UserProfileModal({
               <div className="flex flex-col items-center text-center">
                 <div className="relative">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={user.image || undefined} alt={user.name || ''} />
                     <AvatarFallback className="text-lg">
                       {getInitials(user.name, user.email)}
                     </AvatarFallback>

@@ -33,7 +33,7 @@ import {
   feedbackStatusColors,
 } from '@/lib/validations/feedback'
 import { priorityLabels, priorityColors } from '@/lib/validations/task'
-import { Plus, Search, User, Calendar, Trash2 } from 'lucide-react'
+import { Plus, Search, User, Calendar, Trash2, ImageIcon, X } from 'lucide-react'
 
 interface FeedbackClientProps {
   user: any
@@ -61,6 +61,10 @@ export default function FeedbackClient({
     description: '',
     priority: 'MEDIUM',
   })
+
+  // Detail modal state
+  const [selectedFeedback, setSelectedFeedback] = useState<any>(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
 
   const filteredFeedback = feedback.filter((item) => {
     if (!item || !item.title) return false
@@ -353,6 +357,9 @@ export default function FeedbackClient({
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Дата
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+
+                </th>
                 {isAdmin && (
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Действия
@@ -363,7 +370,7 @@ export default function FeedbackClient({
             <tbody className="bg-card divide-y divide-border">
               {filteredFeedback.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 7 : 6} className="px-6 py-12">
+                  <td colSpan={isAdmin ? 8 : 7} className="px-6 py-12">
                     <div className="text-center text-muted-foreground">
                       {feedback.length === 0 ? (
                         <div>
@@ -451,6 +458,33 @@ export default function FeedbackClient({
                         {new Date(item.createdAt).toLocaleDateString('ru-RU')}
                       </div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        {item.screenshot && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedFeedback(item)
+                              setIsDetailOpen(true)
+                            }}
+                            title="Есть скриншот"
+                          >
+                            <ImageIcon className="h-4 w-4 text-blue-500" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedFeedback(item)
+                            setIsDetailOpen(true)
+                          }}
+                        >
+                          Подробнее
+                        </Button>
+                      </div>
+                    </td>
                     {isAdmin && (
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Button
@@ -468,6 +502,111 @@ export default function FeedbackClient({
             </tbody>
           </table>
         </div>
+
+        {/* Detail Modal */}
+        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+          <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+            {selectedFeedback && (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-2">
+                    <Badge className={feedbackTypeColors[selectedFeedback.type]}>
+                      {feedbackTypeLabels[selectedFeedback.type]}
+                    </Badge>
+                    {selectedFeedback.priority && (
+                      <Badge className={priorityColors[selectedFeedback.priority]}>
+                        {priorityLabels[selectedFeedback.priority]}
+                      </Badge>
+                    )}
+                    <Badge className={feedbackStatusColors[selectedFeedback.status]}>
+                      {feedbackStatusLabels[selectedFeedback.status]}
+                    </Badge>
+                  </div>
+                  <DialogTitle className="text-xl mt-2">
+                    {selectedFeedback.title}
+                  </DialogTitle>
+                  <DialogDescription>
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="flex items-center">
+                        <User className="h-4 w-4 mr-1" />
+                        {selectedFeedback.createdBy?.name || 'Неизвестный'}
+                      </span>
+                      <span className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        {new Date(selectedFeedback.createdAt).toLocaleDateString('ru-RU', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Описание</h4>
+                    <div className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted/50 rounded-lg p-4">
+                      {selectedFeedback.description}
+                    </div>
+                  </div>
+
+                  {selectedFeedback.screenshot && (
+                    <div>
+                      <h4 className="font-medium mb-2 flex items-center gap-2">
+                        <ImageIcon className="h-4 w-4" />
+                        Скриншот
+                      </h4>
+                      <div className="border rounded-lg overflow-hidden">
+                        <img
+                          src={selectedFeedback.screenshot}
+                          alt="Скриншот"
+                          className="w-full h-auto cursor-pointer"
+                          onClick={() => window.open(selectedFeedback.screenshot, '_blank')}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Нажмите на изображение чтобы открыть в полном размере
+                      </p>
+                    </div>
+                  )}
+
+                  {isAdmin && (
+                    <div className="pt-4 border-t">
+                      <Label className="mb-2 block">Изменить статус</Label>
+                      <Select
+                        value={selectedFeedback.status}
+                        onValueChange={(value) => {
+                          handleStatusChange(selectedFeedback.id, value)
+                          setSelectedFeedback({ ...selectedFeedback, status: value })
+                        }}
+                      >
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(feedbackStatusLabels).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
+                    Закрыть
+                  </Button>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
     </AppLayout>
   )
 }

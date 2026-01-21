@@ -6,7 +6,6 @@ export interface ChatAuthor {
   id: string
   name: string | null
   email: string
-  image: string | null
 }
 
 export interface ChatReplyTo {
