@@ -26,7 +26,6 @@ export function InlineText({
   const [editValue, setEditValue] = useState(value)
   const [saving, setSaving] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     setEditValue(value)
@@ -72,25 +71,7 @@ export function InlineText({
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    setEditValue(newValue)
-
-    // Autosave with debounce (500ms)
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current)
-    }
-    debounceRef.current = setTimeout(async () => {
-      if (newValue !== value) {
-        setSaving(true)
-        try {
-          await onSave(newValue)
-        } catch (error) {
-          console.error('Autosave failed:', error)
-        } finally {
-          setSaving(false)
-        }
-      }
-    }, 500)
+    setEditValue(e.target.value)
   }
 
   if (!editable) {
