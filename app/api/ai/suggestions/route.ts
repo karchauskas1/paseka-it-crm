@@ -48,18 +48,30 @@ export async function POST(request: Request) {
           )
         }
 
-        // Save pain analysis to project
+        // Save pain analysis to project with author info
         if (projectId) {
           await db.project.update({
             where: { id: projectId },
             data: {
               aiPainAnalysis: analysis,
               aiPainAnalyzedAt: new Date(),
+              // Store analysis metadata in aiInsights
+              aiInsights: {
+                painAnalysis: {
+                  generatedBy: user.id,
+                  generatedByName: user.name || user.email,
+                  generatedAt: new Date().toISOString(),
+                }
+              },
             },
           })
         }
 
-        return NextResponse.json({ analysis })
+        return NextResponse.json({
+          analysis,
+          generatedBy: user.name || user.email,
+          generatedAt: new Date().toISOString(),
+        })
       } catch (aiError: any) {
         console.error('AI analysis failed:', aiError)
         return NextResponse.json(
@@ -76,18 +88,27 @@ export async function POST(request: Request) {
         context
       )
 
-      // Save architecture to project
+      // Save architecture to project with author info
+      const architectureData = {
+        data: architecture,
+        generatedBy: user.id,
+        generatedByName: user.name || user.email,
+        generatedAt: new Date().toISOString(),
+      }
+
       if (projectId) {
         await db.project.update({
           where: { id: projectId },
           data: {
-            aiArchitecture: architecture,
+            aiArchitecture: architectureData,
             aiArchitectureAt: new Date(),
           },
         })
       }
 
-      return NextResponse.json({ architecture })
+      return NextResponse.json({
+        architecture: architectureData,
+      })
     }
 
     return NextResponse.json(

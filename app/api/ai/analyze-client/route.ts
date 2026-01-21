@@ -44,16 +44,27 @@ export async function POST(request: Request) {
 
     const analysis = await analyzeClient(clientData)
 
-    // Save analysis to client
+    // Save analysis to client with author info
+    const analysisData = {
+      text: analysis,
+      generatedBy: user.id,
+      generatedByName: user.name || user.email,
+      generatedAt: new Date().toISOString(),
+    }
+
     await db.client.update({
       where: { id: clientId },
       data: {
-        aiAnalysis: analysis,
+        aiAnalysis: analysisData,
         aiAnalyzedAt: new Date(),
       },
     })
 
-    return NextResponse.json({ analysis })
+    return NextResponse.json({
+      analysis,
+      generatedBy: user.name || user.email,
+      generatedAt: new Date().toISOString(),
+    })
   } catch (error: any) {
     console.error('Client analysis error:', error)
     return NextResponse.json(

@@ -178,8 +178,14 @@ export default function ClientDetailClient({
 
       const data = await res.json()
       setAiAnalysis(data.analysis)
+      // Update client state so it persists in local state
+      setClient({
+        ...client,
+        aiAnalysis: data.analysis,
+        aiAnalyzedAt: new Date().toISOString(),
+      })
       toast({
-        title: 'Анализ завершён',
+        title: 'Анализ завершён и сохранён',
         description: 'AI проанализировал клиента',
         variant: 'success',
       })
@@ -365,11 +371,22 @@ export default function ClientDetailClient({
                 <Sparkles className="h-5 w-5 mr-2 text-purple-500" />
                 AI Анализ
               </h3>
-              {/* Show saved analysis date if available */}
+              {/* Show saved analysis info if available */}
               {client.aiAnalyzedAt && !aiAnalysis && (
-                <p className="text-xs text-gray-500 mb-2">
-                  Последний анализ: {new Date(client.aiAnalyzedAt).toLocaleDateString('ru-RU')}
-                </p>
+                <div className="text-xs text-gray-500 mb-2">
+                  {client.aiAnalysis?.generatedByName && (
+                    <span className="block">Автор: {client.aiAnalysis.generatedByName}</span>
+                  )}
+                  <span>
+                    {new Date(client.aiAnalyzedAt).toLocaleString('ru-RU', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
               )}
               <p className="text-sm text-gray-600 mb-4">
                 {(aiAnalysis || client.aiAnalysis) ? 'Обновите анализ для получения свежих рекомендаций' : 'Получите AI-рекомендации по работе с этим клиентом'}
@@ -394,7 +411,9 @@ export default function ClientDetailClient({
               {/* Show fresh analysis first, then saved one */}
               {(aiAnalysis || client.aiAnalysis) && (
                 <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiAnalysis || client.aiAnalysis}</p>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                    {aiAnalysis || (typeof client.aiAnalysis === 'string' ? client.aiAnalysis : client.aiAnalysis?.text)}
+                  </p>
                 </div>
               )}
             </div>

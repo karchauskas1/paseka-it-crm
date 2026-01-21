@@ -348,7 +348,13 @@ ${architectureForm.constraints}` : ''}
         throw new Error('AI вернул пустой ответ')
       }
       setAiAnalysis(data.analysis)
-      showToast({ title: 'AI анализ завершён', variant: 'success' })
+      // Also update project state so it persists in local state
+      setProject({
+        ...project,
+        aiPainAnalysis: data.analysis,
+        aiPainAnalyzedAt: new Date().toISOString(),
+      })
+      showToast({ title: 'AI анализ завершён и сохранён', variant: 'success' })
     } catch (error: any) {
       console.error('AI analysis error:', error)
       showToast({
@@ -383,15 +389,23 @@ ${architectureForm.constraints}` : ''}
       })
       if (!res.ok) throw new Error('Ошибка генерации')
       const data = await res.json()
+      // Handle both old and new architecture format
+      const archData = data.architecture?.data || data.architecture
       setArchitectureForm({
         title: 'AI-предложение',
         description: 'Сгенерировано AI на основе боли и целей',
-        solution: data.solution || data.suggestions?.join('\n') || '',
-        hypotheses: data.hypotheses || '',
-        constraints: data.constraints || '',
+        solution: archData?.solution || data.solution || data.suggestions?.join('\n') || '',
+        hypotheses: archData?.hypotheses || data.hypotheses || '',
+        constraints: archData?.constraints || data.constraints || '',
+      })
+      // Update project state with saved architecture
+      setProject({
+        ...project,
+        aiArchitecture: data.architecture,
+        aiArchitectureAt: new Date().toISOString(),
       })
       setIsArchitectureDialogOpen(true)
-      showToast({ title: 'AI предложение готово', variant: 'success' })
+      showToast({ title: 'AI предложение готово и сохранено', variant: 'success' })
     } catch (error) {
       showToast({ title: 'Ошибка генерации', description: 'Проверьте настройки API ключа', variant: 'destructive' })
     } finally {
@@ -1044,7 +1058,15 @@ function OverviewTab({ project, updateProjectField }: any) {
 function PainTab({ project, isAIAnalyzing, aiAnalysis, onAnalyze, updateProjectField }: any) {
   // Use saved analysis from project if no fresh analysis is loaded
   const displayAnalysis = aiAnalysis || project.aiPainAnalysis
-  const analysisDate = project.aiPainAnalyzedAt ? new Date(project.aiPainAnalyzedAt).toLocaleDateString('ru-RU') : null
+  const analysisDate = project.aiPainAnalyzedAt ? new Date(project.aiPainAnalyzedAt).toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }) : null
+  // Get author info from aiInsights if available
+  const authorName = project.aiInsights?.painAnalysis?.generatedByName
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -1096,7 +1118,10 @@ function PainTab({ project, isAIAnalyzing, aiAnalysis, onAnalyze, updateProjectF
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold text-purple-900 flex items-center"><Sparkles className="h-5 w-5 mr-2" />AI Анализ</h3>
               {analysisDate && !aiAnalysis && (
-                <span className="text-xs text-gray-500">Сохранён: {analysisDate}</span>
+                <div className="text-xs text-gray-500 text-right">
+                  {authorName && <span className="block">Автор: {authorName}</span>}
+                  <span>{analysisDate}</span>
+                </div>
               )}
             </div>
             <div className="p-4 bg-purple-50 rounded-md border border-purple-200">
