@@ -65,7 +65,7 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const data = await req.json()
+    const rawData = await req.json()
 
     const existingTask = await db.task.findUnique({
       where: { id },
@@ -74,6 +74,41 @@ export async function PATCH(
 
     if (!existingTask) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+    }
+
+    // Sanitize and validate input data
+    const data: Record<string, any> = {}
+
+    if (rawData.title !== undefined) {
+      data.title = rawData.title
+    }
+    if (rawData.description !== undefined) {
+      data.description = rawData.description
+    }
+    if (rawData.status !== undefined) {
+      data.status = rawData.status
+    }
+    if (rawData.priority !== undefined) {
+      data.priority = rawData.priority
+    }
+    if (rawData.assigneeId !== undefined) {
+      // Convert empty string to null for optional relation
+      data.assigneeId = rawData.assigneeId === '' ? null : rawData.assigneeId
+    }
+    if (rawData.dueDate !== undefined) {
+      // Convert empty string or invalid dates to null
+      if (!rawData.dueDate || rawData.dueDate === '' || rawData.dueDate === 'null') {
+        data.dueDate = null
+      } else {
+        const date = new Date(rawData.dueDate)
+        data.dueDate = isNaN(date.getTime()) ? null : date
+      }
+    }
+    if (rawData.estimatedHours !== undefined) {
+      data.estimatedHours = rawData.estimatedHours
+    }
+    if (rawData.projectId !== undefined) {
+      data.projectId = rawData.projectId === '' ? null : rawData.projectId
     }
 
     const task = await db.task.update({

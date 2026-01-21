@@ -594,9 +594,16 @@ export default function TaskDetailClient({
                         return ''
                       }
                     })()}
-                    onChange={(e) =>
-                      updateTaskField('dueDate', e.target.value || null)
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (!value) {
+                        updateTaskField('dueDate', null)
+                      } else {
+                        // Convert YYYY-MM-DD to ISO DateTime
+                        const date = new Date(value + 'T12:00:00.000Z')
+                        updateTaskField('dueDate', date.toISOString())
+                      }
+                    }}
                     className="mt-1"
                   />
                 </div>
