@@ -89,8 +89,15 @@ export async function POST(request: Request) {
       )
 
       // Save architecture to project with author info
+      // Spread architecture fields to create plain JSON object for Prisma
       const architectureData = {
-        data: architecture,
+        data: {
+          solution: architecture.solution,
+          hypotheses: architecture.hypotheses,
+          constraints: architecture.constraints,
+          techStack: architecture.techStack,
+          risks: architecture.risks,
+        },
         generatedBy: user.id,
         generatedByName: user.name || user.email,
         generatedAt: new Date().toISOString(),

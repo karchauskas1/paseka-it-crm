@@ -73,6 +73,8 @@ export default function ProjectDetailClient({ project: initialProject, user, tea
     solution: '',
     hypotheses: '',
     constraints: '',
+    techStack: '',
+    risks: '',
   })
   const [generatedPrompt, setGeneratedPrompt] = useState('')
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false)
@@ -249,7 +251,7 @@ ${architectureForm.constraints}` : ''}
         architectureVersions: [...(project.architectureVersions || []), newVersion],
       })
       setIsArchitectureDialogOpen(false)
-      setArchitectureForm({ title: '', description: '', solution: '', hypotheses: '', constraints: '' })
+      setArchitectureForm({ title: '', description: '', solution: '', hypotheses: '', constraints: '', techStack: '', risks: '' })
       setGeneratedPrompt('')
       showToast({ title: 'Версия архитектуры создана', variant: 'success' })
     } catch (error) {
@@ -397,6 +399,8 @@ ${architectureForm.constraints}` : ''}
         solution: archData?.solution || data.solution || data.suggestions?.join('\n') || '',
         hypotheses: archData?.hypotheses || data.hypotheses || '',
         constraints: archData?.constraints || data.constraints || '',
+        techStack: archData?.techStack || data.techStack || '',
+        risks: archData?.risks || data.risks || '',
       })
       // Update project state with saved architecture
       setProject({
@@ -760,6 +764,24 @@ ${architectureForm.constraints}` : ''}
                 placeholder="Известные ограничения..."
               />
             </div>
+            <div className="grid gap-2">
+              <Label>Технологический стек</Label>
+              <Textarea
+                value={architectureForm.techStack}
+                onChange={(e) => setArchitectureForm({ ...architectureForm, techStack: e.target.value })}
+                rows={2}
+                placeholder="Рекомендуемые технологии..."
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Риски</Label>
+              <Textarea
+                value={architectureForm.risks}
+                onChange={(e) => setArchitectureForm({ ...architectureForm, risks: e.target.value })}
+                rows={2}
+                placeholder="Потенциальные риски..."
+              />
+            </div>
 
             {/* Generate AI Prompt Button */}
             <div className="border-t pt-4">
@@ -1020,19 +1042,26 @@ function OverviewTab({ project, updateProjectField }: any) {
       </div>
       {/* Key Decision - Inline Editable */}
       <div className="bg-blue-50 rounded-lg border border-blue-200 p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-2">Ключевое решение</h3>
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <h3 className="text-lg font-semibold text-blue-900">Стратегическое решение по проекту</h3>
+            <p className="text-xs text-blue-700 mt-1">
+              Фиксация решения: взяли проект в работу или отклонили, какой подход выбрали
+            </p>
+          </div>
+        </div>
         <InlineTextarea
           value={project.keyDecision || ''}
           onSave={(value) => updateProjectField('keyDecision', value)}
-          placeholder="Какое ключевое решение было принято?"
+          placeholder="Например: Проект взят в работу. Выбран подход MVP с минимальным функционалом."
           className="text-blue-900"
         />
         <div className="mt-3">
-          <h4 className="text-sm font-medium text-blue-900 mb-1">Почему:</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-1">Обоснование решения:</h4>
           <InlineTextarea
             value={project.decisionReason || ''}
             onSave={(value) => updateProjectField('decisionReason', value)}
-            placeholder="Почему было принято это решение?"
+            placeholder="Например: Клиент имеет чёткий бюджет и сроки. Боль подтверждена метриками. Команда свободна."
             className="text-blue-800"
           />
         </div>

@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { projectId, title, description, solution, hypotheses, constraints } =
+    const { projectId, title, description, solution, hypotheses, constraints, techStack, risks } =
       await req.json()
 
     if (!projectId || !title) {
@@ -37,6 +37,8 @@ export async function POST(req: NextRequest) {
         solution,
         hypotheses,
         constraints,
+        techStack,
+        risks,
       },
     })
 

@@ -137,11 +137,19 @@ ${context?.consequences ? `Последствия: ${context.consequences}\n` : 
   }
 }
 
+export interface ArchitectureSuggestion {
+  solution: string
+  hypotheses: string
+  constraints: string
+  techStack: string
+  risks: string
+}
+
 export async function generateArchitectureSuggestions(
   pain: string,
   goals: string,
   context?: any
-): Promise<string> {
+): Promise<ArchitectureSuggestion> {
   try {
     const prompt = `
 Ты - опытный архитектор решений и технический консультант.
@@ -152,21 +160,64 @@ ${pain}
 Цели проекта:
 ${goals}
 
-Предложи архитектуру решения, включающую:
-1. Общий подход к решению проблемы
-2. Ключевые компоненты системы
-3. Технологический стек (если применимо)
-4. Потенциальные риски и ограничения
-5. Альтернативные варианты решения
+${context?.expectedResult ? `Ожидаемый результат: ${context.expectedResult}` : ''}
 
-Будь конкретным и практичным.
+Разработай детальное архитектурное решение. Верни ответ СТРОГО в формате JSON:
+
+{
+  "solution": "Детальное описание архитектуры решения: общий подход, ключевые компоненты системы, как они взаимодействуют, основные модули и их функции. Минимум 5-7 предложений.",
+  "techStack": "Рекомендуемый технологический стек: frontend (фреймворк, UI библиотеки), backend (язык, фреймворк), база данных, инфраструктура, интеграции. С обоснованием выбора.",
+  "hypotheses": "Гипотезы которые нужно проверить перед разработкой: предположения о пользователях, технические допущения, бизнес-гипотезы. Минимум 3 гипотезы.",
+  "constraints": "Известные ограничения и требования: технические ограничения, бюджетные рамки, временные ограничения, зависимости от внешних систем.",
+  "risks": "Потенциальные риски и план их митигации: технические риски, бизнес-риски, риски интеграций."
+}
+
+ВАЖНО: Верни ТОЛЬКО валидный JSON без markdown, без комментариев, без дополнительного текста.
     `
 
-    const content = await callOpenRouter([{ role: 'user', content: prompt }], 1500)
-    return content
+    const content = await callOpenRouter([{ role: 'user', content: prompt }], 2500, MODELS.ANALYSIS)
+
+    // Parse JSON from response
+    try {
+      const jsonMatch = content.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        console.error('[AI] No JSON found in architecture response:', content)
+        // Return structured text if JSON parsing fails
+        return {
+          solution: content,
+          hypotheses: '',
+          constraints: '',
+          techStack: '',
+          risks: '',
+        }
+      }
+      const result = JSON.parse(jsonMatch[0])
+      return {
+        solution: result.solution || '',
+        hypotheses: result.hypotheses || '',
+        constraints: result.constraints || '',
+        techStack: result.techStack || '',
+        risks: result.risks || '',
+      }
+    } catch (parseError) {
+      console.error('[AI] Failed to parse architecture JSON:', content)
+      return {
+        solution: content,
+        hypotheses: '',
+        constraints: '',
+        techStack: '',
+        risks: '',
+      }
+    }
   } catch (error) {
     console.error('Architecture Generation Error:', error)
-    return ''
+    return {
+      solution: '',
+      hypotheses: '',
+      constraints: '',
+      techStack: '',
+      risks: '',
+    }
   }
 }
 

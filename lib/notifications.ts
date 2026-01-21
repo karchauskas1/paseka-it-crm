@@ -365,6 +365,8 @@ export function formatNotificationType(type: NotificationType): string {
     COMMENT_ADDED: 'Новый комментарий',
     MENTION: 'Упоминание',
     DEADLINE_APPROACHING: 'Приближается дедлайн',
+    CHAT_MENTION: 'Упоминание в чате',
+    CHAT_MESSAGE: 'Новое сообщение в чате',
   }
   return labels[type] || type
 }
@@ -381,6 +383,8 @@ export function getNotificationIcon(type: NotificationType): string {
     COMMENT_ADDED: 'message-circle',
     MENTION: 'at-sign',
     DEADLINE_APPROACHING: 'alert-triangle',
+    CHAT_MENTION: 'at-sign',
+    CHAT_MESSAGE: 'message-square',
   }
   return icons[type] || 'bell'
 }

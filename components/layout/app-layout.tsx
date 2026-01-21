@@ -21,7 +21,9 @@ import {
   Sparkles,
   MoreHorizontal,
   Home,
+  MessageSquare,
 } from 'lucide-react'
+import { UnreadBadge } from '@/components/chat/unread-badge'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -58,6 +60,7 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
     { href: '/projects', label: 'Проекты', icon: FolderKanban, mobileLabel: 'Проекты' },
     { href: '/clients', label: 'Клиенты', icon: Users, mobileLabel: 'Клиенты' },
     { href: '/tasks', label: 'Задачи', icon: CheckSquare, mobileLabel: 'Задачи' },
+    { href: '/chat', label: 'Чат', icon: MessageSquare, mobileLabel: 'Чат', badge: true },
     { href: '/touches', label: 'Касания', icon: Phone, mobileLabel: 'Касания' },
     { href: '/calendar', label: 'Календарь', icon: Calendar, mobileLabel: 'Календарь' },
     { href: '/activity', label: 'Активность', icon: Activity, mobileLabel: 'Активность' },
@@ -139,13 +142,18 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
             key={item.href}
             href={item.href}
             className={cn(
-              'flex flex-col items-center justify-center flex-1 h-full py-2 px-1 rounded-lg transition-colors touch-manipulation',
+              'flex flex-col items-center justify-center flex-1 h-full py-2 px-1 rounded-lg transition-colors touch-manipulation relative',
               activePath === item.href
                 ? 'text-primary bg-primary/10'
                 : 'text-muted-foreground active:bg-muted'
             )}
           >
-            <item.icon className="h-5 w-5 mb-1" />
+            <div className="relative">
+              <item.icon className="h-5 w-5 mb-1" />
+              {'badge' in item && item.badge && (
+                <UnreadBadge className="absolute -top-1 -right-2" />
+              )}
+            </div>
             <span className="text-[10px] font-medium truncate max-w-full">{item.mobileLabel}</span>
           </Link>
         ))}
@@ -176,13 +184,18 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
                   href={item.href}
                   onClick={() => setMoreMenuOpen(false)}
                   className={cn(
-                    'flex flex-col items-center justify-center p-4 rounded-xl transition-colors touch-manipulation',
+                    'flex flex-col items-center justify-center p-4 rounded-xl transition-colors touch-manipulation relative',
                     activePath === item.href
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted hover:bg-muted/80 active:bg-muted/60'
                   )}
                 >
-                  <item.icon className="h-6 w-6 mb-2" />
+                  <div className="relative">
+                    <item.icon className="h-6 w-6 mb-2" />
+                    {'badge' in item && item.badge && (
+                      <UnreadBadge className="absolute -top-1 -right-2" />
+                    )}
+                  </div>
                   <span className="text-xs font-medium text-center">{item.mobileLabel}</span>
                 </Link>
               ))}
@@ -274,7 +287,12 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
                       : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                   )}
                 >
-                  <item.icon className="h-4 w-4" />
+                  <div className="relative">
+                    <item.icon className="h-4 w-4" />
+                    {'badge' in item && item.badge && (
+                      <UnreadBadge className="absolute -top-1.5 -right-2" />
+                    )}
+                  </div>
                   {item.label}
                 </Link>
               ))}
@@ -374,7 +392,12 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
               )}
               title={!sidebarOpen ? item.label : undefined}
             >
-              <item.icon className="h-5 w-5 shrink-0" />
+              <div className="relative shrink-0">
+                <item.icon className="h-5 w-5" />
+                {'badge' in item && item.badge && (
+                  <UnreadBadge className="absolute -top-1 -right-2" />
+                )}
+              </div>
               {sidebarOpen && <span className="truncate">{item.label}</span>}
             </Link>
           ))}
