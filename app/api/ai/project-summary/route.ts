@@ -119,10 +119,20 @@ ${project.tasks.slice(0, 10).map((t) => `- ${t.title} (${t.status})`).join('\n')
       throw new Error('No text response')
     }
 
+    // Save summary to project
+    await db.project.update({
+      where: { id: projectId },
+      data: {
+        aiSummary: textContent.text,
+        aiSummaryAt: new Date(),
+      },
+    })
+
     return NextResponse.json({
       summary: textContent.text,
       projectName: project.name,
       audience,
+      saved: true,
     })
   } catch (error) {
     console.error('Error in AI project summary:', error)

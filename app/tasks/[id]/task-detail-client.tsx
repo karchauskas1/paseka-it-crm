@@ -32,6 +32,7 @@ import {
   Folder,
   Loader2,
   AlertCircle,
+  Sparkles,
 } from 'lucide-react'
 import { format, isValid } from 'date-fns'
 import { ru } from 'date-fns/locale'
@@ -363,6 +364,34 @@ export default function TaskDetailClient({
                 rows={4}
               />
             </div>
+
+            {/* AI Decomposition - show if saved */}
+            {task.aiDecomposition && task.aiDecomposition.subtasks && task.aiDecomposition.subtasks.length > 0 && (
+              <div className="bg-purple-50 rounded-lg shadow p-6 border border-purple-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-purple-900 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    AI Декомпозиция
+                  </h2>
+                  {task.aiDecomposedAt && (
+                    <span className="text-xs text-purple-600">
+                      {new Date(task.aiDecomposedAt).toLocaleDateString('ru-RU')}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-purple-700 mb-3">
+                  Предложенные подзадачи от AI. Добавьте их в список подзадач при необходимости.
+                </p>
+                <ul className="space-y-2">
+                  {task.aiDecomposition.subtasks.map((subtask: any, index: number) => (
+                    <li key={index} className="flex items-center gap-2 text-sm text-purple-800">
+                      <CheckSquare className="h-4 w-4 text-purple-500" />
+                      <span>{typeof subtask === 'string' ? subtask : subtask.title}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Subtasks */}
             <div className="bg-white rounded-lg shadow p-6">

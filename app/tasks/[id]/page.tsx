@@ -85,6 +85,8 @@ export default async function TaskDetailPage({
     updatedAt: task.updatedAt.toISOString(),
     dueDate: task.dueDate?.toISOString() || null,
     completedAt: task.completedAt?.toISOString() || null,
+    // AI fields
+    aiDecomposedAt: task.aiDecomposedAt?.toISOString() || null,
     subtasks: task.subtasks.map((st) => ({
       ...st,
       createdAt: st.createdAt.toISOString(),

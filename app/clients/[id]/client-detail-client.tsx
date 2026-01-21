@@ -365,8 +365,14 @@ export default function ClientDetailClient({
                 <Sparkles className="h-5 w-5 mr-2 text-purple-500" />
                 AI Анализ
               </h3>
+              {/* Show saved analysis date if available */}
+              {client.aiAnalyzedAt && !aiAnalysis && (
+                <p className="text-xs text-gray-500 mb-2">
+                  Последний анализ: {new Date(client.aiAnalyzedAt).toLocaleDateString('ru-RU')}
+                </p>
+              )}
               <p className="text-sm text-gray-600 mb-4">
-                Получите AI-рекомендации по работе с этим клиентом
+                {(aiAnalysis || client.aiAnalysis) ? 'Обновите анализ для получения свежих рекомендаций' : 'Получите AI-рекомендации по работе с этим клиентом'}
               </p>
               <Button
                 onClick={handleAiAnalysis}
@@ -381,13 +387,14 @@ export default function ClientDetailClient({
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Запросить анализ
+                    {(aiAnalysis || client.aiAnalysis) ? 'Обновить анализ' : 'Запросить анализ'}
                   </>
                 )}
               </Button>
-              {aiAnalysis && (
+              {/* Show fresh analysis first, then saved one */}
+              {(aiAnalysis || client.aiAnalysis) && (
                 <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiAnalysis}</p>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiAnalysis || client.aiAnalysis}</p>
                 </div>
               )}
             </div>

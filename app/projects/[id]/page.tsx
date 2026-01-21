@@ -105,6 +105,11 @@ export default async function ProjectDetailPage({
     startDate: project.startDate?.toISOString() || null,
     endDatePlan: project.endDatePlan?.toISOString() || null,
     endDateFact: project.endDateFact?.toISOString() || null,
+    // AI fields
+    aiPainAnalyzedAt: project.aiPainAnalyzedAt?.toISOString() || null,
+    aiArchitectureAt: project.aiArchitectureAt?.toISOString() || null,
+    aiSummaryAt: project.aiSummaryAt?.toISOString() || null,
+    aiInsightsAt: project.aiInsightsAt?.toISOString() || null,
     tasks: project.tasks.map((task) => ({
       ...task,
       createdAt: task.createdAt.toISOString(),

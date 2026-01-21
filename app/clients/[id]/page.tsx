@@ -51,6 +51,8 @@ export default async function ClientPage({ params }: ClientPageProps) {
     ...client,
     createdAt: client.createdAt.toISOString(),
     updatedAt: client.updatedAt.toISOString(),
+    // AI fields
+    aiAnalyzedAt: client.aiAnalyzedAt?.toISOString() || null,
     projects: client.projects.map((p) => ({
       ...p,
       createdAt: p.createdAt.toISOString(),

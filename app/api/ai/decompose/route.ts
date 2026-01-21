@@ -89,23 +89,34 @@ ${projectContext ? `Контекст проекта: ${projectContext}` : ''}
       )
     }
 
-    // If taskId provided, create subtasks in database
+    // Save decomposition to task if taskId provided
     if (taskId) {
       const task = await db.task.findFirst({
         where: { id: taskId, workspaceId: workspace.id },
       })
 
       if (task) {
-        // Subtasks feature not yet implemented in schema
-        // Return subtasks for manual creation
+        // Save AI decomposition to task
+        await db.task.update({
+          where: { id: taskId },
+          data: {
+            aiDecomposition: {
+              subtasks: subtasks.map((title) => ({ title, completed: false })),
+              generatedAt: new Date().toISOString(),
+            },
+            aiDecomposedAt: new Date(),
+          },
+        })
+
         return NextResponse.json({
           subtasks: subtasks.map((title) => ({ title, completed: false })),
           created: false,
+          saved: true,
         })
       }
     }
 
-    return NextResponse.json({ subtasks, created: false })
+    return NextResponse.json({ subtasks, created: false, saved: false })
   } catch (error) {
     console.error('Error in AI decompose:', error)
     return NextResponse.json(

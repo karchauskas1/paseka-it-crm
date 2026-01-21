@@ -124,6 +124,10 @@ model Client {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  // AI Analysis (сохраняемые генерации)
+  aiAnalysis   Json?     @map("ai_analysis")
+  aiAnalyzedAt DateTime? @map("ai_analyzed_at")
+
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdBy   User      @relation("ClientCreator", fields: [createdById], references: [id])
   projects    Project[]
@@ -205,6 +209,16 @@ model Project {
   // Шаблоны
   isTemplate    Boolean @default(false) @map("is_template")
   templateName  String? @map("template_name")
+
+  // AI Analysis (сохраняемые генерации)
+  aiPainAnalysis     String?   @db.Text @map("ai_pain_analysis")
+  aiPainAnalyzedAt   DateTime? @map("ai_pain_analyzed_at")
+  aiArchitecture     Json?     @map("ai_architecture")
+  aiArchitectureAt   DateTime? @map("ai_architecture_at")
+  aiSummary          String?   @db.Text @map("ai_summary")
+  aiSummaryAt        DateTime? @map("ai_summary_at")
+  aiInsights         Json?     @map("ai_insights")
+  aiInsightsAt       DateTime? @map("ai_insights_at")
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   client      Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -303,6 +317,10 @@ model Task {
   createdById String  @map("created_by_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // AI Decomposition (сохраняемые генерации)
+  aiDecomposition  Json?     @map("ai_decomposition")
+  aiDecomposedAt   DateTime? @map("ai_decomposed_at")
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)

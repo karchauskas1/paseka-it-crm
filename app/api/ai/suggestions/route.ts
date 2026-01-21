@@ -47,6 +47,18 @@ export async function POST(request: Request) {
             { status: 500 }
           )
         }
+
+        // Save pain analysis to project
+        if (projectId) {
+          await db.project.update({
+            where: { id: projectId },
+            data: {
+              aiPainAnalysis: analysis,
+              aiPainAnalyzedAt: new Date(),
+            },
+          })
+        }
+
         return NextResponse.json({ analysis })
       } catch (aiError: any) {
         console.error('AI analysis failed:', aiError)
@@ -63,6 +75,18 @@ export async function POST(request: Request) {
         context.goals,
         context
       )
+
+      // Save architecture to project
+      if (projectId) {
+        await db.project.update({
+          where: { id: projectId },
+          data: {
+            aiArchitecture: architecture,
+            aiArchitectureAt: new Date(),
+          },
+        })
+      }
+
       return NextResponse.json({ architecture })
     }
 

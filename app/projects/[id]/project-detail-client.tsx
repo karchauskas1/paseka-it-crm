@@ -1042,12 +1042,16 @@ function OverviewTab({ project, updateProjectField }: any) {
 }
 
 function PainTab({ project, isAIAnalyzing, aiAnalysis, onAnalyze, updateProjectField }: any) {
+  // Use saved analysis from project if no fresh analysis is loaded
+  const displayAnalysis = aiAnalysis || project.aiPainAnalysis
+  const analysisDate = project.aiPainAnalyzedAt ? new Date(project.aiPainAnalyzedAt).toLocaleDateString('ru-RU') : null
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold">Боль и контекст клиента</h2>
         <Button onClick={onAnalyze} disabled={isAIAnalyzing} variant="outline">
-          {isAIAnalyzing ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Анализ...</> : <><Sparkles className="h-4 w-4 mr-2" />Анализ AI</>}
+          {isAIAnalyzing ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Анализ...</> : <><Sparkles className="h-4 w-4 mr-2" />{displayAnalysis ? 'Обновить анализ' : 'Анализ AI'}</>}
         </Button>
       </div>
       <div className="space-y-6">
@@ -1087,11 +1091,16 @@ function PainTab({ project, isAIAnalyzing, aiAnalysis, onAnalyze, updateProjectF
             rows={3}
           />
         </div>
-        {aiAnalysis && (
+        {displayAnalysis && (
           <div className="border-t pt-6 mt-6">
-            <h3 className="text-lg font-semibold text-purple-900 mb-3 flex items-center"><Sparkles className="h-5 w-5 mr-2" />AI Анализ</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-purple-900 flex items-center"><Sparkles className="h-5 w-5 mr-2" />AI Анализ</h3>
+              {analysisDate && !aiAnalysis && (
+                <span className="text-xs text-gray-500">Сохранён: {analysisDate}</span>
+              )}
+            </div>
             <div className="p-4 bg-purple-50 rounded-md border border-purple-200">
-              <p className="text-purple-900 whitespace-pre-wrap">{aiAnalysis}</p>
+              <p className="text-purple-900 whitespace-pre-wrap">{displayAnalysis}</p>
             </div>
           </div>
         )}
