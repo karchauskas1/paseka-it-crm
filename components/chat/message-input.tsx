@@ -173,13 +173,23 @@ export function MessageInput({
     const trimmedContent = content.trim()
     if (!trimmedContent || disabled || sending) return
 
+    // Store current values before clearing
+    const currentMentions = [...mentions]
+    const currentEntityLinks = [...entityLinks]
+    const currentReplyToId = replyTo?.id
+
+    // Clear input immediately for better UX
+    setContent('')
+    setMentions([])
+    setEntityLinks([])
+
     try {
-      await onSend(trimmedContent, mentions, entityLinks, replyTo?.id)
-      setContent('')
-      setMentions([])
-      setEntityLinks([])
+      await onSend(trimmedContent, currentMentions, currentEntityLinks, currentReplyToId)
     } catch (error) {
-      // Error handled in parent
+      // Restore content on error
+      setContent(trimmedContent)
+      setMentions(currentMentions)
+      setEntityLinks(currentEntityLinks)
     }
   }
 

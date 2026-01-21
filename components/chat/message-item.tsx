@@ -59,17 +59,22 @@ export function MessageItem({
     // Find mentions
     let match
     while ((match = mentionRegex.exec(content)) !== null) {
+      const userId = match[2]
+      const userName = match[1]
+      const matchIndex = match.index
+      const matchLength = match[0].length
+
       allMatches.push({
-        index: match.index,
-        length: match[0].length,
+        index: matchIndex,
+        length: matchLength,
         element: (
           <button
-            key={`mention-${match[2]}-${match.index}`}
-            onClick={() => onUserClick(match![2])}
+            key={`mention-${userId}-${matchIndex}`}
+            onClick={() => onUserClick(userId)}
             className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
           >
             <User className="h-3 w-3" />
-            {match[1]}
+            {userName}
           </button>
         ),
       })
@@ -78,15 +83,19 @@ export function MessageItem({
     // Find entity links
     while ((match = entityRegex.exec(content)) !== null) {
       const type = match[2] as 'task' | 'project' | 'client'
+      const entityId = match[3]
+      const entityName = match[1]
+      const matchIndex = match.index
+      const matchLength = match[0].length
       const Icon = type === 'task' ? CheckSquare : type === 'project' ? FolderKanban : Users
 
       allMatches.push({
-        index: match.index,
-        length: match[0].length,
+        index: matchIndex,
+        length: matchLength,
         element: (
           <button
-            key={`entity-${match[3]}-${match.index}`}
-            onClick={() => onEntityClick(type, match![3])}
+            key={`entity-${entityId}-${matchIndex}`}
+            onClick={() => onEntityClick(type, entityId)}
             className={cn(
               'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-sm font-medium transition-colors',
               type === 'task' && 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50',
@@ -95,7 +104,7 @@ export function MessageItem({
             )}
           >
             <Icon className="h-3 w-3" />
-            {match[1]}
+            {entityName}
           </button>
         ),
       })
