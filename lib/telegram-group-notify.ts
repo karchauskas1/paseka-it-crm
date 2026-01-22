@@ -365,13 +365,16 @@ export async function notifyTelegramGroup(
     }
 
     // Проверяем включен ли этот тип события
-    if (settings.events && !settings.events[eventType]) {
+    // Если тип события явно выключен (false), не отправляем
+    // Если undefined или true — отправляем (по умолчанию все включены)
+    if (settings.events && settings.events[eventType] === false) {
       console.log(`Event type ${eventType} disabled`)
       return false
     }
 
     // Форматируем сообщение
     const message = formatMessage(eventType, data)
+    console.log(`[Telegram] Sending ${eventType} notification, message length: ${message.length}`)
 
     // Отправляем в Telegram
     const response = await fetch(
@@ -390,7 +393,7 @@ export async function notifyTelegramGroup(
 
     if (!response.ok) {
       const error = await response.json()
-      console.error('Telegram API error:', error)
+      console.error('Telegram API error:', error, 'Message was:', message)
       return false
     }
 
