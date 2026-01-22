@@ -8,6 +8,7 @@ const defaultSettings = {
   dateFormat: 'DD.MM.YYYY',
   compactMode: false,
   showNotifications: true,
+  tasksView: 'table',
 }
 
 export async function GET() {
@@ -46,7 +47,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { theme, navLayout, dateFormat, compactMode, showNotifications, language } = body
+    const { theme, navLayout, dateFormat, compactMode, showNotifications, language, tasksView } = body
 
     // Валидация
     if (theme && !['light', 'dark', 'system'].includes(theme)) {
@@ -57,6 +58,9 @@ export async function PATCH(req: NextRequest) {
     }
     if (language && !['ru', 'en'].includes(language)) {
       return NextResponse.json({ error: 'Invalid language' }, { status: 400 })
+    }
+    if (tasksView && !['table', 'kanban'].includes(tasksView)) {
+      return NextResponse.json({ error: 'Invalid tasksView' }, { status: 400 })
     }
 
     // Получаем текущие настройки
@@ -75,6 +79,7 @@ export async function PATCH(req: NextRequest) {
       ...(dateFormat !== undefined && { dateFormat }),
       ...(compactMode !== undefined && { compactMode }),
       ...(showNotifications !== undefined && { showNotifications }),
+      ...(tasksView !== undefined && { tasksView }),
     }
 
     await db.user.update({
