@@ -115,6 +115,7 @@ export default function AdminClient({
       clientDeleted: true,
       commentAdded: true,
       feedbackSubmitted: true,
+      eventCreated: true,
     },
   }
 
@@ -142,6 +143,7 @@ export default function AdminClient({
     clientDeleted: 'Удаление клиента',
     commentAdded: 'Добавление комментария',
     feedbackSubmitted: 'Отправка обратной связи',
+    eventCreated: 'Создание события в календаре',
   }
 
   const [newUser, setNewUser] = useState({
@@ -913,7 +915,7 @@ export default function AdminClient({
                             {/* Other */}
                             <div className="space-y-2 mt-3">
                               <p className="text-sm font-medium text-gray-700">Другое</p>
-                              {['commentAdded', 'feedbackSubmitted'].map((event) => (
+                              {['commentAdded', 'feedbackSubmitted', 'eventCreated'].map((event) => (
                                 <div key={event} className="flex items-center gap-2 ml-4">
                                   <Checkbox
                                     id={event}
