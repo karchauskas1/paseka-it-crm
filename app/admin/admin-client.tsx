@@ -48,7 +48,9 @@ import {
   Copy,
   Crown,
   Mail,
+  Bell,
 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
 import { CustomFieldManager } from '@/components/custom-fields/custom-field-manager'
 import { AppLayout } from '@/components/layout'
@@ -96,6 +98,51 @@ export default function AdminClient({
     telegramChatId: workspace.telegramChatId || '',
     openRouterApiKey: workspace.openRouterApiKey || '',
   })
+
+  // Default notification settings
+  const defaultNotificationSettings = {
+    enabled: true,
+    events: {
+      taskCreated: true,
+      taskStatusChanged: true,
+      taskAssigned: true,
+      taskDeleted: true,
+      projectCreated: true,
+      projectStatusChanged: true,
+      projectDeleted: true,
+      clientCreated: true,
+      clientUpdated: true,
+      clientDeleted: true,
+      commentAdded: true,
+      feedbackSubmitted: true,
+    },
+  }
+
+  const [notificationSettings, setNotificationSettings] = useState(() => {
+    const saved = workspace.telegramGroupNotifications
+    if (saved && typeof saved === 'object') {
+      return {
+        enabled: saved.enabled ?? true,
+        events: { ...defaultNotificationSettings.events, ...saved.events },
+      }
+    }
+    return defaultNotificationSettings
+  })
+
+  const notificationEventLabels: Record<string, string> = {
+    taskCreated: 'Создание задачи',
+    taskStatusChanged: 'Изменение статуса задачи',
+    taskAssigned: 'Назначение задачи',
+    taskDeleted: 'Удаление задачи',
+    projectCreated: 'Создание проекта',
+    projectStatusChanged: 'Изменение статуса проекта',
+    projectDeleted: 'Удаление проекта',
+    clientCreated: 'Создание клиента',
+    clientUpdated: 'Обновление клиента',
+    clientDeleted: 'Удаление клиента',
+    commentAdded: 'Добавление комментария',
+    feedbackSubmitted: 'Отправка обратной связи',
+  }
 
   const [newUser, setNewUser] = useState({
     name: '',
@@ -208,7 +255,10 @@ export default function AdminClient({
       const res = await fetch('/api/admin/workspace', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(workspaceSettings),
+        body: JSON.stringify({
+          ...workspaceSettings,
+          telegramGroupNotifications: notificationSettings,
+        }),
       })
 
       if (!res.ok) {
@@ -753,6 +803,150 @@ export default function AdminClient({
                       Тест
                     </Button>
                   </div>
+
+                  {/* Notification Settings */}
+                  {workspaceSettings.telegramBotToken && workspaceSettings.telegramChatId && (
+                    <div className="mt-6 pt-6 border-t">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Bell className="h-5 w-5 text-blue-600" />
+                        <h4 className="font-semibold">Настройки уведомлений в группу</h4>
+                      </div>
+
+                      <div className="flex items-center gap-2 mb-4">
+                        <Checkbox
+                          id="notificationsEnabled"
+                          checked={notificationSettings.enabled}
+                          onCheckedChange={(checked) =>
+                            setNotificationSettings({
+                              ...notificationSettings,
+                              enabled: !!checked,
+                            })
+                          }
+                        />
+                        <Label htmlFor="notificationsEnabled" className="font-medium">
+                          Включить уведомления в группу
+                        </Label>
+                      </div>
+
+                      {notificationSettings.enabled && (
+                        <div className="space-y-3 pl-6">
+                          <p className="text-sm text-gray-500 mb-3">
+                            Выберите события, о которых будут отправляться уведомления:
+                          </p>
+
+                          <div className="grid grid-cols-1 gap-2">
+                            {/* Tasks */}
+                            <div className="space-y-2">
+                              <p className="text-sm font-medium text-gray-700">Задачи</p>
+                              {['taskCreated', 'taskStatusChanged', 'taskAssigned', 'taskDeleted'].map((event) => (
+                                <div key={event} className="flex items-center gap-2 ml-4">
+                                  <Checkbox
+                                    id={event}
+                                    checked={notificationSettings.events[event as keyof typeof notificationSettings.events]}
+                                    onCheckedChange={(checked) =>
+                                      setNotificationSettings({
+                                        ...notificationSettings,
+                                        events: {
+                                          ...notificationSettings.events,
+                                          [event]: !!checked,
+                                        },
+                                      })
+                                    }
+                                  />
+                                  <Label htmlFor={event} className="text-sm">
+                                    {notificationEventLabels[event]}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Projects */}
+                            <div className="space-y-2 mt-3">
+                              <p className="text-sm font-medium text-gray-700">Проекты</p>
+                              {['projectCreated', 'projectStatusChanged', 'projectDeleted'].map((event) => (
+                                <div key={event} className="flex items-center gap-2 ml-4">
+                                  <Checkbox
+                                    id={event}
+                                    checked={notificationSettings.events[event as keyof typeof notificationSettings.events]}
+                                    onCheckedChange={(checked) =>
+                                      setNotificationSettings({
+                                        ...notificationSettings,
+                                        events: {
+                                          ...notificationSettings.events,
+                                          [event]: !!checked,
+                                        },
+                                      })
+                                    }
+                                  />
+                                  <Label htmlFor={event} className="text-sm">
+                                    {notificationEventLabels[event]}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Clients */}
+                            <div className="space-y-2 mt-3">
+                              <p className="text-sm font-medium text-gray-700">Клиенты</p>
+                              {['clientCreated', 'clientUpdated', 'clientDeleted'].map((event) => (
+                                <div key={event} className="flex items-center gap-2 ml-4">
+                                  <Checkbox
+                                    id={event}
+                                    checked={notificationSettings.events[event as keyof typeof notificationSettings.events]}
+                                    onCheckedChange={(checked) =>
+                                      setNotificationSettings({
+                                        ...notificationSettings,
+                                        events: {
+                                          ...notificationSettings.events,
+                                          [event]: !!checked,
+                                        },
+                                      })
+                                    }
+                                  />
+                                  <Label htmlFor={event} className="text-sm">
+                                    {notificationEventLabels[event]}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Other */}
+                            <div className="space-y-2 mt-3">
+                              <p className="text-sm font-medium text-gray-700">Другое</p>
+                              {['commentAdded', 'feedbackSubmitted'].map((event) => (
+                                <div key={event} className="flex items-center gap-2 ml-4">
+                                  <Checkbox
+                                    id={event}
+                                    checked={notificationSettings.events[event as keyof typeof notificationSettings.events]}
+                                    onCheckedChange={(checked) =>
+                                      setNotificationSettings({
+                                        ...notificationSettings,
+                                        events: {
+                                          ...notificationSettings.events,
+                                          [event]: !!checked,
+                                        },
+                                      })
+                                    }
+                                  />
+                                  <Label htmlFor={event} className="text-sm">
+                                    {notificationEventLabels[event]}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <Button
+                            onClick={handleSaveWorkspaceSettings}
+                            disabled={isLoading}
+                            className="mt-4"
+                          >
+                            Сохранить настройки уведомлений
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

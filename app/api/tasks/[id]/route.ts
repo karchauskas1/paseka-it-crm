@@ -3,6 +3,11 @@ import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
 import { notifyTaskAssigned } from '@/lib/telegram'
 import { logUpdate, logStatusChange, logDelete } from '@/lib/activity-logger'
+import {
+  notifyTaskStatusChanged,
+  notifyTaskAssigned as notifyTaskAssignedGroup,
+  notifyTaskDeleted,
+} from '@/lib/telegram-group-notify'
 
 export async function GET(
   req: NextRequest,
@@ -168,6 +173,16 @@ export async function PATCH(
             })
           )
       )
+
+      // Send Telegram group notification about status change
+      notifyTaskStatusChanged(
+        existingTask.workspaceId,
+        task.id,
+        task.title,
+        userName || 'Пользователь',
+        existingTask.status,
+        data.status
+      ).catch(err => console.error('Telegram group notify error:', err))
     }
 
     // Notify if assignee changed
@@ -196,6 +211,15 @@ export async function PATCH(
           task.dueDate || undefined
         )
       }
+
+      // Send Telegram group notification about assignment
+      notifyTaskAssignedGroup(
+        existingTask.workspaceId,
+        task.id,
+        task.title,
+        userName || 'Пользователь',
+        task.assignee?.name || task.assignee?.email || 'Неизвестный'
+      ).catch(err => console.error('Telegram group notify error:', err))
     }
 
     return NextResponse.json(task)
@@ -263,6 +287,13 @@ export async function DELETE(
           })
         )
     )
+
+    // Send Telegram group notification about deletion
+    notifyTaskDeleted(
+      existingTask.workspaceId,
+      existingTask.title,
+      userName || 'Пользователь'
+    ).catch(err => console.error('Telegram group notify error:', err))
 
     return NextResponse.json({ success: true })
   } catch (error) {

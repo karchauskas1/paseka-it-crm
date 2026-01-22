@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
 import { logUpdate, logDelete } from '@/lib/activity-logger'
+import {
+  notifyClientUpdated,
+  notifyClientDeleted,
+} from '@/lib/telegram-group-notify'
 
 export async function GET(
   req: NextRequest,
@@ -117,13 +121,13 @@ export async function PATCH(
     await logUpdate('client', client.id, oldData, newData, user.id, { workspaceId: workspaceMember.workspaceId })
 
     // Notify team if important field changed (name or status)
+    const userName = user.name || user.email
     if (name && name !== existingClient.name) {
       const teamMembers = await db.workspaceMember.findMany({
         where: { workspaceId: workspaceMember.workspaceId },
         select: { userId: true },
       })
 
-      const userName = user.name || user.email
       await Promise.all(
         teamMembers
           .filter(m => m.userId !== user.id)
@@ -140,6 +144,15 @@ export async function PATCH(
             })
           )
       )
+
+      // Send Telegram group notification
+      notifyClientUpdated(
+        workspaceMember.workspaceId,
+        client.id,
+        client.name,
+        userName || 'Пользователь',
+        `Имя изменено: "${existingClient.name}" → "${name}"`
+      ).catch(err => console.error('Telegram group notify error:', err))
     }
 
     return NextResponse.json(client)
@@ -227,6 +240,13 @@ export async function DELETE(
           })
         )
     )
+
+    // Send Telegram group notification
+    notifyClientDeleted(
+      workspaceMember.workspaceId,
+      existingClient.name,
+      userName || 'Пользователь'
+    ).catch(err => console.error('Telegram group notify error:', err))
 
     return NextResponse.json({ success: true })
   } catch (error) {

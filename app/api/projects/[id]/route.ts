@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import {
+  notifyProjectStatusChanged,
+  notifyProjectDeleted,
+} from '@/lib/telegram-group-notify'
 
 export async function GET(
   request: Request,
@@ -185,7 +189,7 @@ export async function PATCH(
           )
       )
 
-      // Send Telegram notification
+      // Send Telegram notification to user
       if (user.telegramId) {
         const { notifyProjectStatusChange } = await import('@/lib/telegram')
         await notifyProjectStatusChange(
@@ -195,6 +199,16 @@ export async function PATCH(
           body.status
         )
       }
+
+      // Send Telegram group notification
+      notifyProjectStatusChanged(
+        existingProject.workspaceId,
+        project.id,
+        project.name,
+        userName || 'Пользователь',
+        existingProject.status,
+        body.status
+      ).catch(err => console.error('Telegram group notify error:', err))
     }
 
     return NextResponse.json({ project })
@@ -256,6 +270,13 @@ export async function DELETE(
           })
         )
     )
+
+    // Send Telegram group notification
+    notifyProjectDeleted(
+      existingProject.workspaceId,
+      existingProject.name,
+      userName || 'Пользователь'
+    ).catch(err => console.error('Telegram group notify error:', err))
 
     return NextResponse.json({ success: true })
   } catch (error) {

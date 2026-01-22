@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { notifyCommentAdded } from '@/lib/telegram-group-notify'
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,6 +39,41 @@ export async function POST(req: NextRequest) {
         },
       },
     })
+
+    // Send Telegram group notification
+    const userName = user.name || user.email || 'Пользователь'
+
+    if (projectId) {
+      const project = await db.project.findUnique({
+        where: { id: projectId },
+        select: { workspaceId: true, name: true },
+      })
+      if (project) {
+        notifyCommentAdded(
+          project.workspaceId,
+          'project',
+          projectId,
+          project.name,
+          userName,
+          content
+        ).catch(err => console.error('Telegram group notify error:', err))
+      }
+    } else if (taskId) {
+      const task = await db.task.findUnique({
+        where: { id: taskId },
+        select: { workspaceId: true, title: true },
+      })
+      if (task) {
+        notifyCommentAdded(
+          task.workspaceId,
+          'task',
+          taskId,
+          task.title,
+          userName,
+          content
+        ).catch(err => console.error('Telegram group notify error:', err))
+      }
+    }
 
     return NextResponse.json(comment)
   } catch (error) {

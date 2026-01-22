@@ -55,13 +55,14 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'No workspace found' }, { status: 404 })
     }
 
-    const { name, telegramBotToken, telegramChatId, openRouterApiKey } = await req.json()
+    const { name, telegramBotToken, telegramChatId, openRouterApiKey, telegramGroupNotifications } = await req.json()
 
     const updateData: any = {}
     if (name !== undefined) updateData.name = name
     if (telegramBotToken !== undefined) updateData.telegramBotToken = telegramBotToken
     if (telegramChatId !== undefined) updateData.telegramChatId = telegramChatId
     if (openRouterApiKey !== undefined) updateData.openRouterApiKey = openRouterApiKey
+    if (telegramGroupNotifications !== undefined) updateData.telegramGroupNotifications = telegramGroupNotifications
 
     const updatedWorkspace = await db.workspace.update({
       where: { id: workspace.id },

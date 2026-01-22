@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { notifyFeedbackSubmitted } from '@/lib/telegram-group-notify'
 
 export async function GET(req: NextRequest) {
   try {
@@ -141,6 +142,15 @@ export async function POST(req: NextRequest) {
         })),
       })
     }
+
+    // Send Telegram group notification
+    notifyFeedbackSubmitted(
+      workspaceId,
+      feedback.id,
+      type,
+      title,
+      userName
+    ).catch(err => console.error('Telegram group notify error:', err))
 
     return NextResponse.json({ feedback })
   } catch (error) {

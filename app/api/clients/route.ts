@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
 import { logCreate } from '@/lib/activity-logger'
+import { notifyClientCreated } from '@/lib/telegram-group-notify'
 
 export async function GET(request: Request) {
   try {
@@ -124,6 +125,15 @@ export async function POST(request: Request) {
           })
         )
     )
+
+    // Send Telegram group notification
+    notifyClientCreated(
+      workspaceId,
+      client.id,
+      name,
+      userName || 'Пользователь',
+      company
+    ).catch(err => console.error('Telegram group notify error:', err))
 
     return NextResponse.json(client)
   } catch (error) {
