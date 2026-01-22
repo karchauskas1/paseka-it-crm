@@ -352,10 +352,19 @@ export default function TaskArchiveClient({
         onClose={() => {
           setIsDetailDialogOpen(false)
           setSelectedTask(null)
-          router.refresh()
         }}
         projects={projects}
         users={teamMembers}
+        onTaskDeleted={(taskId) => {
+          setTasks(tasks.filter((t) => t.id !== taskId))
+        }}
+        onTaskArchived={(taskId) => {
+          // В архиве: восстановление = удаление из списка архива
+          setTasks(tasks.filter((t) => t.id !== taskId))
+        }}
+        onTaskUpdated={(updatedTask) => {
+          setTasks(tasks.map((t) => (t.id === updatedTask.id ? { ...t, ...updatedTask } : t)))
+        }}
       />
     </AppLayout>
   )

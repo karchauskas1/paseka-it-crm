@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   Dialog,
   DialogContent,
@@ -55,6 +54,9 @@ interface TaskDetailDialogProps {
   onClose: () => void
   projects: Array<{ id: string; name: string }>
   users: Array<{ id: string; name: string }>
+  onTaskDeleted?: (taskId: string) => void
+  onTaskArchived?: (taskId: string) => void
+  onTaskUpdated?: (task: Task) => void
 }
 
 export function TaskDetailDialog({
@@ -63,8 +65,10 @@ export function TaskDetailDialog({
   onClose,
   projects,
   users,
+  onTaskDeleted,
+  onTaskArchived,
+  onTaskUpdated,
 }: TaskDetailDialogProps) {
-  const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -146,12 +150,17 @@ export function TaskDetailDialog({
         throw new Error(error.error || 'Ошибка обновления задачи')
       }
 
+      const { task: updatedTask } = await res.json()
+
       toast({
         title: 'Задача обновлена',
         description: 'Изменения сохранены',
         variant: 'success',
       })
-      router.refresh()
+
+      if (onTaskUpdated && updatedTask) {
+        onTaskUpdated(updatedTask)
+      }
       onClose()
     } catch (error: any) {
       toast({
@@ -183,7 +192,7 @@ export function TaskDetailDialog({
         title: 'Задача удалена',
         variant: 'success',
       })
-      router.refresh()
+      onTaskDeleted?.(task.id)
       onClose()
     } catch (error: any) {
       toast({
@@ -214,7 +223,7 @@ export function TaskDetailDialog({
         title: task.isArchived ? 'Задача восстановлена' : 'Задача архивирована',
         variant: 'success',
       })
-      router.refresh()
+      onTaskArchived?.(task.id)
       onClose()
     } catch (error: any) {
       toast({

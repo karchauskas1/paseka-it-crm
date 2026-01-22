@@ -6,6 +6,7 @@ export type Theme = 'light' | 'dark' | 'system'
 export type NavLayout = 'top' | 'sidebar'
 export type Language = 'ru' | 'en'
 export type DateFormat = 'DD.MM.YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD'
+export type TasksView = 'table' | 'kanban'
 
 export interface UserSettings {
   theme: Theme
@@ -14,6 +15,7 @@ export interface UserSettings {
   dateFormat: DateFormat
   compactMode: boolean
   showNotifications: boolean
+  tasksView: TasksView
 }
 
 const defaultSettings: UserSettings = {
@@ -23,6 +25,7 @@ const defaultSettings: UserSettings = {
   dateFormat: 'DD.MM.YYYY',
   compactMode: false,
   showNotifications: true,
+  tasksView: 'table',
 }
 
 const STORAGE_KEY = 'userSettings'

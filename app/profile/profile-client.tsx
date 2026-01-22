@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,8 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { AppLayout } from '@/components/layout'
 import { useToast } from '@/lib/hooks/use-toast'
-import { Home, User, Bell, Lock, Globe, Loader2 } from 'lucide-react'
+import { User, Bell, Lock, Loader2 } from 'lucide-react'
 
 interface ProfileClientProps {
   user: any
@@ -116,203 +116,194 @@ export default function ProfileClient({ user, workspace }: ProfileClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AppLayout user={user} workspace={workspace} currentPage="/profile" userRole={user.role}>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-2 mb-2 text-sm">
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 flex items-center">
-              <Home className="h-4 w-4 mr-1" />
-              Dashboard
-            </Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900">Профиль</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">Настройки профиля</h1>
-        </div>
-      </header>
+      <div className="mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground">Настройки профиля</h2>
+        <p className="text-sm text-muted-foreground mt-1">Управление вашим аккаунтом</p>
+      </div>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          {/* Profile Section */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <User className="h-5 w-5 text-blue-600" />
-              </div>
-              <h2 className="text-lg font-semibold">Основная информация</h2>
+      <div className="space-y-4 sm:space-y-6">
+        {/* Profile Section */}
+        <div className="bg-card rounded-lg shadow p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <User className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Имя</Label>
-                <Input
-                  value={profile.name}
-                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>Email</Label>
-                <Input
-                  value={profile.email}
-                  disabled
-                  className="mt-1 bg-gray-50"
-                />
-                <p className="text-xs text-gray-500 mt-1">Email нельзя изменить</p>
-              </div>
-              <div>
-                <Label>Telegram ID</Label>
-                <Input
-                  value={profile.telegramId}
-                  onChange={(e) => setProfile({ ...profile, telegramId: e.target.value })}
-                  placeholder="@username или числовой ID"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>Язык</Label>
-                <Select
-                  value={profile.language}
-                  onValueChange={(v) => setProfile({ ...profile, language: v })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ru">Русский</SelectItem>
-                    <SelectItem value="en">English</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Роль в системе</p>
-                  <p className="text-sm text-gray-500">{getRoleLabel(user.role)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Workspace</p>
-                  <p className="text-sm text-gray-500">{workspace.name}</p>
-                </div>
-              </div>
-            </div>
+            <h3 className="text-base sm:text-lg font-semibold text-foreground">Основная информация</h3>
           </div>
 
-          {/* Notifications Section */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Bell className="h-5 w-5 text-yellow-600" />
-              </div>
-              <h2 className="text-lg font-semibold">Уведомления</h2>
-            </div>
-
-            <div className="space-y-4">
-              <NotificationToggle
-                label="Назначение задачи"
-                description="Когда вам назначают задачу"
-                checked={notifications.taskAssigned}
-                onChange={(checked) => setNotifications({ ...notifications, taskAssigned: checked })}
-              />
-              <NotificationToggle
-                label="Приближающийся дедлайн"
-                description="За день до срока задачи"
-                checked={notifications.taskDueSoon}
-                onChange={(checked) => setNotifications({ ...notifications, taskDueSoon: checked })}
-              />
-              <NotificationToggle
-                label="Изменение статуса проекта"
-                description="Когда статус проекта изменяется"
-                checked={notifications.projectStatusChanged}
-                onChange={(checked) => setNotifications({ ...notifications, projectStatusChanged: checked })}
-              />
-              <NotificationToggle
-                label="Новый комментарий"
-                description="Когда добавляют комментарий к вашей задаче"
-                checked={notifications.commentAdded}
-                onChange={(checked) => setNotifications({ ...notifications, commentAdded: checked })}
-              />
-              <NotificationToggle
-                label="Упоминания"
-                description="Когда вас упоминают в комментарии"
-                checked={notifications.mention}
-                onChange={(checked) => setNotifications({ ...notifications, mention: checked })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <Label className="text-sm">Имя</Label>
+              <Input
+                value={profile.name}
+                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                className="mt-1"
               />
             </div>
-          </div>
-
-          {/* Password Section */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <Lock className="h-5 w-5 text-red-600" />
-              </div>
-              <h2 className="text-lg font-semibold">Изменить пароль</h2>
+            <div>
+              <Label className="text-sm">Email</Label>
+              <Input
+                value={profile.email}
+                disabled
+                className="mt-1 bg-muted"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Email нельзя изменить</p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label>Текущий пароль</Label>
-                <Input
-                  type="password"
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>Новый пароль</Label>
-                <Input
-                  type="password"
-                  value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label>Подтверждение</Label>
-                <Input
-                  type="password"
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
+            <div>
+              <Label className="text-sm">Telegram ID</Label>
+              <Input
+                value={profile.telegramId}
+                onChange={(e) => setProfile({ ...profile, telegramId: e.target.value })}
+                placeholder="@username или числовой ID"
+                className="mt-1"
+              />
             </div>
-
-            <div className="mt-4">
-              <Button
-                onClick={handleChangePassword}
-                variant="outline"
-                disabled={saving || !passwordForm.currentPassword || !passwordForm.newPassword}
+            <div>
+              <Label className="text-sm">Язык</Label>
+              <Select
+                value={profile.language}
+                onValueChange={(v) => setProfile({ ...profile, language: v })}
               >
-                Изменить пароль
-              </Button>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ru">Русский</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center justify-between">
-            <Button variant="outline" onClick={handleLogout}>
-              Выйти из системы
-            </Button>
-            <Button onClick={handleSaveProfile} disabled={saving}>
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Сохранение...
-                </>
-              ) : (
-                'Сохранить изменения'
-              )}
+          <div className="mt-4 pt-4 border-t">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">Роль в системе</p>
+                <p className="text-sm text-muted-foreground">{getRoleLabel(user.role)}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Workspace</p>
+                <p className="text-sm text-muted-foreground">{workspace.name}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Notifications Section */}
+        <div className="bg-card rounded-lg shadow p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
+            </div>
+            <h3 className="text-base sm:text-lg font-semibold text-foreground">Уведомления</h3>
+          </div>
+
+          <div className="space-y-3 sm:space-y-4">
+            <NotificationToggle
+              label="Назначение задачи"
+              description="Когда вам назначают задачу"
+              checked={notifications.taskAssigned}
+              onChange={(checked) => setNotifications({ ...notifications, taskAssigned: checked })}
+            />
+            <NotificationToggle
+              label="Приближающийся дедлайн"
+              description="За день до срока задачи"
+              checked={notifications.taskDueSoon}
+              onChange={(checked) => setNotifications({ ...notifications, taskDueSoon: checked })}
+            />
+            <NotificationToggle
+              label="Изменение статуса проекта"
+              description="Когда статус проекта изменяется"
+              checked={notifications.projectStatusChanged}
+              onChange={(checked) => setNotifications({ ...notifications, projectStatusChanged: checked })}
+            />
+            <NotificationToggle
+              label="Новый комментарий"
+              description="Когда добавляют комментарий к вашей задаче"
+              checked={notifications.commentAdded}
+              onChange={(checked) => setNotifications({ ...notifications, commentAdded: checked })}
+            />
+            <NotificationToggle
+              label="Упоминания"
+              description="Когда вас упоминают в комментарии"
+              checked={notifications.mention}
+              onChange={(checked) => setNotifications({ ...notifications, mention: checked })}
+            />
+          </div>
+        </div>
+
+        {/* Password Section */}
+        <div className="bg-card rounded-lg shadow p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+            </div>
+            <h3 className="text-base sm:text-lg font-semibold text-foreground">Изменить пароль</h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div>
+              <Label className="text-sm">Текущий пароль</Label>
+              <Input
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-sm">Новый пароль</Label>
+              <Input
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div className="sm:col-span-2 lg:col-span-1">
+              <Label className="text-sm">Подтверждение</Label>
+              <Input
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <Button
+              onClick={handleChangePassword}
+              variant="outline"
+              size="sm"
+              disabled={saving || !passwordForm.currentPassword || !passwordForm.newPassword}
+              className="w-full sm:w-auto"
+            >
+              Изменить пароль
             </Button>
           </div>
         </div>
-      </main>
-    </div>
+
+        {/* Actions */}
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <Button variant="outline" onClick={handleLogout} className="w-full sm:w-auto">
+            Выйти из системы
+          </Button>
+          <Button onClick={handleSaveProfile} disabled={saving} className="w-full sm:w-auto">
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Сохранение...
+              </>
+            ) : (
+              'Сохранить изменения'
+            )}
+          </Button>
+        </div>
+      </div>
+    </AppLayout>
   )
 }
 
@@ -328,10 +319,10 @@ function NotificationToggle({
   onChange: (checked: boolean) => void
 }) {
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium text-gray-900">{label}</p>
-        <p className="text-sm text-gray-500">{description}</p>
+    <div className="flex items-center justify-between gap-3 touch-manipulation">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        <p className="text-xs sm:text-sm text-muted-foreground">{description}</p>
       </div>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>

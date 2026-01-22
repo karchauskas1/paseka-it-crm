@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -35,6 +35,7 @@ import {
 } from '@/lib/validations/task'
 import KanbanBoard from '@/components/views/kanban-board'
 import { TaskDetailDialog } from '@/components/tasks/task-detail-dialog'
+import { useUserSettings } from '@/lib/hooks/use-user-settings'
 import {
   Plus,
   Search,
@@ -63,8 +64,21 @@ export default function TasksClient({
 }: TasksClientProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const { settings, updateSetting, mounted } = useUserSettings()
   const [tasks, setTasks] = useState(initialTasks)
   const [view, setView] = useState<'table' | 'kanban'>('table')
+
+  // Sync view with user settings
+  useEffect(() => {
+    if (mounted && settings.tasksView) {
+      setView(settings.tasksView)
+    }
+  }, [mounted, settings.tasksView])
+
+  const handleViewChange = (newView: 'table' | 'kanban') => {
+    setView(newView)
+    updateSetting('tasksView', newView)
+  }
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterPriority, setFilterPriority] = useState<string>('all')
@@ -223,7 +237,7 @@ export default function TasksClient({
           </Link>
           <Tabs
             value={view}
-            onValueChange={(v) => setView(v as 'table' | 'kanban')}
+            onValueChange={(v) => handleViewChange(v as 'table' | 'kanban')}
           >
             <TabsList className="h-9">
               <TabsTrigger value="table" className="text-xs sm:text-sm">
@@ -674,6 +688,15 @@ export default function TasksClient({
         }}
         projects={projects}
         users={teamMembers}
+        onTaskDeleted={(taskId) => {
+          setTasks(tasks.filter((t) => t.id !== taskId))
+        }}
+        onTaskArchived={(taskId) => {
+          setTasks(tasks.filter((t) => t.id !== taskId))
+        }}
+        onTaskUpdated={(updatedTask) => {
+          setTasks(tasks.map((t) => (t.id === updatedTask.id ? { ...t, ...updatedTask } : t)))
+        }}
       />
     </AppLayout>
   )
