@@ -275,6 +275,7 @@ function formatMessage(eventType: TelegramGroupEventType, data: EventData): stri
       const d = data as CalendarEventData
       const eventTypeLabels: Record<string, string> = {
         MEETING: '👥 Встреча',
+        CALL: '📞 Созвон',
         REMINDER: '🔔 Напоминание',
         DEADLINE: '⏰ Дедлайн',
         TASK_DUE: '📋 Срок задачи',
@@ -297,11 +298,15 @@ function formatMessage(eventType: TelegramGroupEventType, data: EventData): stri
 }
 
 /**
- * Экранирование специальных символов для Telegram Markdown
+ * Экранирование специальных символов для Telegram MarkdownV2
+ * Символы: _ * [ ] ( ) ~ ` > # + - = | { } . !
+ * Минус экранируем только если он в начале строки (список)
  */
 function escapeMarkdown(text: string): string {
   return text
     .replace(/\\/g, '\\\\')
+    .replace(/_/g, '\\_')
+    .replace(/\*/g, '\\*')
     .replace(/\[/g, '\\[')
     .replace(/\]/g, '\\]')
     .replace(/\(/g, '\\(')
@@ -311,13 +316,13 @@ function escapeMarkdown(text: string): string {
     .replace(/>/g, '\\>')
     .replace(/#/g, '\\#')
     .replace(/\+/g, '\\+')
-    .replace(/-/g, '\\-')
     .replace(/=/g, '\\=')
     .replace(/\|/g, '\\|')
     .replace(/\{/g, '\\{')
     .replace(/\}/g, '\\}')
     .replace(/\./g, '\\.')
     .replace(/!/g, '\\!')
+    .replace(/^-/gm, '\\-') // Экранируем минус только в начале строки
 }
 
 /**

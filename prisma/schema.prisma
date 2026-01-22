@@ -832,6 +832,7 @@ enum FeedbackStatus {
 
 enum EventType {
   MEETING
+  CALL
   REMINDER
   DEADLINE
   TASK_DUE

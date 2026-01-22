@@ -63,6 +63,7 @@ interface CalendarClientProps {
 
 const eventTypeColors: Record<string, string> = {
   MEETING: 'bg-blue-500',
+  CALL: 'bg-green-500',
   REMINDER: 'bg-yellow-500',
   DEADLINE: 'bg-red-500',
   TASK_DUE: 'bg-orange-500',
@@ -71,6 +72,7 @@ const eventTypeColors: Record<string, string> = {
 
 const eventTypeLabels: Record<string, string> = {
   MEETING: 'Встреча',
+  CALL: 'Созвон',
   REMINDER: 'Напоминание',
   DEADLINE: 'Дедлайн',
   TASK_DUE: 'Срок задачи',
