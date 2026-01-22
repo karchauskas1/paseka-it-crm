@@ -30,7 +30,7 @@ import {
   priorityColors,
   complexityLabels,
 } from '@/lib/validations/task'
-import { Calendar, User, FolderOpen, Trash2, Save } from 'lucide-react'
+import { Calendar, User, FolderOpen, Trash2, Save, Archive, ArchiveRestore } from 'lucide-react'
 import { TimeTracker } from './time-tracker'
 
 interface Task {
@@ -45,6 +45,8 @@ interface Task {
   assigneeId?: string
   project?: { id: string; name: string } | null
   assignee?: { id: string; name: string } | null
+  isArchived?: boolean
+  archivedAt?: string
 }
 
 interface TaskDetailDialogProps {
@@ -66,6 +68,7 @@ export function TaskDetailDialog({
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isArchiving, setIsArchiving] = useState(false)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -190,6 +193,37 @@ export function TaskDetailDialog({
       })
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  const handleArchive = async () => {
+    if (!task) return
+
+    setIsArchiving(true)
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/archive`, {
+        method: task.isArchived ? 'DELETE' : 'POST',
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Ошибка архивации задачи')
+      }
+
+      toast({
+        title: task.isArchived ? 'Задача восстановлена' : 'Задача архивирована',
+        variant: 'success',
+      })
+      router.refresh()
+      onClose()
+    } catch (error: any) {
+      toast({
+        title: 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      })
+    } finally {
+      setIsArchiving(false)
     }
   }
 
@@ -353,15 +387,35 @@ export function TaskDetailDialog({
         </div>
 
         <DialogFooter className="flex justify-between">
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            {isDeleting ? 'Удаление...' : 'Удалить'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {isDeleting ? 'Удаление...' : 'Удалить'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleArchive}
+              disabled={isArchiving}
+            >
+              {task.isArchived ? (
+                <>
+                  <ArchiveRestore className="h-4 w-4 mr-2" />
+                  {isArchiving ? 'Восстановление...' : 'Восстановить'}
+                </>
+              ) : (
+                <>
+                  <Archive className="h-4 w-4 mr-2" />
+                  {isArchiving ? 'Архивация...' : 'В архив'}
+                </>
+              )}
+            </Button>
+          </div>
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Отмена

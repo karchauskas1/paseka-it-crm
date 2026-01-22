@@ -43,6 +43,7 @@ import {
   Calendar,
   User,
   FolderOpen,
+  Archive,
 } from 'lucide-react'
 
 interface TasksClientProps {
@@ -214,6 +215,12 @@ export default function TasksClient({
           </p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <Link href="/tasks/archive">
+            <Button variant="outline" size="sm">
+              <Archive className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Архив</span>
+            </Button>
+          </Link>
           <Tabs
             value={view}
             onValueChange={(v) => setView(v as 'table' | 'kanban')}

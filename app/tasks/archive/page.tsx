@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import TasksClient from './tasks-client'
+import TaskArchiveClient from './archive-client'
 
-export default async function TasksPage() {
+export default async function TaskArchivePage() {
   const user = await getCurrentUser()
 
   if (!user) {
@@ -22,7 +22,7 @@ export default async function TasksPage() {
   const tasks = await db.task.findMany({
     where: {
       workspaceId: workspaceMember.workspaceId,
-      isArchived: false,
+      isArchived: true,
     },
     include: {
       project: {
@@ -31,11 +31,11 @@ export default async function TasksPage() {
       assignee: {
         select: { id: true, name: true },
       },
-      _count: {
-        select: { subtasks: true, comments: true },
+      createdBy: {
+        select: { id: true, name: true },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { archivedAt: 'desc' },
   })
 
   const projects = await db.project.findMany({
@@ -53,17 +53,18 @@ export default async function TasksPage() {
     },
   })
 
-  // Serialize dates to avoid Next.js serialization errors
+  // Serialize dates
   const serializedTasks = tasks.map((task) => ({
     ...task,
     createdAt: task.createdAt.toISOString(),
     updatedAt: task.updatedAt.toISOString(),
     dueDate: task.dueDate?.toISOString() || null,
     completedAt: task.completedAt?.toISOString() || null,
+    archivedAt: task.archivedAt?.toISOString() || null,
   }))
 
   return (
-    <TasksClient
+    <TaskArchiveClient
       user={user}
       workspace={workspaceMember.workspace}
       tasks={serializedTasks}

@@ -23,9 +23,12 @@ export async function GET(request: Request) {
       )
     }
 
+    const includeArchived = searchParams.get('includeArchived') === 'true'
+
     const where: any = { workspaceId }
     if (projectId) where.projectId = projectId
     if (assigneeId) where.assigneeId = assigneeId
+    if (!includeArchived) where.isArchived = false
 
     const tasks = await db.task.findMany({
       where,

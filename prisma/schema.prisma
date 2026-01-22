@@ -324,6 +324,10 @@ model Task {
   startDate   DateTime? @map("start_date")
   completedAt DateTime? @map("completed_at")
 
+  // Архивация
+  isArchived  Boolean   @default(false) @map("is_archived")
+  archivedAt  DateTime? @map("archived_at")
+
   // Связи
   tags        String[]
   dependsOn   String[] @map("depends_on")
@@ -352,6 +356,7 @@ model Task {
   @@index([status])
   @@index([assigneeId])
   @@index([dueDate])
+  @@index([workspaceId, isArchived])
   @@map("tasks")
 }
 
