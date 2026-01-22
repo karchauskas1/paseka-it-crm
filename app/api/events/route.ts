@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { notifyEventCreated } from '@/lib/telegram-group-notify'
 
 /**
  * GET /api/events
@@ -126,6 +127,26 @@ export async function POST(req: NextRequest) {
         createdBy: { select: { id: true, name: true } },
       },
     })
+
+    // Отправляем уведомление в Telegram
+    const formattedDate = new Date(startDate).toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
+    notifyEventCreated(
+      workspaceMember.workspaceId,
+      event.id,
+      title,
+      type,
+      formattedDate,
+      user.name || user.email || 'Пользователь',
+      event.project?.name,
+      event.client?.name
+    ).catch(console.error)
 
     return NextResponse.json({ event }, { status: 201 })
   } catch (error) {

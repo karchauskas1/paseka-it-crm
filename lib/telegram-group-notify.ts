@@ -16,6 +16,7 @@ export type TelegramGroupEventType =
   | 'clientDeleted'
   | 'commentAdded'
   | 'feedbackSubmitted'
+  | 'eventCreated'
 
 // Интерфейс настроек уведомлений
 export interface TelegramGroupNotificationsSettings {
@@ -33,6 +34,7 @@ export interface TelegramGroupNotificationsSettings {
     clientDeleted: boolean
     commentAdded: boolean
     feedbackSubmitted: boolean
+    eventCreated: boolean
   }
 }
 
@@ -52,6 +54,7 @@ export const defaultNotificationSettings: TelegramGroupNotificationsSettings = {
     clientDeleted: true,
     commentAdded: true,
     feedbackSubmitted: true,
+    eventCreated: true,
   },
 }
 
@@ -120,12 +123,23 @@ interface FeedbackEventData {
   userName: string
 }
 
+interface CalendarEventData {
+  eventId: string
+  eventTitle: string
+  eventType: string
+  startDate: string
+  userName: string
+  projectName?: string
+  clientName?: string
+}
+
 type EventData =
   | TaskEventData
   | ProjectEventData
   | ClientEventData
   | CommentEventData
   | FeedbackEventData
+  | CalendarEventData
 
 /**
  * Форматирование сообщения для Telegram
@@ -254,6 +268,26 @@ function formatMessage(eventType: TelegramGroupEventType, data: EventData): stri
       msg += `*${escapeMarkdown(d.title)}*\n`
       msg += `От: ${escapeMarkdown(d.userName)}`
       msg += `\n\n[Открыть в CRM](${CRM_URL}/feedback)`
+      return msg
+    }
+
+    case 'eventCreated': {
+      const d = data as CalendarEventData
+      const eventTypeLabels: Record<string, string> = {
+        MEETING: '👥 Встреча',
+        REMINDER: '🔔 Напоминание',
+        DEADLINE: '⏰ Дедлайн',
+        TASK_DUE: '📋 Срок задачи',
+        MILESTONE: '🎯 Веха',
+      }
+      const typeIcon = eventTypeLabels[d.eventType] || '📅 Событие'
+      let msg = `${typeIcon}\n\n`
+      msg += `*${escapeMarkdown(d.eventTitle)}*\n`
+      msg += `📅 ${escapeMarkdown(d.startDate)}\n`
+      if (d.projectName) msg += `Проект: ${escapeMarkdown(d.projectName)}\n`
+      if (d.clientName) msg += `Клиент: ${escapeMarkdown(d.clientName)}\n`
+      msg += `Создал: ${escapeMarkdown(d.userName)}`
+      msg += `\n\n[Открыть в CRM](${CRM_URL}/calendar)`
       return msg
     }
 
@@ -539,5 +573,26 @@ export async function notifyFeedbackSubmitted(
     type,
     title,
     userName,
+  })
+}
+
+export async function notifyEventCreated(
+  workspaceId: string,
+  eventId: string,
+  eventTitle: string,
+  eventType: string,
+  startDate: string,
+  userName: string,
+  projectName?: string,
+  clientName?: string
+) {
+  return notifyTelegramGroup(workspaceId, 'eventCreated', {
+    eventId,
+    eventTitle,
+    eventType,
+    startDate,
+    userName,
+    projectName,
+    clientName,
   })
 }
