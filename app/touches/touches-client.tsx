@@ -49,6 +49,11 @@ import {
   AtSign,
 } from 'lucide-react'
 
+interface Member {
+  id: string
+  name: string
+}
+
 interface Touch {
   id: string
   contactName: string
@@ -70,6 +75,11 @@ interface Touch {
   aiAnalysis: string | null
   analyzedAt: string | null
   generatedMessage: string | null
+  assigneeId: string | null
+  assignee: {
+    id: string
+    name: string
+  } | null
   createdBy: {
     id: string
     name: string
@@ -80,6 +90,7 @@ interface TouchesClientProps {
   user: any
   workspace: any
   userRole: string
+  members: Member[]
 }
 
 const statusLabels: Record<string, string> = {
@@ -100,11 +111,12 @@ const statusColors: Record<string, string> = {
   CONVERTED: 'bg-purple-100 text-purple-800',
 }
 
-export default function TouchesClient({ user, workspace, userRole }: TouchesClientProps) {
+export default function TouchesClient({ user, workspace, userRole, members }: TouchesClientProps) {
   const router = useRouter()
   const [touches, setTouches] = useState<Touch[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState('all')
+  const [filterAssignee, setFilterAssignee] = useState('all')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedTouch, setSelectedTouch] = useState<Touch | null>(null)
@@ -126,18 +138,19 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
     followUpAt: '',
     status: 'WAITING',
     response: '',
+    assigneeId: user.id,
   })
   const [isGeneratingMessage, setIsGeneratingMessage] = useState(false)
   const [generatedMessage, setGeneratedMessage] = useState<string | null>(null)
 
   useEffect(() => {
     fetchTouches()
-  }, [filterStatus])
+  }, [filterStatus, filterAssignee])
 
   const fetchTouches = async () => {
     try {
       setIsLoading(true)
-      const res = await fetch(`/api/touches?status=${filterStatus}`)
+      const res = await fetch(`/api/touches?status=${filterStatus}&assigneeId=${filterAssignee}`)
       if (res.ok) {
         const data = await res.json()
         setTouches(data.touches)
@@ -164,6 +177,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
       followUpAt: '',
       status: 'WAITING',
       response: '',
+      assigneeId: user.id,
     })
     setGeneratedMessage(null)
   }
@@ -189,6 +203,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
       followUpAt: touch.followUpAt ? touch.followUpAt.split('T')[0] : '',
       status: touch.status,
       response: touch.response || '',
+      assigneeId: touch.assigneeId || user.id,
     })
     setGeneratedMessage(touch.generatedMessage || null)
     setIsEditDialogOpen(true)
@@ -215,6 +230,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
         description: formData.description || null,
         sentMessage: formData.sentMessage || null,
         followUpAt: formData.followUpAt || null,
+        assigneeId: formData.assigneeId,
       }
       const res = await fetch('/api/touches', {
         method: 'POST',
@@ -429,22 +445,40 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
 
       {/* Filters */}
       <div className="bg-card rounded-lg shadow p-3 sm:p-4 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <Label className="text-sm">Статус:</Label>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все</SelectItem>
-              <SelectItem value="WAITING">Ждём ответа</SelectItem>
-              <SelectItem value="WAITING_US">Ждут нашего ответа</SelectItem>
-              <SelectItem value="RESPONDED">Ответили</SelectItem>
-              <SelectItem value="NO_RESPONSE">Не ответили</SelectItem>
-              <SelectItem value="FOLLOW_UP">Повторно связаться</SelectItem>
-              <SelectItem value="CONVERTED">Конвертированы</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Label className="text-sm whitespace-nowrap">Статус:</Label>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все</SelectItem>
+                <SelectItem value="WAITING">Ждём ответа</SelectItem>
+                <SelectItem value="WAITING_US">Ждут нашего ответа</SelectItem>
+                <SelectItem value="RESPONDED">Ответили</SelectItem>
+                <SelectItem value="NO_RESPONSE">Не ответили</SelectItem>
+                <SelectItem value="FOLLOW_UP">Повторно связаться</SelectItem>
+                <SelectItem value="CONVERTED">Конвертированы</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="text-sm whitespace-nowrap">Ответственный:</Label>
+            <Select value={filterAssignee} onValueChange={setFilterAssignee}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все</SelectItem>
+                {members.map((member) => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -527,10 +561,18 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                   )}
 
                   <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {new Date(touch.contactedAt).toLocaleDateString('ru-RU')}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(touch.contactedAt).toLocaleDateString('ru-RU')}
+                      </span>
+                      {touch.assignee && (
+                        <span className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {touch.assignee.name}
+                        </span>
+                      )}
+                    </div>
                     {touch.followUpAt && (
                       <span className="flex items-center gap-1 text-primary">
                         <CalendarClock className="h-3 w-3" />
@@ -657,10 +699,17 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                             Напомнить: {new Date(touch.followUpAt).toLocaleDateString('ru-RU')}
                           </span>
                         )}
-                        <span className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {touch.createdBy.name}
-                        </span>
+                        {touch.assignee && (
+                          <span className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {touch.assignee.name}
+                          </span>
+                        )}
+                        {touch.createdBy.id !== touch.assignee?.id && (
+                          <span className="flex items-center gap-1 text-muted-foreground/70">
+                            Создал: {touch.createdBy.name}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -846,15 +895,35 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                 rows={3}
               />
             </div>
-            <div className="grid gap-2">
-              <Label>Напомнить (дата)</Label>
-              <Input
-                type="date"
-                value={formData.followUpAt}
-                onChange={(e) =>
-                  setFormData({ ...formData, followUpAt: e.target.value })
-                }
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Ответственный</Label>
+                <Select
+                  value={formData.assigneeId}
+                  onValueChange={(value) => setFormData({ ...formData, assigneeId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {members.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {member.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Напомнить (дата)</Label>
+                <Input
+                  type="date"
+                  value={formData.followUpAt}
+                  onChange={(e) =>
+                    setFormData({ ...formData, followUpAt: e.target.value })
+                  }
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -1012,15 +1081,35 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                 rows={2}
               />
             </div>
-            <div className="grid gap-2">
-              <Label>Напомнить (дата)</Label>
-              <Input
-                type="date"
-                value={formData.followUpAt}
-                onChange={(e) =>
-                  setFormData({ ...formData, followUpAt: e.target.value })
-                }
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Ответственный</Label>
+                <Select
+                  value={formData.assigneeId}
+                  onValueChange={(value) => setFormData({ ...formData, assigneeId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {members.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {member.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Напомнить (дата)</Label>
+                <Input
+                  type="date"
+                  value={formData.followUpAt}
+                  onChange={(e) =>
+                    setFormData({ ...formData, followUpAt: e.target.value })
+                  }
+                />
+              </div>
             </div>
 
             {/* AI Message Generation */}

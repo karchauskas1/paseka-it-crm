@@ -46,6 +46,7 @@ model User {
   createdFeedback Feedback[] @relation("FeedbackCreator")
   createdPainKeywords PainKeyword[] @relation("PainKeywordCreator")
   createdTouches Touch[] @relation("TouchCreator")
+  assignedTouches Touch[] @relation("TouchAssignee")
 
   // Чат
   chatMessages      ChatMessage[]      @relation("ChatMessageAuthor")
@@ -716,15 +717,18 @@ model Touch {
   convertedToClientId String? @unique @map("converted_to_client_id")
   convertedAt DateTime? @map("converted_at")
 
+  assigneeId  String?  @map("assignee_id")
   createdById String   @map("created_by_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdBy   User      @relation("TouchCreator", fields: [createdById], references: [id])
+  assignee    User?     @relation("TouchAssignee", fields: [assigneeId], references: [id])
 
   @@index([workspaceId])
   @@index([status])
+  @@index([assigneeId])
   @@map("touches")
 }
 

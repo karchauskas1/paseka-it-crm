@@ -99,6 +99,7 @@ export async function PATCH(
       sentMessage,
       response,
       followUpAt,
+      assigneeId,
     } = body
 
     const updateData: any = {}
@@ -115,6 +116,7 @@ export async function PATCH(
     if (sentMessage !== undefined) updateData.sentMessage = sentMessage
     if (response !== undefined) updateData.response = response
     if (followUpAt !== undefined) updateData.followUpAt = followUpAt ? new Date(followUpAt) : null
+    if (assigneeId !== undefined) updateData.assigneeId = assigneeId
 
     if (status !== undefined) {
       updateData.status = status
@@ -128,6 +130,12 @@ export async function PATCH(
       data: updateData,
       include: {
         createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        assignee: {
           select: {
             id: true,
             name: true,

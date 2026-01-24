@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
+    const assigneeId = searchParams.get('assigneeId')
 
     const where: any = {
       workspaceId: workspaceMember.workspaceId,
@@ -29,10 +30,20 @@ export async function GET(req: NextRequest) {
       where.status = status
     }
 
+    if (assigneeId && assigneeId !== 'all') {
+      where.assigneeId = assigneeId
+    }
+
     const touches = await db.touch.findMany({
       where,
       include: {
         createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        assignee: {
           select: {
             id: true,
             name: true,
@@ -83,6 +94,7 @@ export async function POST(req: NextRequest) {
       description,
       sentMessage,
       followUpAt,
+      assigneeId,
     } = body
 
     if (!contactName) {
@@ -106,10 +118,17 @@ export async function POST(req: NextRequest) {
         description,
         sentMessage,
         followUpAt: followUpAt ? new Date(followUpAt) : undefined,
+        assigneeId: assigneeId || user.id, // По умолчанию — текущий пользователь
         createdById: user.id,
       },
       include: {
         createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        assignee: {
           select: {
             id: true,
             name: true,

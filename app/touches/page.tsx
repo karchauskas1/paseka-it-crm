@@ -26,11 +26,30 @@ export default async function TouchesPage() {
     redirect('/login')
   }
 
+  // Получаем всех членов workspace для выбора ответственного
+  const workspaceMembers = await db.workspaceMember.findMany({
+    where: { workspaceId: workspaceMember.workspaceId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  })
+
+  const members = workspaceMembers.map((m) => ({
+    id: m.user.id,
+    name: m.user.name,
+  }))
+
   return (
     <TouchesClient
       user={user}
       workspace={workspaceMember.workspace}
       userRole={workspaceMember.role}
+      members={members}
     />
   )
 }
