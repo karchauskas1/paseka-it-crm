@@ -93,6 +93,16 @@ export async function GET(req: NextRequest) {
     const results = []
 
     for (const workspace of workspaces) {
+      // Получаем всех членов workspace
+      const workspaceMembers = await db.workspaceMember.findMany({
+        where: { workspaceId: workspace.id },
+        include: {
+          user: {
+            select: { id: true, name: true },
+          },
+        },
+      })
+
       // Получаем задачи на сегодня
       const todayTasks = await db.task.findMany({
         where: {
@@ -227,33 +237,32 @@ export async function GET(req: NextRequest) {
       }
       const dataByUser: Record<string, UserData> = {}
 
-      // Собираем всех уникальных пользователей
-      const allUsers = new Set<string>()
+      // Добавляем ВСЕХ членов workspace (даже без задач)
+      for (const member of workspaceMembers) {
+        const userName = member.user.name
+        dataByUser[userName] = { tasks: [], overdueTasks: [], touches: [], overdueTouches: [] }
+      }
 
       for (const task of todayTasks) {
         const userName = task.assignee?.name || 'Не назначено'
-        allUsers.add(userName)
         if (!dataByUser[userName]) dataByUser[userName] = { tasks: [], overdueTasks: [], touches: [], overdueTouches: [] }
         dataByUser[userName].tasks.push(task)
       }
 
       for (const task of overdueTasks) {
         const userName = task.assignee?.name || 'Не назначено'
-        allUsers.add(userName)
         if (!dataByUser[userName]) dataByUser[userName] = { tasks: [], overdueTasks: [], touches: [], overdueTouches: [] }
         dataByUser[userName].overdueTasks.push(task)
       }
 
       for (const touch of todayTouches) {
         const userName = touch.assignee?.name || 'Не назначено'
-        allUsers.add(userName)
         if (!dataByUser[userName]) dataByUser[userName] = { tasks: [], overdueTasks: [], touches: [], overdueTouches: [] }
         dataByUser[userName].touches.push(touch)
       }
 
       for (const touch of overdueTouches) {
         const userName = touch.assignee?.name || 'Не назначено'
-        allUsers.add(userName)
         if (!dataByUser[userName]) dataByUser[userName] = { tasks: [], overdueTasks: [], touches: [], overdueTouches: [] }
         dataByUser[userName].overdueTouches.push(touch)
       }
@@ -288,18 +297,32 @@ export async function GET(req: NextRequest) {
         message += `\n`
       }
 
-      // По каждому пользователю
-      for (const userName of Array.from(allUsers).sort()) {
+      // По каждому пользователю (сортируем по имени)
+      const sortedUsers = Object.keys(dataByUser).sort()
+
+      for (const userName of sortedUsers) {
+        // Пропускаем "Не назначено" если нет задач
+        if (userName === 'Не назначено') {
+          const userData = dataByUser[userName]
+          const hasAnything = userData.tasks.length > 0 || userData.overdueTasks.length > 0 ||
+                             userData.touches.length > 0 || userData.overdueTouches.length > 0
+          if (!hasAnything) continue
+        }
+
         const userData = dataByUser[userName]
         const tgUsername = getTelegramUsername(userName)
 
         const hasAnything = userData.tasks.length > 0 || userData.overdueTasks.length > 0 ||
                            userData.touches.length > 0 || userData.overdueTouches.length > 0
 
-        if (!hasAnything) continue
-
         message += `━━━━━━━━━━━━━━━\n`
         message += `👤 *${tgUsername}*\n\n`
+
+        // Если ничего нет — показываем "Всё чисто"
+        if (!hasAnything) {
+          message += `✅ Всё чисто\\!\n\n`
+          continue
+        }
 
         // Просроченные задачи (красным)
         if (userData.overdueTasks.length > 0) {
