@@ -55,6 +55,8 @@ interface Touch {
   contactEmail: string | null
   contactPhone: string | null
   contactCompany: string | null
+  contactPosition: string | null
+  industry: string | null
   socialMedia: string | null
   source: string | null
   status: string
@@ -66,6 +68,7 @@ interface Touch {
   convertedToClientId: string | null
   aiAnalysis: string | null
   analyzedAt: string | null
+  generatedMessage: string | null
   createdBy: {
     id: string
     name: string
@@ -113,6 +116,8 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
     contactEmail: '',
     contactPhone: '',
     contactCompany: '',
+    contactPosition: '',
+    industry: '',
     socialMedia: '',
     source: '',
     description: '',
@@ -120,6 +125,8 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
     status: 'WAITING',
     response: '',
   })
+  const [isGeneratingMessage, setIsGeneratingMessage] = useState(false)
+  const [generatedMessage, setGeneratedMessage] = useState<string | null>(null)
 
   useEffect(() => {
     fetchTouches()
@@ -146,6 +153,8 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
       contactEmail: '',
       contactPhone: '',
       contactCompany: '',
+      contactPosition: '',
+      industry: '',
       socialMedia: '',
       source: '',
       description: '',
@@ -153,6 +162,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
       status: 'WAITING',
       response: '',
     })
+    setGeneratedMessage(null)
   }
 
   const openCreateDialog = () => {
@@ -167,6 +177,8 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
       contactEmail: touch.contactEmail || '',
       contactPhone: touch.contactPhone || '',
       contactCompany: touch.contactCompany || '',
+      contactPosition: touch.contactPosition || '',
+      industry: touch.industry || '',
       socialMedia: touch.socialMedia || '',
       source: touch.source || '',
       description: touch.description || '',
@@ -174,6 +186,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
       status: touch.status,
       response: touch.response || '',
     })
+    setGeneratedMessage(touch.generatedMessage || null)
     setIsEditDialogOpen(true)
   }
 
@@ -191,6 +204,8 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
         contactEmail: formData.contactEmail || null,
         contactPhone: formData.contactPhone || null,
         contactCompany: formData.contactCompany || null,
+        contactPosition: formData.contactPosition || null,
+        industry: formData.industry || null,
         socialMedia: formData.socialMedia || null,
         source: formData.source || null,
         description: formData.description || null,
@@ -350,6 +365,46 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
     }
   }
 
+  const handleGenerateMessage = async () => {
+    if (!formData.industry) {
+      toast.error('Укажите сферу деятельности для генерации сообщения')
+      return
+    }
+
+    setIsGeneratingMessage(true)
+    try {
+      const res = await fetch('/api/ai/generate-touch-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          touchId: selectedTouch?.id,
+          contactName: formData.contactName,
+          industry: formData.industry,
+          contactCompany: formData.contactCompany,
+          contactPosition: formData.contactPosition,
+        }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Ошибка генерации сообщения')
+      }
+
+      const data = await res.json()
+      setGeneratedMessage(data.message)
+      toast.success('Сообщение сгенерировано')
+
+      // Обновляем данные если это существующий touch
+      if (selectedTouch?.id) {
+        fetchTouches()
+      }
+    } catch (error: any) {
+      toast.error(error.message)
+    } finally {
+      setIsGeneratingMessage(false)
+    }
+  }
+
   return (
     <AppLayout user={user} workspace={workspace} currentPage="/touches" userRole={userRole}>
       {/* Header */}
@@ -401,7 +456,8 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
             {touches.map((touch) => (
               <div
                 key={touch.id}
-                className="p-4 hover:bg-muted/50 active:bg-muted transition-colors touch-manipulation"
+                className="p-4 hover:bg-muted/50 active:bg-muted transition-colors touch-manipulation cursor-pointer"
+                onClick={() => openEditDialog(touch)}
               >
                 {/* Mobile Layout */}
                 <div className="md:hidden">
@@ -478,7 +534,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                   </div>
 
                   {/* Mobile Actions */}
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
                     <Button
                       variant="outline"
                       size="sm"
@@ -602,7 +658,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 ml-4">
+                    <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
                       <Button
                         variant="outline"
                         size="sm"
@@ -731,6 +787,28 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                 />
               </div>
               <div className="grid gap-2">
+                <Label>Должность</Label>
+                <Input
+                  value={formData.contactPosition}
+                  onChange={(e) =>
+                    setFormData({ ...formData, contactPosition: e.target.value })
+                  }
+                  placeholder="CEO, маркетолог..."
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Сфера деятельности</Label>
+                <Input
+                  value={formData.industry}
+                  onChange={(e) =>
+                    setFormData({ ...formData, industry: e.target.value })
+                  }
+                  placeholder="IT, ресторан, салон красоты..."
+                />
+              </div>
+              <div className="grid gap-2">
                 <Label>Соцсети</Label>
                 <Input
                   value={formData.socialMedia}
@@ -789,7 +867,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Редактировать касание</DialogTitle>
             <DialogDescription>Обновите информацию о контакте</DialogDescription>
@@ -833,6 +911,28 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                   onChange={(e) =>
                     setFormData({ ...formData, contactCompany: e.target.value })
                   }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Должность</Label>
+                <Input
+                  value={formData.contactPosition}
+                  onChange={(e) =>
+                    setFormData({ ...formData, contactPosition: e.target.value })
+                  }
+                  placeholder="CEO, маркетолог..."
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Сфера деятельности</Label>
+                <Input
+                  value={formData.industry}
+                  onChange={(e) =>
+                    setFormData({ ...formData, industry: e.target.value })
+                  }
+                  placeholder="IT, ресторан, салон красоты..."
                 />
               </div>
               <div className="grid gap-2">
@@ -903,6 +1003,55 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
                   setFormData({ ...formData, followUpAt: e.target.value })
                 }
               />
+            </div>
+
+            {/* AI Message Generation */}
+            <div className="border-t pt-4 mt-2">
+              <div className="flex items-center justify-between mb-3">
+                <Label className="text-base font-medium">AI Сообщение для первого касания</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateMessage}
+                  disabled={isGeneratingMessage || !formData.industry}
+                  className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                >
+                  {isGeneratingMessage ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Генерация...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Сгенерировать
+                    </>
+                  )}
+                </Button>
+              </div>
+              {!formData.industry && (
+                <p className="text-sm text-muted-foreground mb-2">
+                  Укажите сферу деятельности для генерации сообщения
+                </p>
+              )}
+              {generatedMessage && (
+                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
+                  <p className="text-sm whitespace-pre-wrap">{generatedMessage}</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedMessage)
+                      toast.success('Скопировано в буфер обмена')
+                    }}
+                  >
+                    Копировать
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

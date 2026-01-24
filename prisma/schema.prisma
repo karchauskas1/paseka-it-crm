@@ -689,6 +689,8 @@ model Touch {
   contactEmail String? @map("contact_email")
   contactPhone String? @map("contact_phone")
   contactCompany String? @map("contact_company")
+  contactPosition String? @map("contact_position") // Должность
+  industry     String?  // Сфера деятельности
   socialMedia  String? @map("social_media") // Ссылка на соцсети (Telegram, Instagram, и т.д.)
   source      String?  // Откуда контакт (LinkedIn, конференция, и т.д.)
 
@@ -702,6 +704,7 @@ model Touch {
   // AI анализ
   aiAnalysis  String?  @db.Text // AI анализ касания
   analyzedAt  DateTime? @map("analyzed_at") // Когда был проведен AI анализ
+  generatedMessage String? @db.Text @map("generated_message") // Сгенерированное AI сообщение для первого касания
 
   // Даты
   contactedAt DateTime @default(now()) @map("contacted_at")
