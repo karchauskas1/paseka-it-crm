@@ -42,7 +42,7 @@ function escapeMarkdown(text: string): string {
     .replace(/\}/g, '\\}')
     .replace(/\./g, '\\.')
     .replace(/!/g, '\\!')
-    .replace(/^-/gm, '\\-')
+    .replace(/-/g, '\\-')
 }
 
 const CRM_URL = 'https://www.pasekait-crm.ru'
