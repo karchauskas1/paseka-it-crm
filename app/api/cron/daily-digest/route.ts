@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
 // Маппинг имён пользователей на Telegram usernames
+// Поддерживает частичное совпадение (имя или часть имени)
 const TELEGRAM_USERNAMES: Record<string, string> = {
   'Алексей': '@alexkotikov',
   'Анатолий': '@speromine1',
@@ -49,15 +50,6 @@ function escapeMarkdown(text: string): string {
 
 const CRM_URL = 'https://www.pasekait-crm.ru'
 
-const taskStatusLabels: Record<string, string> = {
-  TODO: 'К выполнению',
-  IN_PROGRESS: 'В работе',
-  IN_REVIEW: 'На проверке',
-  COMPLETED: 'Завершена',
-  BLOCKED: 'Заблокирована',
-  CANCELLED: 'Отменена',
-}
-
 const priorityEmoji: Record<string, string> = {
   LOW: '🟢',
   MEDIUM: '🟡',
@@ -67,10 +59,9 @@ const priorityEmoji: Record<string, string> = {
 
 export async function GET(req: NextRequest) {
   try {
-    // Проверка секрета для cron jobs (Vercel добавляет этот заголовок)
+    // Проверка секрета для cron jobs
     const authHeader = req.headers.get('authorization')
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && process.env.NODE_ENV === 'production') {
-      // В production требуем секрет, в dev можно без него
       if (!req.nextUrl.searchParams.get('test')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
@@ -103,12 +94,38 @@ export async function GET(req: NextRequest) {
 
     for (const workspace of workspaces) {
       // Получаем задачи на сегодня
-      const tasks = await db.task.findMany({
+      const todayTasks = await db.task.findMany({
         where: {
           workspaceId: workspace.id,
           dueDate: {
             gte: today,
             lt: tomorrow,
+          },
+          status: {
+            notIn: ['COMPLETED', 'CANCELLED'],
+          },
+          isArchived: false,
+        },
+        include: {
+          assignee: {
+            select: { id: true, name: true },
+          },
+          project: {
+            select: { id: true, name: true },
+          },
+        },
+        orderBy: [
+          { priority: 'desc' },
+          { dueDate: 'asc' },
+        ],
+      })
+
+      // Получаем ПРОСРОЧЕННЫЕ задачи (dueDate < today)
+      const overdueTasks = await db.task.findMany({
+        where: {
+          workspaceId: workspace.id,
+          dueDate: {
+            lt: today,
           },
           status: {
             notIn: ['COMPLETED', 'CANCELLED'],
@@ -155,7 +172,7 @@ export async function GET(req: NextRequest) {
       })
 
       // Получаем касания с follow-up на сегодня
-      const touches = await db.touch.findMany({
+      const todayTouches = await db.touch.findMany({
         where: {
           workspaceId: workspace.id,
           followUpAt: {
@@ -176,25 +193,69 @@ export async function GET(req: NextRequest) {
         },
       })
 
-      if (tasks.length === 0 && events.length === 0 && touches.length === 0) {
-        continue // Пропускаем workspace без активности
+      // Получаем ПРОСРОЧЕННЫЕ касания
+      const overdueTouches = await db.touch.findMany({
+        where: {
+          workspaceId: workspace.id,
+          followUpAt: {
+            lt: today,
+          },
+          status: {
+            notIn: ['CONVERTED', 'RESPONDED', 'NO_RESPONSE'],
+          },
+        },
+        include: {
+          assignee: {
+            select: { id: true, name: true },
+          },
+        },
+        orderBy: {
+          followUpAt: 'asc',
+        },
+      })
+
+      if (todayTasks.length === 0 && overdueTasks.length === 0 && events.length === 0 && todayTouches.length === 0 && overdueTouches.length === 0) {
+        continue
       }
 
-      // Группируем по исполнителям
-      const tasksByUser: Record<string, typeof tasks> = {}
-      const touchesByUser: Record<string, typeof touches> = {}
+      // Группируем ВСЁ по пользователям
+      interface UserData {
+        tasks: typeof todayTasks
+        overdueTasks: typeof overdueTasks
+        touches: typeof todayTouches
+        overdueTouches: typeof overdueTouches
+      }
+      const dataByUser: Record<string, UserData> = {}
 
-      for (const task of tasks) {
-        const userId = task.assignee?.id || 'unassigned'
+      // Собираем всех уникальных пользователей
+      const allUsers = new Set<string>()
+
+      for (const task of todayTasks) {
         const userName = task.assignee?.name || 'Не назначено'
-        if (!tasksByUser[userName]) tasksByUser[userName] = []
-        tasksByUser[userName].push(task)
+        allUsers.add(userName)
+        if (!dataByUser[userName]) dataByUser[userName] = { tasks: [], overdueTasks: [], touches: [], overdueTouches: [] }
+        dataByUser[userName].tasks.push(task)
       }
 
-      for (const touch of touches) {
+      for (const task of overdueTasks) {
+        const userName = task.assignee?.name || 'Не назначено'
+        allUsers.add(userName)
+        if (!dataByUser[userName]) dataByUser[userName] = { tasks: [], overdueTasks: [], touches: [], overdueTouches: [] }
+        dataByUser[userName].overdueTasks.push(task)
+      }
+
+      for (const touch of todayTouches) {
         const userName = touch.assignee?.name || 'Не назначено'
-        if (!touchesByUser[userName]) touchesByUser[userName] = []
-        touchesByUser[userName].push(touch)
+        allUsers.add(userName)
+        if (!dataByUser[userName]) dataByUser[userName] = { tasks: [], overdueTasks: [], touches: [], overdueTouches: [] }
+        dataByUser[userName].touches.push(touch)
+      }
+
+      for (const touch of overdueTouches) {
+        const userName = touch.assignee?.name || 'Не назначено'
+        allUsers.add(userName)
+        if (!dataByUser[userName]) dataByUser[userName] = { tasks: [], overdueTasks: [], touches: [], overdueTouches: [] }
+        dataByUser[userName].overdueTouches.push(touch)
       }
 
       // Формируем сообщение
@@ -204,32 +265,14 @@ export async function GET(req: NextRequest) {
         month: 'long'
       })
 
-      let message = `📅 *Задачи на ${escapeMarkdown(dateStr)}*\n\n`
+      let message = `📅 *${escapeMarkdown(dateStr)}*\n\n`
 
-      // Задачи по пользователям
-      if (Object.keys(tasksByUser).length > 0) {
-        message += `📋 *ЗАДАЧИ*\n\n`
-
-        for (const [userName, userTasks] of Object.entries(tasksByUser)) {
-          const tgUsername = getTelegramUsername(userName)
-          message += `👤 ${tgUsername}\n`
-
-          for (const task of userTasks) {
-            const priority = priorityEmoji[task.priority] || '⚪'
-            const projectName = task.project ? ` \\(${escapeMarkdown(task.project.name)}\\)` : ''
-            message += `  ${priority} ${escapeMarkdown(task.title)}${projectName}\n`
-          }
-          message += `\n`
-        }
-      }
-
-      // События
+      // Сначала общие события (не привязаны к пользователям)
       if (events.length > 0) {
-        message += `📆 *СОБЫТИЯ*\n\n`
-
+        message += `📆 *СОБЫТИЯ НА СЕГОДНЯ:*\n`
         for (const event of events) {
           const time = event.allDay
-            ? 'Весь день'
+            ? '🕐'
             : event.startDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
           const eventTypeEmoji: Record<string, string> = {
             MEETING: '👥',
@@ -240,20 +283,64 @@ export async function GET(req: NextRequest) {
             MILESTONE: '🎯',
           }
           const emoji = eventTypeEmoji[event.type] || '📌'
-          message += `  ${emoji} ${escapeMarkdown(time)} \\- ${escapeMarkdown(event.title)}\n`
+          message += `${emoji} ${escapeMarkdown(time.toString())} ${escapeMarkdown(event.title)}\n`
         }
         message += `\n`
       }
 
-      // Касания (follow-up)
-      if (Object.keys(touchesByUser).length > 0) {
-        message += `🤝 *КАСАНИЯ \\(follow\\-up\\)*\n\n`
+      // По каждому пользователю
+      for (const userName of Array.from(allUsers).sort()) {
+        const userData = dataByUser[userName]
+        const tgUsername = getTelegramUsername(userName)
 
-        for (const [userName, userTouches] of Object.entries(touchesByUser)) {
-          const tgUsername = getTelegramUsername(userName)
-          message += `👤 ${tgUsername}\n`
+        const hasAnything = userData.tasks.length > 0 || userData.overdueTasks.length > 0 ||
+                           userData.touches.length > 0 || userData.overdueTouches.length > 0
 
-          for (const touch of userTouches) {
+        if (!hasAnything) continue
+
+        message += `━━━━━━━━━━━━━━━\n`
+        message += `👤 *${tgUsername}*\n\n`
+
+        // Просроченные задачи (красным)
+        if (userData.overdueTasks.length > 0) {
+          message += `🚨 *Просрочено:*\n`
+          for (const task of userData.overdueTasks) {
+            const priority = priorityEmoji[task.priority] || '⚪'
+            const dueStr = task.dueDate ? task.dueDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : ''
+            message += `  ${priority} ${escapeMarkdown(task.title)} \\(${escapeMarkdown(dueStr)}\\)\n`
+          }
+          message += `\n`
+        }
+
+        // Просроченные касания
+        if (userData.overdueTouches.length > 0) {
+          message += `🚨 *Просроченные касания:*\n`
+          for (const touch of userData.overdueTouches) {
+            const dueStr = touch.followUpAt ? touch.followUpAt.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : ''
+            message += `  📱 ${escapeMarkdown(touch.contactName)}`
+            if (touch.contactCompany) {
+              message += ` \\(${escapeMarkdown(touch.contactCompany)}\\)`
+            }
+            message += ` — ${escapeMarkdown(dueStr)}\n`
+          }
+          message += `\n`
+        }
+
+        // Задачи на сегодня
+        if (userData.tasks.length > 0) {
+          message += `📋 *Задачи на сегодня:*\n`
+          for (const task of userData.tasks) {
+            const priority = priorityEmoji[task.priority] || '⚪'
+            const projectName = task.project ? ` \\[${escapeMarkdown(task.project.name)}\\]` : ''
+            message += `  ${priority} ${escapeMarkdown(task.title)}${projectName}\n`
+          }
+          message += `\n`
+        }
+
+        // Касания на сегодня
+        if (userData.touches.length > 0) {
+          message += `🤝 *Касания \\(follow\\-up\\):*\n`
+          for (const touch of userData.touches) {
             message += `  📱 ${escapeMarkdown(touch.contactName)}`
             if (touch.contactCompany) {
               message += ` \\(${escapeMarkdown(touch.contactCompany)}\\)`
@@ -289,9 +376,11 @@ export async function GET(req: NextRequest) {
         results.push({
           workspace: workspace.name,
           success: true,
-          tasksCount: tasks.length,
-          eventsCount: events.length,
-          touchesCount: touches.length,
+          todayTasks: todayTasks.length,
+          overdueTasks: overdueTasks.length,
+          events: events.length,
+          todayTouches: todayTouches.length,
+          overdueTouches: overdueTouches.length,
         })
       }
     }
