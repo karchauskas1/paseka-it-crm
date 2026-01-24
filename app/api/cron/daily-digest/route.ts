@@ -303,7 +303,7 @@ export async function GET(req: NextRequest) {
 
         // Просроченные задачи (красным)
         if (userData.overdueTasks.length > 0) {
-          message += `🚨 *Просрочено:*\n`
+          message += `🚨 *Просроченные задачи:*\n`
           for (const task of userData.overdueTasks) {
             const priority = priorityEmoji[task.priority] || '⚪'
             const dueStr = task.dueDate ? task.dueDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : ''
