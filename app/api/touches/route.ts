@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
       socialMedia,
       source,
       description,
+      sentMessage,
       followUpAt,
     } = body
 
@@ -103,6 +104,7 @@ export async function POST(req: NextRequest) {
         socialMedia,
         source,
         description,
+        sentMessage,
         followUpAt: followUpAt ? new Date(followUpAt) : undefined,
         createdById: user.id,
       },

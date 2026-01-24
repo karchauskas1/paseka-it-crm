@@ -699,6 +699,7 @@ model Touch {
 
   // Описание
   description String?  // Описание контакта/о чём говорили
+  sentMessage String?  @db.Text @map("sent_message") // Наше первое сообщение
   response    String?  // Что ответили
 
   // AI анализ

@@ -96,6 +96,7 @@ export async function PATCH(
       source,
       status,
       description,
+      sentMessage,
       response,
       followUpAt,
     } = body
@@ -111,6 +112,7 @@ export async function PATCH(
     if (socialMedia !== undefined) updateData.socialMedia = socialMedia
     if (source !== undefined) updateData.source = source
     if (description !== undefined) updateData.description = description
+    if (sentMessage !== undefined) updateData.sentMessage = sentMessage
     if (response !== undefined) updateData.response = response
     if (followUpAt !== undefined) updateData.followUpAt = followUpAt ? new Date(followUpAt) : null
 

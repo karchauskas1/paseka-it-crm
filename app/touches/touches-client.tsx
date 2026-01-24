@@ -61,6 +61,7 @@ interface Touch {
   source: string | null
   status: string
   description: string | null
+  sentMessage: string | null
   response: string | null
   contactedAt: string
   respondedAt: string | null
@@ -121,6 +122,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
     socialMedia: '',
     source: '',
     description: '',
+    sentMessage: '',
     followUpAt: '',
     status: 'WAITING',
     response: '',
@@ -158,6 +160,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
       socialMedia: '',
       source: '',
       description: '',
+      sentMessage: '',
       followUpAt: '',
       status: 'WAITING',
       response: '',
@@ -182,6 +185,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
       socialMedia: touch.socialMedia || '',
       source: touch.source || '',
       description: touch.description || '',
+      sentMessage: touch.sentMessage || '',
       followUpAt: touch.followUpAt ? touch.followUpAt.split('T')[0] : '',
       status: touch.status,
       response: touch.response || '',
@@ -209,6 +213,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
         socialMedia: formData.socialMedia || null,
         source: formData.source || null,
         description: formData.description || null,
+        sentMessage: formData.sentMessage || null,
         followUpAt: formData.followUpAt || null,
       }
       const res = await fetch('/api/touches', {
@@ -382,6 +387,7 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
           industry: formData.industry,
           contactCompany: formData.contactCompany,
           contactPosition: formData.contactPosition,
+          observations: formData.description,
         }),
       })
 
@@ -830,13 +836,13 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
               />
             </div>
             <div className="grid gap-2">
-              <Label>Описание</Label>
+              <Label>Наблюдения о бизнесе</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                placeholder="О чём говорили, контекст..."
+                placeholder="Что увидели на сайте/в соцсетях, особенности бизнеса, боли которые заметили..."
                 rows={3}
               />
             </div>
@@ -974,13 +980,25 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Описание</Label>
+              <Label>Наблюдения о бизнесе</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
+                placeholder="Что увидели на сайте/в соцсетях, особенности бизнеса..."
                 rows={2}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Наше сообщение</Label>
+              <Textarea
+                value={formData.sentMessage}
+                onChange={(e) =>
+                  setFormData({ ...formData, sentMessage: e.target.value })
+                }
+                placeholder="Первое сообщение которое отправили контакту..."
+                rows={3}
               />
             </div>
             <div className="grid gap-2">
@@ -1038,18 +1056,30 @@ export default function TouchesClient({ user, workspace, userRole }: TouchesClie
               {generatedMessage && (
                 <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
                   <p className="text-sm whitespace-pre-wrap">{generatedMessage}</p>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => {
-                      navigator.clipboard.writeText(generatedMessage)
-                      toast.success('Скопировано в буфер обмена')
-                    }}
-                  >
-                    Копировать
-                  </Button>
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedMessage)
+                        toast.success('Скопировано в буфер обмена')
+                      }}
+                    >
+                      Копировать
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setFormData({ ...formData, sentMessage: generatedMessage })
+                        toast.success('Вставлено в "Наше сообщение"')
+                      }}
+                    >
+                      Использовать
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
