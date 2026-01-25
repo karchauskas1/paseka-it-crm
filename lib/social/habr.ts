@@ -1,19 +1,11 @@
 /**
- * Habr Integration via RSS
+ * Habr Integration via Search API
  *
  * Преимущества:
- * - Бесплатный RSS без API ключей
+ * - Реальный поиск по всей базе статей
  * - Русскоязычный IT-контент высокого качества
- * - Готовые хабы по темам (startups, management, etc.)
+ * - Статистика (score, comments) доступна
  */
-
-import Parser from 'rss-parser'
-
-const parser = new Parser({
-  customFields: {
-    item: ['category', 'dc:creator'],
-  },
-})
 
 export interface HabrPost {
   id: string
@@ -28,10 +20,10 @@ export interface HabrPost {
 }
 
 /**
- * Поиск постов на Habr по ключевому слову
+ * Поиск постов на Habr по ключевому слову через API
  *
  * @param keyword - ключевое слово для поиска
- * @param hub - опциональный хаб для фильтрации
+ * @param hub - опциональный хаб для фильтрации (не используется в API поиска)
  * @returns массив постов
  */
 export async function searchHabr(
@@ -39,61 +31,53 @@ export async function searchHabr(
   hub?: string
 ): Promise<HabrPost[]> {
   try {
-    // RSS feed для хаба или всех постов
-    const feedUrl = hub
-      ? `https://habr.com/ru/rss/hub/${hub}/articles/all/?fl=ru`
-      : `https://habr.com/ru/rss/all/?fl=ru`
+    const encodedQuery = encodeURIComponent(keyword)
+    const apiUrl = `https://habr.com/kek/v2/articles?query=${encodedQuery}&fl=ru&hl=ru&perPage=50`
 
-    const feed = await parser.parseURL(feedUrl)
+    const response = await fetch(apiUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; PainRadar/1.0)',
+      },
+    })
 
-    // Фильтрация по ключевому слову
-    const keywordLower = keyword.toLowerCase()
+    if (!response.ok) {
+      throw new Error(`Habr API returned ${response.status}`)
+    }
 
-    return feed.items
-      .filter((item) => {
-        const title = (item.title || '').toLowerCase()
-        const content = (item.contentSnippet || item.content || '').toLowerCase()
-        return title.includes(keywordLower) || content.includes(keywordLower)
-      })
-      .map((item) => ({
-        id: item.guid || item.link || '',
-        author: (item as any)['dc:creator'] || item.creator || 'Unknown',
-        title: item.title || '',
-        content: item.contentSnippet || item.content || '',
-        url: item.link || '',
-        score: 0, // RSS не предоставляет score
-        comments: 0, // Требуется дополнительный парсинг
-        createdAt: new Date(item.pubDate || Date.now()),
-        hub: hub,
-      }))
+    const data = await response.json()
+    const refs = data.publicationRefs || {}
+
+    return Object.values(refs).map((article: any) => ({
+      id: article.id?.toString() || '',
+      author: article.author?.alias || article.author?.fullname || 'Unknown',
+      title: article.titleHtml?.replace(/<[^>]*>/g, '') || '',
+      content: article.leadData?.textHtml?.replace(/<[^>]*>/g, '').slice(0, 500) || '',
+      url: `https://habr.com/ru/articles/${article.id}/`,
+      score: article.statistics?.score || 0,
+      comments: article.statistics?.commentsCount || 0,
+      createdAt: new Date(article.timePublished || Date.now()),
+      hub: hub,
+    }))
   } catch (error: any) {
-    console.error('Habr RSS search error:', error)
+    console.error('Habr API search error:', error)
     throw new Error(`Failed to search Habr: ${error.message}`)
   }
 }
 
 /**
- * Получить посты из нескольких хабов одновременно
+ * Поиск постов (API ищет по всем хабам сразу)
  *
  * @param keyword - ключевое слово
- * @param hubs - массив хабов для поиска
- * @returns объединенный массив постов
+ * @param hubs - не используется (API ищет везде)
+ * @returns массив постов
  */
 export async function searchMultipleHubs(
   keyword: string,
   hubs: string[]
 ): Promise<HabrPost[]> {
-  try {
-    const searches = hubs.map((hub) => searchHabr(keyword, hub))
-    const results = await Promise.allSettled(searches)
-
-    return results
-      .filter((r) => r.status === 'fulfilled')
-      .flatMap((r: any) => r.value)
-  } catch (error: any) {
-    console.error('Multiple hubs search error:', error)
-    throw new Error(`Failed to search multiple hubs: ${error.message}`)
-  }
+  // API поиска Habr ищет по всем статьям сразу
+  return searchHabr(keyword)
 }
 
 /**
