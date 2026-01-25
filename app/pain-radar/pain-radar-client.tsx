@@ -8,8 +8,9 @@ import { PainCard } from '@/components/pain-radar/pain-card'
 import { PainFilters } from '@/components/pain-radar/pain-filters'
 import { PostSelector } from '@/components/pain-radar/post-selector'
 import { QuickSearch } from '@/components/pain-radar/quick-search'
+import { NicheFinder } from '@/components/pain-radar/niche-finder'
 import { useRouter } from 'next/navigation'
-import { Loader2, Search, FileText, TrendingUp, MessageSquare } from 'lucide-react'
+import { Loader2, Search, FileText, TrendingUp, MessageSquare, Target } from 'lucide-react'
 import { AppLayout } from '@/components/layout'
 import { Badge } from '@/components/ui/badge'
 import type { PainCategory, PainSeverity, SocialPlatform } from '@prisma/client'
@@ -158,21 +159,27 @@ export function PainRadarClient({
         </div>
       </div>
 
-      <Tabs defaultValue="keywords" className="space-y-4 sm:space-y-6">
+      <Tabs defaultValue="niche" className="space-y-4 sm:space-y-6">
         <TabsList className="w-full justify-start overflow-x-auto">
-          {/* 1. Ключевые слова - первый шаг */}
+          {/* 1. Поиск по нише - главный функционал */}
+          <TabsTrigger value="niche" className="text-xs sm:text-sm">
+            <Target className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Поиск по нише</span>
+          </TabsTrigger>
+
+          {/* 2. Ключевые слова - ручной поиск */}
           <TabsTrigger value="keywords" className="text-xs sm:text-sm">
             <FileText className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Ключевые слова</span>
           </TabsTrigger>
 
-          {/* 2. Поиск - основной функционал */}
+          {/* 3. Поиск - быстрый поиск */}
           <TabsTrigger value="search" className="text-xs sm:text-sm">
             <Search className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Поиск</span>
+            <span className="hidden sm:inline">Быстрый поиск</span>
           </TabsTrigger>
 
-          {/* 3. Посты - для анализа сохранённых */}
+          {/* 4. Посты - для анализа сохранённых */}
           <TabsTrigger value="posts" onClick={loadPosts} className="text-xs sm:text-sm">
             <MessageSquare className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Посты</span>
@@ -183,7 +190,7 @@ export function PainRadarClient({
             )}
           </TabsTrigger>
 
-          {/* 4. Результаты - найденные боли */}
+          {/* 5. Результаты - найденные боли */}
           <TabsTrigger value="results" className="text-xs sm:text-sm">
             <TrendingUp className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Результаты</span>
@@ -195,7 +202,24 @@ export function PainRadarClient({
           </TabsTrigger>
         </TabsList>
 
-        {/* Ключевые слова */}
+        {/* Поиск по нише - главный функционал */}
+        <TabsContent value="niche" className="space-y-6">
+          <Card className="border-dashed">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Как это работает?</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground space-y-2">
+              <p><strong>1.</strong> Введите нишу бизнеса (например: "ателье", "доставка еды", "фитнес-клубы")</p>
+              <p><strong>2.</strong> AI автоматически сгенерирует ключевые слова и найдёт проблемы клиентов</p>
+              <p><strong>3.</strong> Получите анализ проблем с категориями и инсайтами</p>
+              <p><strong>4.</strong> Сгенерируйте продающие сообщения на основе найденных проблем</p>
+            </CardContent>
+          </Card>
+
+          <NicheFinder workspaceId={workspaceId} />
+        </TabsContent>
+
+        {/* Ключевые слова - ручной поиск */}
         <TabsContent value="keywords" className="space-y-6">
           <Card className="border-dashed">
             <CardHeader className="pb-3">
