@@ -911,8 +911,9 @@ model SocialPost {
 enum SocialPlatform {
   REDDIT
   HACKERNEWS     // Hacker News через Algolia API
-  HABR           // Habr через RSS
-  VCRU           // VC.ru через RSS
+  HABR           // Habr через Search API
+  VCRU           // VC.ru через Search API
+  LINKEDIN       // LinkedIn через Google Search
   TELEGRAM       // Telegram через Bot API
   PIKABU         // Pikabu (Phase 2)
   TWITTER        // Twitter/X (платный)

@@ -9,6 +9,7 @@ import { SocialPlatform } from '@prisma/client'
 import { searchHackerNews, type HackerNewsPost } from './hackernews'
 import { searchHabr, searchMultipleHubs, HABR_HUBS, type HabrPost } from './habr'
 import { searchVCru, type VCruPost } from './vcru'
+import { searchLinkedIn, type LinkedInPost } from './linkedin'
 import {
   searchMultipleChannels,
   TARGET_CHANNELS,
@@ -72,6 +73,7 @@ export async function searchAllPlatforms(
       'HACKERNEWS',
       'HABR',
       'VCRU',
+      'LINKEDIN',
       'TELEGRAM',
     ] as SocialPlatform[],
     limit = 50,
@@ -113,6 +115,18 @@ export async function searchAllPlatforms(
         .then((posts) => posts.map((p) => normalizeVCruPost(p)))
         .catch((err) => {
           errors.push({ platform: 'VCRU', error: err.message })
+          return []
+        })
+    )
+  }
+
+  // LinkedIn
+  if (platforms.includes('LINKEDIN')) {
+    searches.push(
+      searchLinkedIn(keyword, limit)
+        .then((posts) => posts.map((p) => normalizeLinkedInPost(p)))
+        .catch((err) => {
+          errors.push({ platform: 'LINKEDIN', error: err.message })
           return []
         })
     )
@@ -212,6 +226,30 @@ function normalizeVCruPost(post: VCruPost): UnifiedPost {
   return {
     id: post.id,
     platform: 'VCRU' as SocialPlatform,
+    platformId: post.id,
+    author: post.author,
+    title: post.title,
+    content: post.content,
+    url: post.url,
+    score: post.score,
+    comments: post.comments,
+    shares: 0,
+    engagement: calculateEngagement({
+      likes: post.score,
+      comments: post.comments,
+      shares: 0,
+    }),
+    createdAt: post.createdAt,
+  }
+}
+
+/**
+ * Нормализация LinkedIn поста
+ */
+function normalizeLinkedInPost(post: LinkedInPost): UnifiedPost {
+  return {
+    id: post.id,
+    platform: 'LINKEDIN' as SocialPlatform,
     platformId: post.id,
     author: post.author,
     title: post.title,

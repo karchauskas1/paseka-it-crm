@@ -79,6 +79,7 @@ const PLATFORMS = [
   { id: 'HACKERNEWS', name: 'Hacker News', emoji: '🟠' },
   { id: 'HABR', name: 'Habr', emoji: '🔵' },
   { id: 'VCRU', name: 'VC.ru', emoji: '🟢' },
+  { id: 'LINKEDIN', name: 'LinkedIn', emoji: '💼' },
 ]
 
 const MESSAGE_TONES = [
@@ -89,7 +90,7 @@ const MESSAGE_TONES = [
 
 export function NicheFinder({ workspaceId }: NicheFinderProps) {
   const [niche, setNiche] = useState('')
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['HABR', 'VCRU'])
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['HABR', 'VCRU', 'LINKEDIN'])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [result, setResult] = useState<NicheAnalysisResult | null>(null)
 
@@ -201,6 +202,7 @@ export function NicheFinder({ workspaceId }: NicheFinderProps) {
       case 'HACKERNEWS': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
       case 'HABR': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       case 'VCRU': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+      case 'LINKEDIN': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200'
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
     }
   }
