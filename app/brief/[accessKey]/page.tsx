@@ -143,10 +143,10 @@ export default function BriefPublicPage() {
 
     return (
       <div key={question.id} className="scroll-mt-6 group">
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-[1.01]">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg rounded-2xl shadow-md border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-lg transition-all duration-300">
+          <div className="bg-slate-50/50 dark:bg-slate-900/50 px-6 py-5 border-b border-gray-200/50 dark:border-gray-700/50">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-sm shadow-md">
+              <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-indigo-600 dark:bg-indigo-500 text-white font-bold text-sm shadow-sm">
                 {index + 1}
               </div>
               <div className="flex-1 space-y-2">
@@ -306,14 +306,14 @@ export default function BriefPublicPage() {
 
   if (brief.status === 'COMPLETED') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 p-4">
-        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 p-10">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-gray-950 dark:via-slate-950 dark:to-gray-900 p-4">
+        <div className="max-w-md w-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-10">
           <div className="text-center space-y-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full shadow-lg animate-bounce">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 dark:bg-green-500 rounded-full shadow-md animate-bounce">
               <CheckCircle2 className="h-12 w-12 text-white" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Бриф заполнен!
               </h2>
               <p className="text-muted-foreground">
@@ -329,31 +329,39 @@ export default function BriefPublicPage() {
     )
   }
 
+  // Calculate progress based on non-empty answers
+  const filledAnswersCount = Object.values(answers).filter(answer => {
+    if (Array.isArray(answer)) {
+      return answer.length > 0
+    }
+    return answer !== null && answer !== undefined && String(answer).trim() !== ''
+  }).length
+
   const progress = brief.questions.length > 0
-    ? (Object.keys(answers).length / brief.questions.length) * 100
+    ? (filledAnswersCount / brief.questions.length) * 100
     : 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-purple-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-gray-950 dark:via-slate-950 dark:to-gray-900">
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-slate-200/20 dark:bg-slate-800/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-gray-200/20 dark:bg-gray-800/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-slate-200/20 dark:bg-slate-800/20 rounded-full blur-3xl" />
       </div>
 
       {/* Header */}
-      <div className="relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10 shadow-sm">
+      <div className="relative bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 sticky top-0 z-10 shadow-sm">
         <div className="container max-w-4xl mx-auto py-8 px-4 sm:px-6">
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-3 shadow-lg">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 dark:bg-indigo-500 rounded-2xl mb-3 shadow-md">
               <FileText className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
               {brief.title}
             </h1>
             <p className="text-base text-muted-foreground flex items-center justify-center gap-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium">
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium">
                 {brief.project.workspace.name}
               </span>
               <span>•</span>
@@ -366,22 +374,20 @@ export default function BriefPublicPage() {
 
           {/* Progress */}
           <div className="mt-8 max-w-2xl mx-auto">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50">
               <div className="flex items-center justify-between text-sm mb-3">
                 <span className="text-muted-foreground font-medium">
-                  Заполнено {Object.keys(answers).length} из {brief.questions.length}
+                  Заполнено {filledAnswersCount} из {brief.questions.length}
                 </span>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
                   {Math.round(progress)}%
                 </span>
               </div>
               <div className="relative h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
-                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-500 ease-out"
+                  className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progress}%` }}
-                >
-                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                </div>
+                />
               </div>
             </div>
           </div>
@@ -393,11 +399,11 @@ export default function BriefPublicPage() {
         {brief.questions.map((question, index) => renderQuestion(question, index))}
 
         {/* Submit Button */}
-        <div className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-950 rounded-3xl p-8 shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg rounded-2xl p-8 shadow-md border border-gray-200/50 dark:border-gray-700/50">
           <Button
             onClick={submitBrief}
             disabled={isSubmitting}
-            className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200"
+            className="w-full h-14 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
             size="lg"
           >
             {isSubmitting ? (
@@ -413,7 +419,7 @@ export default function BriefPublicPage() {
             )}
           </Button>
           <div className="flex items-center justify-center gap-2 mt-4">
-            <Save className="h-4 w-4 text-green-600" />
+            <Save className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             <p className="text-sm text-muted-foreground">
               Ваши ответы сохраняются автоматически
             </p>
