@@ -176,7 +176,6 @@ export default function TasksClient({
         description: newTask.title,
         variant: 'success',
       })
-      router.refresh()
     } catch (error: any) {
       toast({
         title: 'Ошибка',

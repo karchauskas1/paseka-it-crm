@@ -173,23 +173,15 @@ export function MessageInput({
     const trimmedContent = content.trim()
     if (!trimmedContent || disabled || sending) return
 
-    // Store current values before clearing
-    const currentMentions = [...mentions]
-    const currentEntityLinks = [...entityLinks]
-    const currentReplyToId = replyTo?.id
-
-    // Clear input immediately for better UX
-    setContent('')
-    setMentions([])
-    setEntityLinks([])
-
     try {
-      await onSend(trimmedContent, currentMentions, currentEntityLinks, currentReplyToId)
+      await onSend(trimmedContent, mentions, entityLinks, replyTo?.id)
+      // Only clear if successful
+      setContent('')
+      setMentions([])
+      setEntityLinks([])
     } catch (error) {
-      // Restore content on error
-      setContent(trimmedContent)
-      setMentions(currentMentions)
-      setEntityLinks(currentEntityLinks)
+      // Error already handled by parent, content stays for retry
+      console.error('Failed to send message:', error)
     }
   }
 

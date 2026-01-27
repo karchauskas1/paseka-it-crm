@@ -38,6 +38,10 @@ import {
   Trash2,
   Sparkles,
   Loader2,
+  AtSign,
+  ExternalLink,
+  Plus,
+  X,
 } from 'lucide-react'
 
 interface ClientDetailClientProps {
@@ -68,6 +72,7 @@ export default function ClientDetailClient({
     source: client.source,
     status: client.status,
     notes: client.notes || '',
+    socialLinks: Array.isArray(client.socialLinks) ? client.socialLinks : [],
   })
 
   const handleLogout = async () => {
@@ -271,6 +276,30 @@ export default function ClientDetailClient({
                   </div>
                 </div>
               </div>
+
+              {/* Social Links */}
+              {client.socialLinks && Array.isArray(client.socialLinks) && client.socialLinks.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AtSign className="h-4 w-4 text-gray-400" />
+                    <h4 className="text-sm font-medium text-gray-700">Социальные сети</h4>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {client.socialLinks.map((link: any, index: number) => (
+                      <a
+                        key={index}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm"
+                      >
+                        <span>{link.platform}</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Source & Created */}
               <div className="flex items-center gap-6 text-sm text-gray-500">
@@ -544,6 +573,63 @@ export default function ClientDetailClient({
                 }
                 rows={4}
               />
+            </div>
+
+            {/* Social Links */}
+            <div className="grid gap-2">
+              <Label>Социальные сети</Label>
+              <div className="space-y-2">
+                {formData.socialLinks.map((link: any, index: number) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      placeholder="Платформа (Telegram, Instagram...)"
+                      value={link.platform}
+                      onChange={(e) => {
+                        const newLinks = [...formData.socialLinks]
+                        newLinks[index] = { ...link, platform: e.target.value }
+                        setFormData({ ...formData, socialLinks: newLinks })
+                      }}
+                      className="flex-1"
+                    />
+                    <Input
+                      placeholder="https://t.me/username"
+                      value={link.url}
+                      onChange={(e) => {
+                        const newLinks = [...formData.socialLinks]
+                        newLinks[index] = { ...link, url: e.target.value }
+                        setFormData({ ...formData, socialLinks: newLinks })
+                      }}
+                      className="flex-[2]"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        const newLinks = formData.socialLinks.filter((_: any, i: number) => i !== index)
+                        setFormData({ ...formData, socialLinks: newLinks })
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFormData({
+                      ...formData,
+                      socialLinks: [...formData.socialLinks, { platform: '', url: '' }],
+                    })
+                  }}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Добавить социальную сеть
+                </Button>
+              </div>
             </div>
           </div>
           <DialogFooter>
