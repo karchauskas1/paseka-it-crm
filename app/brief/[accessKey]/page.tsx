@@ -419,43 +419,40 @@ export default function BriefPublicPage() {
 
       {/* Header */}
       <div className="relative bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 sticky top-0 z-10 shadow-sm">
-        <div className="container max-w-4xl mx-auto py-8 px-4 sm:px-6">
-          <div className="space-y-3 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 dark:bg-indigo-500 rounded-2xl mb-3 shadow-md">
-              <FileText className="h-8 w-8 text-white" />
+        <div className="container max-w-4xl mx-auto py-4 px-4 sm:px-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-indigo-600 dark:bg-indigo-500 rounded-xl shadow-sm flex-shrink-0">
+              <FileText className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-              {brief.title}
-            </h1>
-            <p className="text-base text-muted-foreground flex items-center justify-center gap-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium">
-                {brief.project.workspace.name}
-              </span>
-              <span>•</span>
-              <span className="text-sm">{brief.project.name}</span>
-            </p>
-            {brief.description && (
-              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">{brief.description}</p>
-            )}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
+                {brief.title}
+              </h1>
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">
+                  {brief.project.workspace.name}
+                </span>
+                <span>•</span>
+                <span className="truncate">{brief.project.name}</span>
+              </p>
+            </div>
           </div>
 
           {/* Progress */}
-          <div className="mt-8 max-w-2xl mx-auto">
-            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50">
-              <div className="flex items-center justify-between text-sm mb-3">
-                <span className="text-muted-foreground font-medium">
-                  Заполнено {filledAnswersCount} из {brief.questions.length}
-                </span>
-                <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-                  {Math.round(progress)}%
-                </span>
-              </div>
-              <div className="relative h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div
-                  className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+          <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg rounded-xl p-4 shadow-md border border-gray-200/50 dark:border-gray-700/50">
+            <div className="flex items-center justify-between text-xs mb-2">
+              <span className="text-muted-foreground font-medium">
+                Заполнено {filledAnswersCount} из {brief.questions.length}
+              </span>
+              <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                {Math.round(progress)}%
+              </span>
+            </div>
+            <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
         </div>
