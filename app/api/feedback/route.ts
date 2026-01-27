@@ -5,6 +5,7 @@ import { notifyFeedbackSubmitted } from '@/lib/telegram-group-notify'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
+import { FeedbackType } from '@prisma/client'
 
 export async function GET(req: NextRequest) {
   try {
@@ -99,6 +100,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Cast to FeedbackType after validation
+    const feedbackType = type as FeedbackType
+
     // Handle screenshot upload
     let screenshotPath: string | null = null
     if (screenshotFile && screenshotFile.size > 0) {
@@ -123,7 +127,7 @@ export async function POST(req: NextRequest) {
     const feedback = await db.feedback.create({
       data: {
         workspaceId,
-        type,
+        type: feedbackType,
         title,
         description,
         screenshot: screenshotPath,
