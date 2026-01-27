@@ -61,10 +61,37 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
     if (briefId) {
       loadBrief()
     } else {
-      // Генерировать случайный accessKey
-      setAccessKey(generateAccessKey())
+      // Попробовать загрузить существующие брифы проекта
+      loadProjectBriefs()
     }
   }, [briefId])
+
+  const loadProjectBriefs = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/projects/${projectId}/briefs`)
+      if (!response.ok) throw new Error('Failed to load briefs')
+
+      const data = await response.json()
+      if (data.briefs && data.briefs.length > 0) {
+        // Если есть брифы - загрузить первый
+        const firstBrief = data.briefs[0]
+        setBrief(firstBrief)
+        setTitle(firstBrief.title)
+        setDescription(firstBrief.description || '')
+        setAccessKey(firstBrief.accessKey)
+      } else {
+        // Если брифов нет - сгенерировать accessKey для нового брифа
+        setAccessKey(generateAccessKey())
+      }
+    } catch (error: any) {
+      console.error('[Brief Editor] Load project briefs error:', error)
+      // Если ошибка - просто сгенерировать accessKey
+      setAccessKey(generateAccessKey())
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const generateAccessKey = () => {
     return Math.random().toString(36).substring(2, 10)
@@ -73,7 +100,13 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
   const loadBrief = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/briefs/${briefId}`)
+      // Use briefId from props or brief.id from state
+      const id = briefId || brief?.id
+      if (!id) {
+        throw new Error('No brief ID available')
+      }
+
+      const response = await fetch(`/api/briefs/${id}`)
       if (!response.ok) throw new Error('Failed to load brief')
 
       const data = await response.json()
