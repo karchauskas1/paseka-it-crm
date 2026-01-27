@@ -5,7 +5,7 @@ import { notifyFeedbackSubmitted } from '@/lib/telegram-group-notify'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
-import { FeedbackType } from '@prisma/client'
+import { FeedbackType, Priority } from '@prisma/client'
 
 export async function GET(req: NextRequest) {
   try {
@@ -103,6 +103,9 @@ export async function POST(req: NextRequest) {
     // Cast to FeedbackType after validation
     const feedbackType = type as FeedbackType
 
+    // Cast to Priority or null
+    const feedbackPriority = priority ? (priority as Priority) : null
+
     // Handle screenshot upload
     let screenshotPath: string | null = null
     if (screenshotFile && screenshotFile.size > 0) {
@@ -131,7 +134,7 @@ export async function POST(req: NextRequest) {
         title,
         description,
         screenshot: screenshotPath,
-        priority: priority || null,
+        priority: feedbackPriority,
         createdById: user.id,
       },
       include: {
