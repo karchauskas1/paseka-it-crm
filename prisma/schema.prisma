@@ -244,6 +244,7 @@ model Project {
   activities  Activity[]
   aiSuggestions AISuggestion[]
   events      Event[] @relation("EventProject")
+  briefs      Brief[]
 
   @@index([workspaceId])
   @@index([clientId])
@@ -1097,4 +1098,97 @@ model PushSubscription {
   @@unique([userId, endpoint])
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+// ==================== PROJECT BRIEFS ====================
+
+model Brief {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+
+  title       String
+  description String?
+  accessKey   String   @unique @map("access_key") // Пароль для доступа клиента
+  status      BriefStatus @default(DRAFT)
+
+  // Информация о клиенте (заполняется при отправке)
+  clientName  String?  @map("client_name")
+  clientEmail String?  @map("client_email")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  completedAt DateTime? @map("completed_at") // Когда клиент заполнил
+
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  questions BriefQuestion[]
+  answers   BriefAnswer[]
+
+  @@index([projectId])
+  @@index([accessKey])
+  @@index([status])
+  @@map("briefs")
+}
+
+model BriefQuestion {
+  id          String   @id @default(uuid())
+  briefId     String   @map("brief_id")
+
+  type        BriefQuestionType
+  question    String   @db.Text
+  description String?  @db.Text // Подсказка/описание для вопроса
+  options     Json?    // Для SELECT - массив опций
+  required    Boolean  @default(false)
+  order       Int      // Порядок отображения
+
+  // Для шкал
+  scaleMin    Int?     @map("scale_min")
+  scaleMax    Int?     @map("scale_max")
+  scaleMinLabel String? @map("scale_min_label")
+  scaleMaxLabel String? @map("scale_max_label")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  brief   Brief         @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  answers BriefAnswer[]
+
+  @@index([briefId])
+  @@index([briefId, order])
+  @@map("brief_questions")
+}
+
+model BriefAnswer {
+  id          String   @id @default(uuid())
+  briefId     String   @map("brief_id")
+  questionId  String   @map("question_id")
+
+  answer      Json     // Хранит ответ в зависимости от типа вопроса
+  files       String[] // Массив URL файлов (если есть)
+
+  answeredAt  DateTime @default(now()) @map("answered_at")
+
+  brief    Brief         @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  question BriefQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([briefId, questionId])
+  @@index([briefId])
+  @@index([questionId])
+  @@map("brief_answers")
+}
+
+enum BriefStatus {
+  DRAFT      // Создан, но не отправлен клиенту
+  SENT       // Отправлен клиенту
+  IN_PROGRESS // Клиент начал заполнять
+  COMPLETED  // Клиент завершил заполнение
+}
+
+enum BriefQuestionType {
+  TEXT_SHORT  // Короткий текст (input)
+  TEXT_LONG   // Длинный текст (textarea)
+  SELECT      // Выбор из списка (select/radio)
+  MULTI_SELECT // Множественный выбор (checkbox)
+  FILE        // Загрузка файлов
+  YES_NO      // Да/Нет
+  SCALE       // Шкала (например 1-10)
 }

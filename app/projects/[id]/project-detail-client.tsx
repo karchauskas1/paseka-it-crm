@@ -31,6 +31,7 @@ import { AppLayout } from '@/components/layout'
 import { Sparkles, Loader2, Activity, FileText, Trash2, Pencil, Upload, Download, X, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import { DocumentPreview } from '@/components/documents/document-preview'
+import { BriefEditor } from '@/components/briefs/brief-editor'
 
 export default function ProjectDetailClient({ project: initialProject, user, teamMembers, workspace }: any) {
   const router = useRouter()
@@ -110,6 +111,7 @@ export default function ProjectDetailClient({ project: initialProject, user, tea
     { id: 'pain', label: 'Боль и контекст' },
     { id: 'goals', label: 'Задачи и цели' },
     { id: 'architecture', label: 'Архитектура' },
+    { id: 'brief', label: 'Бриф' },
     { id: 'tasks', label: `Задачи (${project.tasks?.length || 0})` },
     { id: 'milestones', label: 'Этапы' },
     { id: 'documents', label: 'Документы' },
@@ -614,6 +616,9 @@ ${architectureForm.constraints}` : ''}
             onCreateVersion={() => setIsArchitectureDialogOpen(true)}
             onGenerateAI={handleGenerateArchitecture}
           />
+        )}
+        {activeTab === 'brief' && (
+          <BriefEditor projectId={project.id} />
         )}
         {activeTab === 'tasks' && (
           <TasksTab project={project} teamMembers={teamMembers} onCreateTask={() => setIsTaskDialogOpen(true)} />
