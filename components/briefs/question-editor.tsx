@@ -59,6 +59,9 @@ export function QuestionEditor({ question, onSave, onDelete, onCancel }: Questio
   const [allowCustomOption, setAllowCustomOption] = useState(
     question?.options?.allowCustom || false
   )
+  const [maxSelections, setMaxSelections] = useState<number | ''>(
+    question?.options?.maxSelections || ''
+  )
 
   // Для SCALE
   const [scaleMin, setScaleMin] = useState(question?.scaleMin || 1)
@@ -78,6 +81,9 @@ export function QuestionEditor({ question, onSave, onDelete, onCancel }: Questio
       data.options = {
         items: options,
         allowCustom: allowCustomOption,
+      }
+      if (type === 'MULTI_SELECT' && maxSelections !== '') {
+        data.options.maxSelections = Number(maxSelections)
       }
     }
 
@@ -183,6 +189,24 @@ export function QuestionEditor({ question, onSave, onDelete, onCancel }: Questio
                 Разрешить свой вариант ответа
               </Label>
             </div>
+            {type === 'MULTI_SELECT' && (
+              <div className="space-y-2">
+                <Label htmlFor="maxSelections">
+                  Максимальное количество выбираемых пунктов (необязательно)
+                </Label>
+                <Input
+                  id="maxSelections"
+                  type="number"
+                  min="1"
+                  placeholder="Не ограничено"
+                  value={maxSelections}
+                  onChange={(e) => setMaxSelections(e.target.value === '' ? '' : Number(e.target.value))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Если указано, клиент сможет выбрать не более этого количества пунктов
+                </p>
+              </div>
+            )}
           </div>
         )}
 

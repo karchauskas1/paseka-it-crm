@@ -250,22 +250,42 @@ export default function BriefPublicPage() {
             const optionsData = question.options
             const items = Array.isArray(optionsData) ? optionsData : (optionsData?.items || [])
             const allowCustom = optionsData?.allowCustom || false
+            const maxSelections = optionsData?.maxSelections
             const selectedOptions = answer || []
 
             // Find custom value (value not in items list)
             const customValue = selectedOptions.find((opt: string) => !items.includes(opt)) || ''
             const isCustomChecked = customValue !== ''
 
+            // Calculate current selection count
+            const standardSelectedCount = selectedOptions.filter((o: string) => items.includes(o)).length
+            const currentSelectionCount = standardSelectedCount + (isCustomChecked ? 1 : 0)
+
+            // Check if max limit is reached
+            const isMaxReached = maxSelections && currentSelectionCount >= maxSelections
+
             return (
               <div className="space-y-2">
+                {maxSelections && (
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Выберите не более {maxSelections} {maxSelections === 1 ? 'пункта' : maxSelections < 5 ? 'пунктов' : 'пунктов'}
+                    {currentSelectionCount > 0 && (
+                      <span className="ml-2 font-medium text-indigo-600 dark:text-indigo-400">
+                        (выбрано: {currentSelectionCount})
+                      </span>
+                    )}
+                  </p>
+                )}
                 {items.map((option: string, i: number) => {
                   const isChecked = selectedOptions.includes(option)
+                  const isDisabled = !isChecked && isMaxReached
 
                   return (
-                    <div key={i} className="flex items-center space-x-2">
+                    <div key={i} className={`flex items-center space-x-2 ${isDisabled ? 'opacity-50' : ''}`}>
                       <Checkbox
                         id={`${question.id}-${i}`}
                         checked={isChecked}
+                        disabled={isDisabled}
                         onCheckedChange={(checked) => {
                           const newOptions = checked
                             ? [...selectedOptions, option]
@@ -273,17 +293,21 @@ export default function BriefPublicPage() {
                           handleAnswerChange(question.id, newOptions)
                         }}
                       />
-                      <Label htmlFor={`${question.id}-${i}`} className="cursor-pointer">
+                      <Label
+                        htmlFor={`${question.id}-${i}`}
+                        className={`${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      >
                         {option}
                       </Label>
                     </div>
                   )
                 })}
                 {allowCustom && (
-                  <div className="flex items-center space-x-2">
+                  <div className={`flex items-center space-x-2 ${!isCustomChecked && isMaxReached ? 'opacity-50' : ''}`}>
                     <Checkbox
                       id={`${question.id}-custom`}
                       checked={isCustomChecked}
+                      disabled={!isCustomChecked && isMaxReached}
                       onCheckedChange={(checked) => {
                         if (checked) {
                           handleAnswerChange(question.id, [...selectedOptions.filter((o: string) => items.includes(o)), ''])
@@ -296,6 +320,7 @@ export default function BriefPublicPage() {
                     <Input
                       placeholder="Ваш вариант..."
                       value={customValue}
+                      disabled={!isCustomChecked && isMaxReached}
                       onChange={(e) => {
                         const standardOptions = selectedOptions.filter((o: string) => items.includes(o))
                         handleAnswerChange(question.id, [...standardOptions, e.target.value])
