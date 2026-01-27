@@ -3,6 +3,7 @@
  * /brief/[accessKey]
  *
  * Не требует авторизации
+ * Updated: 2026-01-27 - Glassmorphism redesign
  */
 
 'use client'
