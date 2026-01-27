@@ -9,5 +9,16 @@
       "path": "/api/cron/weekly-digest",
       "schedule": "0 6 * * 1"
     }
+  ],
+  "headers": [
+    {
+      "source": "/brief/:accessKey",
+      "headers": [
+        {
+          "key": "x-vercel-protection-bypass",
+          "value": "public"
+        }
+      ]
+    }
   ]
 }
