@@ -396,7 +396,14 @@ export default function FeedbackClient({
                 </tr>
               ) : (
                 filteredFeedback.map((item) => (
-                  <tr key={item.id} className="hover:bg-muted/50">
+                  <tr
+                    key={item.id}
+                    className="hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setSelectedFeedback(item)
+                      setIsDetailOpen(true)
+                    }}
+                  >
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-foreground">
                         {item.title}
@@ -412,7 +419,7 @@ export default function FeedbackClient({
                         {feedbackTypeLabels[item.type]}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       {isAdmin ? (
                         <Select
                           value={item.status}
@@ -461,32 +468,14 @@ export default function FeedbackClient({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {item.screenshot && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedFeedback(item)
-                              setIsDetailOpen(true)
-                            }}
-                            title="Есть скриншот"
-                          >
+                          <div className="flex items-center" title="Есть скриншот">
                             <ImageIcon className="h-4 w-4 text-blue-500" />
-                          </Button>
+                          </div>
                         )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedFeedback(item)
-                            setIsDetailOpen(true)
-                          }}
-                        >
-                          Подробнее
-                        </Button>
                       </div>
                     </td>
                     {isAdmin && (
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -548,7 +537,7 @@ export default function FeedbackClient({
                 <div className="mt-4 space-y-4">
                   <div>
                     <h4 className="font-medium mb-2">Описание</h4>
-                    <div className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted/50 rounded-lg p-4">
+                    <div className="text-sm text-foreground whitespace-pre-wrap bg-muted/50 rounded-lg p-4 leading-relaxed">
                       {selectedFeedback.description}
                     </div>
                   </div>
