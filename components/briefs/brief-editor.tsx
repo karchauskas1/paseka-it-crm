@@ -94,8 +94,14 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
       return
     }
 
+    if (!projectId) {
+      toast.error('Project ID не найден')
+      return
+    }
+
     setIsSaving(true)
     try {
+      console.log('[Brief Editor] Creating brief with projectId:', projectId)
       const response = await fetch('/api/briefs/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -107,12 +113,16 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
         }),
       })
 
-      if (!response.ok) throw new Error('Failed to create brief')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create brief')
+      }
 
       const data = await response.json()
       setBrief(data.brief)
       toast.success('Бриф создан')
     } catch (error: any) {
+      console.error('[Brief Editor] Create error:', error)
       toast.error(error.message || 'Ошибка создания брифа')
     } finally {
       setIsSaving(false)
