@@ -2,6 +2,9 @@ import { NextResponse, NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
 import { notifyFeedbackSubmitted } from '@/lib/telegram-group-notify'
+import { writeFile } from 'fs/promises'
+import { join } from 'path'
+import { randomUUID } from 'crypto'
 
 export async function GET(req: NextRequest) {
   try {
@@ -73,8 +76,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await req.json()
-    const { workspaceId, type, title, description, priority, screenshot } = body
+    const formData = await req.formData()
+    const workspaceId = formData.get('workspaceId') as string
+    const type = formData.get('type') as string
+    const title = formData.get('title') as string
+    const description = formData.get('description') as string
+    const priority = formData.get('priority') as string
+    const screenshotFile = formData.get('screenshot') as File | null
 
     if (!workspaceId || !type || !title || !description) {
       return NextResponse.json(
@@ -91,13 +99,34 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Handle screenshot upload
+    let screenshotPath: string | null = null
+    if (screenshotFile && screenshotFile.size > 0) {
+      try {
+        const bytes = await screenshotFile.arrayBuffer()
+        const buffer = Buffer.from(bytes)
+
+        // Generate unique filename
+        const fileExtension = screenshotFile.name.split('.').pop() || 'png'
+        const filename = `${randomUUID()}.${fileExtension}`
+        const filepath = join(process.cwd(), 'public', 'uploads', 'feedback', filename)
+
+        // Save file
+        await writeFile(filepath, buffer)
+        screenshotPath = `/uploads/feedback/${filename}`
+      } catch (uploadError) {
+        console.error('Screenshot upload error:', uploadError)
+        // Continue without screenshot if upload fails
+      }
+    }
+
     const feedback = await db.feedback.create({
       data: {
         workspaceId,
         type,
         title,
         description,
-        screenshot: screenshot || null,
+        screenshot: screenshotPath,
         priority: priority || null,
         createdById: user.id,
       },
