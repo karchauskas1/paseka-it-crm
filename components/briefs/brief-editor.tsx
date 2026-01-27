@@ -18,6 +18,8 @@ import {
   Loader2,
   Eye,
   Download,
+  Trash2,
+  PlusCircle,
 } from 'lucide-react'
 
 interface Brief {
@@ -41,14 +43,17 @@ interface BriefEditorProps {
 
 export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
   const [brief, setBrief] = useState<Brief | null>(null)
+  const [briefs, setBriefs] = useState<Brief[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Форма создания/редактирования брифа
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [accessKey, setAccessKey] = useState('')
+  const [isCreatingNew, setIsCreatingNew] = useState(false)
 
   // Добавление нового вопроса
   const [isAddingQuestion, setIsAddingQuestion] = useState(false)
@@ -73,24 +78,41 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
       if (!response.ok) throw new Error('Failed to load briefs')
 
       const data = await response.json()
+      setBriefs(data.briefs || [])
+
       if (data.briefs && data.briefs.length > 0) {
         // Если есть брифы - загрузить первый
         const firstBrief = data.briefs[0]
-        setBrief(firstBrief)
-        setTitle(firstBrief.title)
-        setDescription(firstBrief.description || '')
-        setAccessKey(firstBrief.accessKey)
+        selectBrief(firstBrief)
       } else {
-        // Если брифов нет - сгенерировать accessKey для нового брифа
+        // Если брифов нет - подготовить форму для создания
+        setIsCreatingNew(true)
         setAccessKey(generateAccessKey())
       }
     } catch (error: any) {
       console.error('[Brief Editor] Load project briefs error:', error)
-      // Если ошибка - просто сгенерировать accessKey
+      // Если ошибка - подготовить форму для создания
+      setIsCreatingNew(true)
       setAccessKey(generateAccessKey())
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const selectBrief = (selectedBrief: Brief) => {
+    setBrief(selectedBrief)
+    setTitle(selectedBrief.title)
+    setDescription(selectedBrief.description || '')
+    setAccessKey(selectedBrief.accessKey)
+    setIsCreatingNew(false)
+  }
+
+  const startNewBrief = () => {
+    setBrief(null)
+    setTitle('')
+    setDescription('')
+    setAccessKey(generateAccessKey())
+    setIsCreatingNew(true)
   }
 
   const generateAccessKey = () => {
@@ -152,13 +174,43 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
       }
 
       const data = await response.json()
-      setBrief(data.brief)
+
+      // Обновить список брифов и выбрать новый
+      await loadProjectBriefs()
+      selectBrief(data.brief)
+
       toast.success('Бриф создан')
     } catch (error: any) {
       console.error('[Brief Editor] Create error:', error)
       toast.error(error.message || 'Ошибка создания брифа')
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const deleteBrief = async () => {
+    if (!brief) return
+
+    if (!confirm(`Удалить бриф "${brief.title}"? Это действие нельзя отменить.`)) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/briefs/${brief.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) throw new Error('Failed to delete brief')
+
+      toast.success('Бриф удалён')
+
+      // Обновить список и выбрать первый бриф или показать форму создания
+      await loadProjectBriefs()
+    } catch (error: any) {
+      toast.error(error.message || 'Ошибка удаления брифа')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -325,9 +377,68 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
     )
   }
 
-  // Если бриф ещё не создан
-  if (!brief) {
+  // Основной layout с sidebar
+  const renderLayout = (content: React.ReactNode) => {
     return (
+      <div className="flex gap-6">
+        {/* Sidebar со списком брифов */}
+        <Card className="w-80 flex-shrink-0">
+          <CardHeader>
+            <CardTitle className="text-lg">Брифы проекта</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {/* Кнопка создания нового брифа */}
+            <Button
+              onClick={startNewBrief}
+              variant="outline"
+              className="w-full justify-start"
+              disabled={isCreatingNew}
+            >
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Создать новый бриф
+            </Button>
+
+            {/* Список брифов */}
+            <div className="space-y-2 pt-2">
+              {briefs.length === 0 && !isCreatingNew && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Брифов пока нет
+                </p>
+              )}
+              {briefs.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => selectBrief(b)}
+                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                    brief?.id === b.id
+                      ? 'bg-primary/5 border-primary'
+                      : 'hover:bg-muted border-transparent'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{b.title}</p>
+                      <Badge className={`${getStatusColor(b.status)} text-xs mt-1`}>
+                        {getStatusLabel(b.status)}
+                      </Badge>
+                    </div>
+                    <FileText className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Основной контент */}
+        <div className="flex-1">{content}</div>
+      </div>
+    )
+  }
+
+  // Если создается новый бриф
+  if (isCreatingNew && !brief) {
+    return renderLayout(
       <div className="space-y-6">
         <Card>
           <CardHeader>
@@ -406,7 +517,7 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
   }
 
   // Редактирование существующего брифа
-  return (
+  return renderLayout(
     <div className="space-y-6">
       {/* Информация о брифе */}
       <Card>
@@ -421,9 +532,24 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
                 {description || 'Без описания'}
               </CardDescription>
             </div>
-            <Badge className={getStatusColor(brief.status)}>
-              {getStatusLabel(brief.status)}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge className={getStatusColor(brief.status)}>
+                {getStatusLabel(brief.status)}
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={deleteBrief}
+                disabled={isDeleting}
+                className="text-destructive hover:text-destructive"
+              >
+                {isDeleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -610,5 +736,5 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
         </Card>
       )}
     </div>
-  )
+  ))
 }
