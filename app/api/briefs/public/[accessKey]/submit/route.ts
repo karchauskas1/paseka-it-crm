@@ -9,15 +9,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { sendTelegramNotification } from '@/lib/telegram'
 
-interface RouteContext {
-  params: {
-    accessKey: string
-  }
-}
-
-export async function POST(req: NextRequest, context: RouteContext) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ accessKey: string }> }
+) {
   try {
-    const { accessKey } = context.params
+    const { accessKey } = await params
 
     if (!accessKey) {
       return NextResponse.json(

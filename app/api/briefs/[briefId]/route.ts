@@ -9,21 +9,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 
-interface RouteContext {
-  params: {
-    briefId: string
-  }
-}
-
 // GET - получить бриф
-export async function GET(req: NextRequest, context: RouteContext) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ briefId: string }> }
+) {
   try {
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { briefId } = context.params
+    const { briefId } = await params
 
     const brief = await db.brief.findFirst({
       where: {
@@ -74,14 +71,17 @@ export async function GET(req: NextRequest, context: RouteContext) {
 }
 
 // PUT - обновить бриф
-export async function PUT(req: NextRequest, context: RouteContext) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ briefId: string }> }
+) {
   try {
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { briefId } = context.params
+    const { briefId } = await params
     const body = await req.json()
     const { title, description, accessKey } = body
 
@@ -134,14 +134,17 @@ export async function PUT(req: NextRequest, context: RouteContext) {
 }
 
 // DELETE - удалить бриф
-export async function DELETE(req: NextRequest, context: RouteContext) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ briefId: string }> }
+) {
   try {
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { briefId } = context.params
+    const { briefId } = await params
 
     // Проверить доступ
     const brief = await db.brief.findFirst({

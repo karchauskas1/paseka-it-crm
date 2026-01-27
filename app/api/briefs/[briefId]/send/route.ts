@@ -9,25 +9,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 
-interface RouteContext {
-  params: {
-    briefId: string
-  }
-}
-
 interface SendBriefRequest {
   clientName?: string
   clientEmail?: string
 }
 
-export async function POST(req: NextRequest, context: RouteContext) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ briefId: string }> }
+) {
   try {
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { briefId } = context.params
+    const { briefId } = await params
     const body: SendBriefRequest = await req.json()
 
     // Проверить доступ к брифу

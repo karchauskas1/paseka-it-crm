@@ -8,21 +8,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-interface RouteContext {
-  params: {
-    accessKey: string
-  }
-}
-
 interface SaveAnswerRequest {
   questionId: string
   answer: any
   files?: string[]
 }
 
-export async function POST(req: NextRequest, context: RouteContext) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ accessKey: string }> }
+) {
   try {
-    const { accessKey } = context.params
+    const { accessKey } = await params
     const body: SaveAnswerRequest = await req.json()
 
     if (!accessKey || !body.questionId) {

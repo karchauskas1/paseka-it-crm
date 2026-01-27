@@ -8,15 +8,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-interface RouteContext {
-  params: {
-    accessKey: string
-  }
-}
-
-export async function GET(req: NextRequest, context: RouteContext) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ accessKey: string }> }
+) {
   try {
-    const { accessKey } = context.params
+    const { accessKey } = await params
 
     if (!accessKey) {
       return NextResponse.json(

@@ -10,12 +10,6 @@ import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { BriefQuestionType } from '@prisma/client'
 
-interface RouteContext {
-  params: {
-    briefId: string
-  }
-}
-
 interface QuestionData {
   type: BriefQuestionType
   question: string
@@ -29,14 +23,17 @@ interface QuestionData {
 }
 
 // POST - добавить вопрос
-export async function POST(req: NextRequest, context: RouteContext) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ briefId: string }> }
+) {
   try {
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { briefId } = context.params
+    const { briefId } = await params
     const body: QuestionData = await req.json()
 
     // Проверить доступ к брифу
@@ -95,14 +92,17 @@ export async function POST(req: NextRequest, context: RouteContext) {
 }
 
 // PUT - обновить вопрос
-export async function PUT(req: NextRequest, context: RouteContext) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ briefId: string }> }
+) {
   try {
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { briefId } = context.params
+    const { briefId } = await params
     const body = await req.json()
     const { questionId, ...updates } = body
 
@@ -153,14 +153,17 @@ export async function PUT(req: NextRequest, context: RouteContext) {
 }
 
 // DELETE - удалить вопрос
-export async function DELETE(req: NextRequest, context: RouteContext) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ briefId: string }> }
+) {
   try {
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { briefId } = context.params
+    const { briefId } = await params
     const { searchParams } = new URL(req.url)
     const questionId = searchParams.get('questionId')
 
