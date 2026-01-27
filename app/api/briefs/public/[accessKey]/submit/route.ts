@@ -90,10 +90,8 @@ export async function POST(
         type: 'TASK_ASSIGNED', // TODO: добавить тип BRIEF_COMPLETED
         title: `Бриф заполнен: ${brief.title}`,
         message: `Клиент ${brief.clientName || 'без имени'} заполнил бриф для проекта ${brief.project.name}`,
-        metadata: {
-          briefId: brief.id,
-          projectId: brief.projectId,
-        },
+        entityType: 'brief',
+        entityId: brief.id,
       },
     })
 
