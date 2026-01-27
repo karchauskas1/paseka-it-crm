@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { sendTelegramNotification } from '@/lib/telegram'
+import TelegramBot from 'node-telegram-bot-api'
 
 export async function POST(
   req: NextRequest,
@@ -110,11 +110,12 @@ export async function POST(
 Откройте CRM для просмотра ответов.
         `.trim()
 
-        await sendTelegramNotification(
-          workspace.telegramBotToken,
-          workspace.telegramChatId,
-          message
-        )
+        const bot = new TelegramBot(workspace.telegramBotToken, {
+          polling: false,
+        })
+        await bot.sendMessage(workspace.telegramChatId, message, {
+          parse_mode: 'Markdown',
+        })
       }
     } catch (telegramError) {
       console.error('[Submit Brief] Telegram notification error:', telegramError)
