@@ -33,7 +33,7 @@ import {
   feedbackStatusColors,
 } from '@/lib/validations/feedback'
 import { priorityLabels, priorityColors } from '@/lib/validations/task'
-import { Plus, Search, User, Calendar, Trash2, ImageIcon, X } from 'lucide-react'
+import { Plus, Search, User, Calendar, Trash2, ImageIcon, X, Upload } from 'lucide-react'
 
 interface FeedbackClientProps {
   user: any
@@ -61,6 +61,8 @@ export default function FeedbackClient({
     description: '',
     priority: 'MEDIUM',
   })
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null)
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
 
   // Detail modal state
   const [selectedFeedback, setSelectedFeedback] = useState<any>(null)
@@ -79,18 +81,43 @@ export default function FeedbackClient({
     return matchesSearch && matchesType && matchesStatus
   })
 
+  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setScreenshotFile(file)
+      // Create preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setScreenshotPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const removeScreenshot = () => {
+    setScreenshotFile(null)
+    setScreenshotPreview(null)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
+      const formDataToSend = new FormData()
+      formDataToSend.append('type', formData.type)
+      formDataToSend.append('title', formData.title)
+      formDataToSend.append('description', formData.description)
+      formDataToSend.append('priority', formData.priority)
+      formDataToSend.append('workspaceId', workspace.id)
+
+      if (screenshotFile) {
+        formDataToSend.append('screenshot', screenshotFile)
+      }
+
       const res = await fetch('/api/feedback', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          workspaceId: workspace.id,
-        }),
+        body: formDataToSend,
       })
 
       if (!res.ok) {
@@ -107,6 +134,7 @@ export default function FeedbackClient({
         description: '',
         priority: 'MEDIUM',
       })
+      removeScreenshot()
       toast({
         title: 'Обратная связь создана',
         description: 'Спасибо за ваш отзыв!',
@@ -274,6 +302,40 @@ export default function FeedbackClient({
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* Screenshot Upload */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="screenshot">Скриншот</Label>
+                    {!screenshotPreview ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="screenshot"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleScreenshotChange}
+                          className="cursor-pointer"
+                        />
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <img
+                          src={screenshotPreview}
+                          alt="Screenshot preview"
+                          className="w-full h-auto max-h-60 object-contain rounded-lg border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2"
+                          onClick={removeScreenshot}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <DialogFooter>
