@@ -10,6 +10,7 @@ const RATE_LIMITS: Record<SocialPlatform, RateLimitConfig> = {
   HACKERNEWS: { maxRequests: 1000, windowMs: 60 * 1000 }, // Unlimited (pagination до 1000)
   HABR: { maxRequests: 100, windowMs: 60 * 1000 }, // RSS без ограничений
   VCRU: { maxRequests: 100, windowMs: 60 * 1000 }, // RSS без ограничений
+  LINKEDIN: { maxRequests: 20, windowMs: 60 * 1000 }, // 20/min for Google Search
   TELEGRAM: { maxRequests: 30, windowMs: 60 * 1000 }, // Bot API 30/sec
   PIKABU: { maxRequests: 60, windowMs: 60 * 1000 }, // TBD
   TWITTER: { maxRequests: 300, windowMs: 15 * 60 * 1000 }, // 300/15min
