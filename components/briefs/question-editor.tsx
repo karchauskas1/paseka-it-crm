@@ -52,8 +52,13 @@ export function QuestionEditor({ question, onSave, onDelete, onCancel }: Questio
   const [required, setRequired] = useState(question?.required || false)
 
   // Для SELECT/MULTI_SELECT
-  const [options, setOptions] = useState<string[]>(question?.options || [])
+  const [options, setOptions] = useState<string[]>(
+    Array.isArray(question?.options) ? question.options : (question?.options?.items || [])
+  )
   const [newOption, setNewOption] = useState('')
+  const [allowCustomOption, setAllowCustomOption] = useState(
+    question?.options?.allowCustom || false
+  )
 
   // Для SCALE
   const [scaleMin, setScaleMin] = useState(question?.scaleMin || 1)
@@ -70,7 +75,10 @@ export function QuestionEditor({ question, onSave, onDelete, onCancel }: Questio
     }
 
     if (type === 'SELECT' || type === 'MULTI_SELECT') {
-      data.options = options
+      data.options = {
+        items: options,
+        allowCustom: allowCustomOption,
+      }
     }
 
     if (type === 'SCALE') {
@@ -138,7 +146,7 @@ export function QuestionEditor({ question, onSave, onDelete, onCancel }: Questio
 
         {/* Опции для SELECT/MULTI_SELECT */}
         {(type === 'SELECT' || type === 'MULTI_SELECT') && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>Варианты ответа</Label>
             <div className="space-y-2">
               {options.map((option, index) => (
@@ -164,6 +172,16 @@ export function QuestionEditor({ question, onSave, onDelete, onCancel }: Questio
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="allowCustom"
+                checked={allowCustomOption}
+                onCheckedChange={(checked) => setAllowCustomOption(checked as boolean)}
+              />
+              <Label htmlFor="allowCustom" className="cursor-pointer">
+                Разрешить свой вариант ответа
+              </Label>
             </div>
           </div>
         )}

@@ -205,47 +205,113 @@ export default function BriefPublicPage() {
           )}
 
           {/* SELECT */}
-          {question.type === 'SELECT' && (
-            <RadioGroup
-              value={answer}
-              onValueChange={(v) => handleAnswerChange(question.id, v)}
-            >
-              {question.options?.map((option: string, i: number) => (
-                <div key={i} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option} id={`${question.id}-${i}`} />
-                  <Label htmlFor={`${question.id}-${i}`}>{option}</Label>
-                </div>
-              ))}
-            </RadioGroup>
-          )}
+          {question.type === 'SELECT' && (() => {
+            const optionsData = question.options
+            const items = Array.isArray(optionsData) ? optionsData : (optionsData?.items || [])
+            const allowCustom = optionsData?.allowCustom || false
+            const isCustomSelected = answer && !items.includes(answer)
+
+            return (
+              <div className="space-y-3">
+                <RadioGroup
+                  value={isCustomSelected ? '__custom__' : answer}
+                  onValueChange={(v) => {
+                    if (v !== '__custom__') {
+                      handleAnswerChange(question.id, v)
+                    }
+                  }}
+                >
+                  {items.map((option: string, i: number) => (
+                    <div key={i} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`${question.id}-${i}`} />
+                      <Label htmlFor={`${question.id}-${i}`}>{option}</Label>
+                    </div>
+                  ))}
+                  {allowCustom && (
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="__custom__" id={`${question.id}-custom`} />
+                      <Label htmlFor={`${question.id}-custom`}>Другое:</Label>
+                      <Input
+                        placeholder="Ваш вариант..."
+                        value={isCustomSelected ? answer : ''}
+                        onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                        onClick={() => handleAnswerChange(question.id, isCustomSelected ? answer : '')}
+                        className="flex-1"
+                      />
+                    </div>
+                  )}
+                </RadioGroup>
+              </div>
+            )
+          })()}
 
           {/* MULTI_SELECT */}
-          {question.type === 'MULTI_SELECT' && (
-            <div className="space-y-2">
-              {question.options?.map((option: string, i: number) => {
-                const selectedOptions = answer || []
-                const isChecked = selectedOptions.includes(option)
+          {question.type === 'MULTI_SELECT' && (() => {
+            const optionsData = question.options
+            const items = Array.isArray(optionsData) ? optionsData : (optionsData?.items || [])
+            const allowCustom = optionsData?.allowCustom || false
+            const selectedOptions = answer || []
 
-                return (
-                  <div key={i} className="flex items-center space-x-2">
+            // Find custom value (value not in items list)
+            const customValue = selectedOptions.find((opt: string) => !items.includes(opt)) || ''
+            const isCustomChecked = customValue !== ''
+
+            return (
+              <div className="space-y-2">
+                {items.map((option: string, i: number) => {
+                  const isChecked = selectedOptions.includes(option)
+
+                  return (
+                    <div key={i} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`${question.id}-${i}`}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          const newOptions = checked
+                            ? [...selectedOptions, option]
+                            : selectedOptions.filter((o: string) => o !== option)
+                          handleAnswerChange(question.id, newOptions)
+                        }}
+                      />
+                      <Label htmlFor={`${question.id}-${i}`} className="cursor-pointer">
+                        {option}
+                      </Label>
+                    </div>
+                  )
+                })}
+                {allowCustom && (
+                  <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={`${question.id}-${i}`}
-                      checked={isChecked}
+                      id={`${question.id}-custom`}
+                      checked={isCustomChecked}
                       onCheckedChange={(checked) => {
-                        const newOptions = checked
-                          ? [...selectedOptions, option]
-                          : selectedOptions.filter((o: string) => o !== option)
-                        handleAnswerChange(question.id, newOptions)
+                        if (checked) {
+                          handleAnswerChange(question.id, [...selectedOptions.filter((o: string) => items.includes(o)), ''])
+                        } else {
+                          handleAnswerChange(question.id, selectedOptions.filter((o: string) => items.includes(o)))
+                        }
                       }}
                     />
-                    <Label htmlFor={`${question.id}-${i}`} className="cursor-pointer">
-                      {option}
-                    </Label>
+                    <Label htmlFor={`${question.id}-custom`}>Другое:</Label>
+                    <Input
+                      placeholder="Ваш вариант..."
+                      value={customValue}
+                      onChange={(e) => {
+                        const standardOptions = selectedOptions.filter((o: string) => items.includes(o))
+                        handleAnswerChange(question.id, [...standardOptions, e.target.value])
+                      }}
+                      onClick={() => {
+                        if (!isCustomChecked) {
+                          handleAnswerChange(question.id, [...selectedOptions, ''])
+                        }
+                      }}
+                      className="flex-1"
+                    />
                   </div>
-                )
-              })}
-            </div>
-          )}
+                )}
+              </div>
+            )
+          })()}
 
           {/* SCALE */}
           {question.type === 'SCALE' && (
