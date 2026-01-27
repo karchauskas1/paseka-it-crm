@@ -17,15 +17,23 @@ interface CreateBriefRequest {
 
 export async function POST(req: NextRequest) {
   try {
+    console.log('[Create Brief] Starting...')
+
     const user = await getCurrentUser()
+    console.log('[Create Brief] User:', user?.id)
+
     if (!user) {
+      console.log('[Create Brief] No user found')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body: CreateBriefRequest = await req.json()
+    console.log('[Create Brief] Body:', { projectId: body.projectId, title: body.title })
+
     const { projectId, title, description, accessKey } = body
 
     if (!projectId || !title || !accessKey) {
+      console.log('[Create Brief] Missing required fields')
       return NextResponse.json(
         { error: 'projectId, title, and accessKey are required' },
         { status: 400 }
@@ -33,6 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Проверить доступ к проекту
+    console.log('[Create Brief] Checking project access...')
     const project = await db.project.findFirst({
       where: {
         id: projectId,
@@ -47,8 +56,11 @@ export async function POST(req: NextRequest) {
     })
 
     if (!project) {
+      console.log('[Create Brief] Project not found or no access')
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
+
+    console.log('[Create Brief] Project found, creating brief...')
 
     // Создать бриф
     const brief = await db.brief.create({
@@ -69,9 +81,11 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    console.log('[Create Brief] Brief created:', brief.id)
     return NextResponse.json({ brief })
   } catch (error: any) {
     console.error('[Create Brief] Error:', error)
+    console.error('[Create Brief] Error stack:', error.stack)
     return NextResponse.json(
       { error: error.message || 'Failed to create brief' },
       { status: 500 }
