@@ -517,6 +517,8 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
   }
 
   // Редактирование существующего брифа
+  if (!brief) return null
+
   return renderLayout(
     <div className="space-y-6">
       {/* Информация о брифе */}
