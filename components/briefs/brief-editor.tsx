@@ -561,7 +561,6 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                disabled={brief.status !== 'DRAFT'}
               />
             </div>
             <div className="space-y-2">
@@ -569,7 +568,6 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
               <Input
                 value={accessKey}
                 onChange={(e) => setAccessKey(e.target.value)}
-                disabled={brief.status !== 'DRAFT'}
               />
             </div>
           </div>
@@ -579,16 +577,20 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              disabled={brief.status !== 'DRAFT'}
               rows={2}
             />
           </div>
 
-          {brief.status === 'DRAFT' && (
+          <div className="space-y-2">
             <Button onClick={updateBriefInfo} disabled={isSaving}>
               {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
             </Button>
-          )}
+            {brief.status !== 'DRAFT' && (
+              <p className="text-sm text-amber-600 dark:text-amber-500">
+                ⚠️ Бриф уже отправлен клиенту. Изменения будут видны немедленно.
+              </p>
+            )}
+          </div>
 
           {brief.status !== 'DRAFT' && (
             <div className="flex items-center gap-2">
@@ -620,16 +622,14 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Вопросы ({brief.questions.length})</CardTitle>
-            {brief.status === 'DRAFT' && (
-              <Button
-                size="sm"
-                onClick={() => setIsAddingQuestion(true)}
-                disabled={isAddingQuestion || editingQuestionId !== null}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Добавить вопрос
-              </Button>
-            )}
+            <Button
+              size="sm"
+              onClick={() => setIsAddingQuestion(true)}
+              disabled={isAddingQuestion || editingQuestionId !== null}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Добавить вопрос
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -686,15 +686,13 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
                           </>
                         )}
                       </div>
-                      {brief.status === 'DRAFT' && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setEditingQuestionId(question.id)}
-                        >
-                          Редактировать
-                        </Button>
-                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setEditingQuestionId(question.id)}
+                      >
+                        Редактировать
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
