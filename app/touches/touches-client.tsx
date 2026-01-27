@@ -545,6 +545,18 @@ export default function TouchesClient({ user, workspace, userRole, members }: To
                         {touch.contactPhone}
                       </span>
                     )}
+                    {touch.socialMedia && (
+                      <a
+                        href={touch.socialMedia.startsWith('http') ? touch.socialMedia : `https://${touch.socialMedia}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-primary"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <AtSign className="h-3 w-3" />
+                        <span className="truncate max-w-[100px]">Соцсети</span>
+                      </a>
+                    )}
                   </div>
 
                   {touch.description && (
@@ -870,7 +882,7 @@ export default function TouchesClient({ user, workspace, userRole, members }: To
                   onChange={(e) =>
                     setFormData({ ...formData, socialMedia: e.target.value })
                   }
-                  placeholder="@username или ссылка"
+                  placeholder="Вставьте ссылку (https://t.me/username)"
                 />
               </div>
             </div>
@@ -1017,7 +1029,7 @@ export default function TouchesClient({ user, workspace, userRole, members }: To
                   onChange={(e) =>
                     setFormData({ ...formData, socialMedia: e.target.value })
                   }
-                  placeholder="@username или ссылка"
+                  placeholder="Вставьте ссылку (https://t.me/username)"
                 />
               </div>
             </div>
