@@ -20,6 +20,7 @@ import {
   Download,
   Trash2,
   PlusCircle,
+  Files,
 } from 'lucide-react'
 
 interface Brief {
@@ -48,6 +49,7 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isDuplicating, setIsDuplicating] = useState(false)
 
   // Форма создания/редактирования брифа
   const [title, setTitle] = useState('')
@@ -211,6 +213,30 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
       toast.error(error.message || 'Ошибка удаления брифа')
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  const duplicateBrief = async () => {
+    if (!brief) return
+
+    setIsDuplicating(true)
+    try {
+      const response = await fetch(`/api/briefs/${brief.id}/duplicate`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) throw new Error('Failed to duplicate brief')
+
+      const data = await response.json()
+      toast.success('Бриф скопирован')
+
+      // Обновить список и выбрать новый бриф
+      await loadProjectBriefs()
+      selectBrief(data.brief)
+    } catch (error: any) {
+      toast.error(error.message || 'Ошибка копирования брифа')
+    } finally {
+      setIsDuplicating(false)
     }
   }
 
@@ -541,9 +567,23 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={duplicateBrief}
+                disabled={isDuplicating}
+                title="Копировать бриф"
+              >
+                {isDuplicating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Files className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={deleteBrief}
                 disabled={isDeleting}
                 className="text-destructive hover:text-destructive"
+                title="Удалить бриф"
               >
                 {isDeleting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
