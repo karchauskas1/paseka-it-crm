@@ -160,7 +160,7 @@ export default function BriefPublicPage() {
                   )}
                 </h3>
                 {question.description && (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
                     {question.description}
                   </p>
                 )}
