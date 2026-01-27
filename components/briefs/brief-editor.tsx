@@ -736,5 +736,5 @@ export function BriefEditor({ projectId, briefId, onClose }: BriefEditorProps) {
         </Card>
       )}
     </div>
-  ))
+  )
 }
