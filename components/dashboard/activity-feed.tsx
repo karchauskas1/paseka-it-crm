@@ -31,9 +31,9 @@ interface ActivityFeedProps {
 
 export function ActivityFeed({ activities }: ActivityFeedProps) {
   return (
-    <div className="bg-white rounded-lg shadow border">
+    <div className="bg-card rounded-lg shadow border">
       <div className="px-4 py-3 border-b flex items-center justify-between">
-        <h3 className="text-base font-semibold text-gray-900">Последняя активность</h3>
+        <h3 className="text-base font-semibold text-foreground">Последняя активность</h3>
         <Link
           href="/activity"
           className="text-xs text-blue-600 hover:text-blue-800"
@@ -43,7 +43,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
       </div>
       <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
         {activities.length === 0 ? (
-          <div className="px-4 py-8 text-center text-gray-500 text-sm">
+          <div className="px-4 py-8 text-center text-muted-foreground text-sm">
             Нет активности
           </div>
         ) : (
@@ -62,20 +62,20 @@ function ActivityItem({ activity }: { activity: Activity }) {
   const link = getActivityLink(activity)
 
   return (
-    <Link href={link} className="block px-4 py-3 hover:bg-gray-50 transition-colors">
+    <Link href={link} className="block px-4 py-3 hover:bg-muted transition-colors">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">{icon}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-900">
+          <p className="text-sm text-foreground">
             <span className="font-medium">{activity.user.name}</span>{' '}
-            <span className="text-gray-600">{description}</span>
+            <span className="text-muted-foreground">{description}</span>
           </p>
           {activity.project && (
-            <p className="text-xs text-gray-500 mt-0.5 truncate">
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
               {activity.project.name}
             </p>
           )}
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {formatDistanceToNow(new Date(activity.createdAt), {
               addSuffix: true,
               locale: ru,
@@ -104,7 +104,7 @@ function getActivityIcon(type: string) {
     case 'ASSIGNMENT':
       return <User className={`${iconClasses} text-indigo-500`} />
     default:
-      return <Pencil className={`${iconClasses} text-gray-500`} />
+      return <Pencil className={`${iconClasses} text-muted-foreground`} />
   }
 }
 

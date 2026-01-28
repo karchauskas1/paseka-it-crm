@@ -10,9 +10,9 @@ interface TableSkeletonProps {
 
 export function TableSkeleton({ rows = 5, columns = 5, className }: TableSkeletonProps) {
   return (
-    <div className={cn('bg-white rounded-lg shadow border overflow-hidden', className)}>
+    <div className={cn('bg-card rounded-lg shadow border overflow-hidden', className)}>
       {/* Header */}
-      <div className="border-b bg-gray-50 px-6 py-3 animate-pulse">
+      <div className="border-b bg-muted px-6 py-3 animate-pulse">
         <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
           {Array.from({ length: columns }).map((_, i) => (
             <div key={i} className="h-4 bg-gray-200 rounded" />

@@ -165,25 +165,25 @@ export default function TemplatesClient({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2 text-sm">
-                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 flex items-center">
+                <Link href="/dashboard" className="text-muted-foreground hover:text-foreground flex items-center">
                   <Home className="h-4 w-4 mr-1" />
                   Dashboard
                 </Link>
-                <span className="text-gray-400">/</span>
-                <span className="text-gray-900">Шаблоны</span>
+                <span className="text-muted-foreground">/</span>
+                <span className="text-foreground">Шаблоны</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">Шаблоны проектов</h1>
-              <p className="text-sm text-gray-600">{workspace.name}</p>
+              <h1 className="text-2xl font-bold text-foreground">Шаблоны проектов</h1>
+              <p className="text-sm text-muted-foreground">{workspace.name}</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700">{user.name}</span>
+              <span className="text-sm text-foreground">{user.name}</span>
               <Button onClick={handleLogout} variant="outline" size="sm">
                 Выйти
               </Button>
@@ -193,36 +193,36 @@ export default function TemplatesClient({
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b">
+      <nav className="bg-card border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             <Link
               href="/dashboard"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Dashboard
             </Link>
             <Link
               href="/projects"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Проекты
             </Link>
             <Link
               href="/clients"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Клиенты
             </Link>
             <Link
               href="/tasks"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Задачи
             </Link>
                         <Link
               href={`/pain-radar?workspace=${workspace.id}`}
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Pain Radar
             </Link>
@@ -240,7 +240,7 @@ export default function TemplatesClient({
         {/* Search */}
         <div className="mb-6">
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Поиск шаблонов..."
               value={searchQuery}
@@ -256,7 +256,7 @@ export default function TemplatesClient({
             {filteredTemplates.map((template) => (
               <div
                 key={template.id}
-                className="bg-white rounded-lg shadow border overflow-hidden hover:shadow-md transition-shadow"
+                className="bg-card rounded-lg shadow border overflow-hidden hover:shadow-md transition-shadow"
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
@@ -265,8 +265,8 @@ export default function TemplatesClient({
                         <FileText className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">{template.name}</h3>
-                        <span className="text-xs text-gray-500">
+                        <h3 className="font-semibold text-foreground">{template.name}</h3>
+                        <span className="text-xs text-muted-foreground">
                           {typeLabels[template.type] || template.type}
                         </span>
                       </div>
@@ -294,12 +294,12 @@ export default function TemplatesClient({
                   </div>
 
                   {template.description && (
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                       {template.description}
                     </p>
                   )}
 
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <CheckSquare className="h-4 w-4" />
                       <span>{template._count.tasks} задач</span>
@@ -327,10 +327,10 @@ export default function TemplatesClient({
         ) : (
           <div className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500 mb-2">
+            <p className="text-muted-foreground mb-2">
               {searchQuery ? 'Шаблоны не найдены' : 'Шаблонов пока нет'}
             </p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Создайте шаблон из существующего проекта на странице проекта
             </p>
           </div>

@@ -19,11 +19,11 @@ interface TodayTasksProps {
 
 export function TodayTasks({ tasks }: TodayTasksProps) {
   return (
-    <div className="bg-white rounded-lg shadow border">
+    <div className="bg-card rounded-lg shadow border">
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-blue-600" />
-          <h3 className="text-base font-semibold text-gray-900">Задачи на сегодня</h3>
+          <h3 className="text-base font-semibold text-foreground">Задачи на сегодня</h3>
         </div>
         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
           {tasks.length}
@@ -31,7 +31,7 @@ export function TodayTasks({ tasks }: TodayTasksProps) {
       </div>
       <div className="divide-y divide-gray-100 max-h-[300px] overflow-y-auto">
         {tasks.length === 0 ? (
-          <div className="px-4 py-6 text-center text-gray-500 text-sm">
+          <div className="px-4 py-6 text-center text-muted-foreground text-sm">
             <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-400" />
             Нет задач на сегодня
           </div>
@@ -42,7 +42,7 @@ export function TodayTasks({ tasks }: TodayTasksProps) {
         )}
       </div>
       {tasks.length > 0 && (
-        <div className="px-4 py-2 border-t bg-gray-50">
+        <div className="px-4 py-2 border-t bg-muted">
           <Link
             href="/tasks?due=today"
             className="text-xs text-blue-600 hover:text-blue-800"
@@ -61,24 +61,24 @@ function TaskItem({ task }: { task: Task }) {
   return (
     <Link
       href={`/tasks?id=${task.id}`}
-      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+      className="block px-4 py-3 hover:bg-muted transition-colors"
     >
       <div className="flex items-start gap-3">
         <div className={`flex-shrink-0 mt-0.5 ${priorityConfig.iconColor}`}>
           {priorityConfig.icon}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{task.title}</p>
+          <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
           <div className="flex items-center gap-2 mt-1">
             {task.project && (
-              <span className="text-xs text-gray-500 truncate">
+              <span className="text-xs text-muted-foreground truncate">
                 {task.project.name}
               </span>
             )}
             {task.assignee && (
               <>
                 <span className="text-gray-300">•</span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   {task.assignee.name}
                 </span>
               </>
@@ -120,8 +120,8 @@ function getPriorityConfig(priority: string) {
       return {
         label: 'Низкий',
         icon: <Clock className="h-4 w-4" />,
-        iconColor: 'text-gray-400',
-        badgeColor: 'bg-gray-100 text-gray-600',
+        iconColor: 'text-muted-foreground',
+        badgeColor: 'bg-muted text-muted-foreground',
       }
   }
 }

@@ -81,10 +81,10 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
   })
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-card rounded-lg shadow overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-muted border-b">
             <tr>
               <SortableHeader
                 field="name"
@@ -135,14 +135,14 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                 currentOrder={sortOrder}
                 onSort={handleSort}
               />
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Задачи
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {sortedProjects.map((project) => (
-              <tr key={project.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={project.id} className="hover:bg-muted transition-colors">
                 <td className="px-4 py-3">
                   <Link
                     href={`/projects/${project.id}`}
@@ -151,7 +151,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                     {project.name}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="px-4 py-3 text-sm text-muted-foreground">
                   {project.client?.name || '—'}
                 </td>
                 <td className="px-4 py-3">
@@ -164,18 +164,18 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                     {getTypeLabel(project.type)}
                   </Badge>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="px-4 py-3 text-sm text-muted-foreground">
                   {project.budget ? `${project.budget.toLocaleString('ru-RU')} ₽` : '—'}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="px-4 py-3 text-sm text-muted-foreground">
                   {project.revenue ? `${project.revenue.toLocaleString('ru-RU')} ₽` : '—'}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="px-4 py-3 text-sm text-muted-foreground">
                   {project.endDatePlan
                     ? format(new Date(project.endDatePlan), 'd MMM yyyy', { locale: ru })
                     : '—'}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="px-4 py-3 text-sm text-muted-foreground">
                   {project._count.tasks}
                 </td>
               </tr>
@@ -184,7 +184,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
         </table>
       </div>
       {sortedProjects.length === 0 && (
-        <div className="px-4 py-8 text-center text-gray-500">
+        <div className="px-4 py-8 text-center text-muted-foreground">
           Проекты не найдены
         </div>
       )}
@@ -209,7 +209,7 @@ function SortableHeader({
 
   return (
     <th
-      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+      className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted select-none"
       onClick={() => onSort(field)}
     >
       <div className="flex items-center gap-1">

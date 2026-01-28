@@ -26,38 +26,38 @@ export function FinanceBlock({ budget, revenue, className }: FinanceBlockProps) 
   const isProfit = profit !== null ? profit >= 0 : true
 
   return (
-    <div className={cn('bg-white rounded-lg border p-4', className)}>
-      <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <DollarSign className="h-4 w-4 text-gray-500" />
+    <div className={cn('bg-card rounded-lg border p-4', className)}>
+      <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+        <DollarSign className="h-4 w-4 text-muted-foreground" />
         Финансы
       </h3>
 
       <div className="grid grid-cols-3 gap-4">
         {/* Бюджет */}
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Wallet className="h-3.5 w-3.5" />
             <span>Бюджет</span>
           </div>
-          <div className="text-lg font-semibold text-gray-900">
+          <div className="text-lg font-semibold text-foreground">
             {formatCurrency(budget)}
           </div>
         </div>
 
         {/* Выручка */}
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <PiggyBank className="h-3.5 w-3.5" />
             <span>Выручка</span>
           </div>
-          <div className="text-lg font-semibold text-gray-900">
+          <div className="text-lg font-semibold text-foreground">
             {formatCurrency(revenue)}
           </div>
         </div>
 
         {/* Прибыль / Убыток */}
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             {profit === null ? (
               <DollarSign className="h-3.5 w-3.5" />
             ) : isProfit ? (
@@ -70,7 +70,7 @@ export function FinanceBlock({ budget, revenue, className }: FinanceBlockProps) 
           <div
             className={cn(
               'text-lg font-semibold',
-              profit === null ? 'text-gray-400' : isProfit ? 'text-green-600' : 'text-red-600'
+              profit === null ? 'text-muted-foreground' : isProfit ? 'text-green-600' : 'text-red-600'
             )}
           >
             {profit === null ? '—' : `${isProfit ? '+' : ''}${formatCurrency(profit)}`}
@@ -82,7 +82,7 @@ export function FinanceBlock({ budget, revenue, className }: FinanceBlockProps) 
       {margin !== null && (
         <div className="mt-4 pt-4 border-t">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Маржинальность</span>
+            <span className="text-sm text-muted-foreground">Маржинальность</span>
             <span
               className={cn(
                 'text-sm font-medium',

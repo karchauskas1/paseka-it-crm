@@ -17,11 +17,11 @@ export function TeamWorkload({ members }: TeamWorkloadProps) {
   const maxTasks = Math.max(...members.map((m) => m.tasksInProgress), 1)
 
   return (
-    <div className="bg-white rounded-lg shadow border">
+    <div className="bg-card rounded-lg shadow border">
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-indigo-600" />
-          <h3 className="text-base font-semibold text-gray-900">Загрузка команды</h3>
+          <h3 className="text-base font-semibold text-foreground">Загрузка команды</h3>
         </div>
         <Link
           href="/team"
@@ -32,7 +32,7 @@ export function TeamWorkload({ members }: TeamWorkloadProps) {
       </div>
       <div className="p-4 space-y-3">
         {members.length === 0 ? (
-          <div className="py-4 text-center text-gray-500 text-sm">
+          <div className="py-4 text-center text-muted-foreground text-sm">
             Нет активных задач
           </div>
         ) : (
@@ -65,12 +65,12 @@ function WorkloadBar({
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-medium text-gray-700 truncate">{name}</span>
+        <span className="text-sm font-medium text-foreground truncate">{name}</span>
         <span className={`text-xs ${workloadLevel.textColor}`}>
           {tasks} задач
         </span>
       </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-muted rounded-full overflow-hidden">
         <div
           className={`h-full transition-all duration-300 ${workloadLevel.barColor}`}
           style={{ width: `${percentage}%` }}

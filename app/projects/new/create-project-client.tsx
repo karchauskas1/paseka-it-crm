@@ -161,17 +161,17 @@ export default function CreateProjectClient({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">PASEKA IT CRM</h1>
-              <p className="text-sm text-gray-600">{workspace.name}</p>
+              <h1 className="text-2xl font-bold text-foreground">PASEKA IT CRM</h1>
+              <p className="text-sm text-muted-foreground">{workspace.name}</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700">{user.name}</span>
+              <span className="text-sm text-foreground">{user.name}</span>
               <Button onClick={handleLogout} variant="outline" size="sm">
                 Выйти
               </Button>
@@ -181,12 +181,12 @@ export default function CreateProjectClient({
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b">
+      <nav className="bg-card border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             <Link
               href="/dashboard"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Dashboard
             </Link>
@@ -198,19 +198,19 @@ export default function CreateProjectClient({
             </Link>
             <Link
               href="/clients"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Клиенты
             </Link>
             <Link
               href="/tasks"
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Задачи
             </Link>
                       <Link
               href={`/pain-radar?workspace=${workspace.id}`}
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Pain Radar
             </Link>
@@ -223,20 +223,20 @@ export default function CreateProjectClient({
         <div className="mb-6">
           <Link
             href="/projects"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Назад к проектам
           </Link>
-          <h2 className="text-2xl font-bold text-gray-900">Новый проект</h2>
-          <p className="mt-1 text-sm text-gray-600">
+          <h2 className="text-2xl font-bold text-foreground">Новый проект</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Заполните информацию о проекте
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold mb-4">Основная информация</h3>
             <div className="space-y-4">
               <div className="grid gap-2">
@@ -266,7 +266,7 @@ export default function CreateProjectClient({
                     </SelectTrigger>
                     <SelectContent>
                       {clientsList.length === 0 ? (
-                        <div className="p-2 text-center text-gray-500 text-sm">
+                        <div className="p-2 text-center text-muted-foreground text-sm">
                           Нет клиентов
                         </div>
                       ) : (
@@ -348,7 +348,7 @@ export default function CreateProjectClient({
           </div>
 
           {/* Budget & Dates */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold mb-4">Бюджет и сроки</h3>
             <div className="grid grid-cols-3 gap-4">
               <div className="grid gap-2">

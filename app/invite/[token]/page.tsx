@@ -27,10 +27,10 @@ export default async function InvitePage({ params }: PageProps) {
   // Если инвайт не найден
   if (!invite) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow max-w-md w-full text-center">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
+        <div className="bg-card p-8 rounded-lg shadow max-w-md w-full text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Приглашение не найдено</h1>
-          <p className="text-gray-600">Ссылка на приглашение недействительна или была удалена.</p>
+          <p className="text-muted-foreground">Ссылка на приглашение недействительна или была удалена.</p>
         </div>
       </div>
     )
@@ -39,10 +39,10 @@ export default async function InvitePage({ params }: PageProps) {
   // Если инвайт уже использован
   if (invite.usedAt) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow max-w-md w-full text-center">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
+        <div className="bg-card p-8 rounded-lg shadow max-w-md w-full text-center">
           <h1 className="text-2xl font-bold text-orange-600 mb-4">Приглашение уже использовано</h1>
-          <p className="text-gray-600">Это приглашение уже было принято.</p>
+          <p className="text-muted-foreground">Это приглашение уже было принято.</p>
         </div>
       </div>
     )
@@ -51,10 +51,10 @@ export default async function InvitePage({ params }: PageProps) {
   // Если инвайт истёк
   if (new Date() > invite.expiresAt) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow max-w-md w-full text-center">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
+        <div className="bg-card p-8 rounded-lg shadow max-w-md w-full text-center">
           <h1 className="text-2xl font-bold text-orange-600 mb-4">Приглашение истекло</h1>
-          <p className="text-gray-600">Срок действия этого приглашения закончился. Запросите новое приглашение.</p>
+          <p className="text-muted-foreground">Срок действия этого приглашения закончился. Запросите новое приглашение.</p>
         </div>
       </div>
     )

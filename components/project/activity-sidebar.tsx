@@ -71,13 +71,13 @@ export function ActivitySidebar({ projectId, isOpen, onClose }: ActivitySidebarP
       {/* Sidebar */}
       <div
         className={cn(
-          'fixed right-0 top-0 h-full w-80 bg-white shadow-xl border-l z-50 transform transition-transform duration-300 ease-in-out',
+          'fixed right-0 top-0 h-full w-80 bg-card shadow-xl border-l z-50 transform transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="font-semibold text-foreground flex items-center gap-2">
             <Activity className="h-4 w-4" />
             История активности
           </h3>
@@ -90,10 +90,10 @@ export function ActivitySidebar({ projectId, isOpen, onClose }: ActivitySidebarP
         <div className="overflow-y-auto h-[calc(100%-64px)] p-4">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : activities.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               Нет активности
             </div>
           ) : (
@@ -107,7 +107,7 @@ export function ActivitySidebar({ projectId, isOpen, onClose }: ActivitySidebarP
                 return (
                   <div key={activity.id}>
                     {showDate && (
-                      <div className="text-xs font-medium text-gray-500 mb-2">
+                      <div className="text-xs font-medium text-muted-foreground mb-2">
                         {format(new Date(activity.createdAt), 'd MMMM yyyy', {
                           locale: ru,
                         })}
@@ -126,13 +126,13 @@ export function ActivitySidebar({ projectId, isOpen, onClose }: ActivitySidebarP
 
                       {/* Content */}
                       <div className="flex-1 pb-4">
-                        <div className="text-xs text-gray-500 mb-0.5">
+                        <div className="text-xs text-muted-foreground mb-0.5">
                           {format(new Date(activity.createdAt), 'HH:mm')}
                           {activity.user && (
                             <span className="ml-1">• {activity.user.name}</span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm text-foreground">
                           <span className="font-medium text-blue-600 mr-1">
                             {activityTypeIcons[activity.type] || activity.type}
                           </span>
@@ -152,10 +152,10 @@ export function ActivitySidebar({ projectId, isOpen, onClose }: ActivitySidebarP
       {!isOpen && (
         <button
           onClick={() => onClose()}
-          className="fixed right-0 top-1/2 -translate-y-1/2 bg-white shadow-lg border rounded-l-lg p-2 z-30 hover:bg-gray-50 transition-colors"
+          className="fixed right-0 top-1/2 -translate-y-1/2 bg-card shadow-lg border rounded-l-lg p-2 z-30 hover:bg-muted transition-colors"
           title="История активности"
         >
-          <Activity className="h-5 w-5 text-gray-600" />
+          <Activity className="h-5 w-5 text-muted-foreground" />
         </button>
       )}
     </>

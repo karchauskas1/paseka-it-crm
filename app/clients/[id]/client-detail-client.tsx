@@ -211,7 +211,7 @@ export default function ClientDetailClient({
       <div className="mb-6">
           <Link
             href="/clients"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Назад к клиентам
@@ -222,7 +222,7 @@ export default function ClientDetailClient({
           {/* Client Info */}
           <div className="lg:col-span-2 space-y-6">
             {/* Main Card */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg shadow p-6">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
                   <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
@@ -231,9 +231,9 @@ export default function ClientDetailClient({
                     </span>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{client.name}</h2>
+                    <h2 className="text-2xl font-bold text-foreground">{client.name}</h2>
                     {client.company && (
-                      <p className="text-gray-600 flex items-center mt-1">
+                      <p className="text-muted-foreground flex items-center mt-1">
                         <Building2 className="h-4 w-4 mr-1" />
                         {client.company}
                       </p>
@@ -257,19 +257,19 @@ export default function ClientDetailClient({
 
               {/* Contact Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                  <Mail className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-xs text-gray-500">Email</p>
+                    <p className="text-xs text-muted-foreground">Email</p>
                     <p className="text-sm font-medium">
                       {client.email || '—'}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Phone className="h-5 w-5 text-gray-400" />
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                  <Phone className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-xs text-gray-500">Телефон</p>
+                    <p className="text-xs text-muted-foreground">Телефон</p>
                     <p className="text-sm font-medium">
                       {client.phone || '—'}
                     </p>
@@ -281,8 +281,8 @@ export default function ClientDetailClient({
               {client.socialLinks && Array.isArray(client.socialLinks) && client.socialLinks.length > 0 && (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <AtSign className="h-4 w-4 text-gray-400" />
-                    <h4 className="text-sm font-medium text-gray-700">Социальные сети</h4>
+                    <AtSign className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="text-sm font-medium text-foreground">Социальные сети</h4>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {client.socialLinks.map((link: any, index: number) => (
@@ -302,7 +302,7 @@ export default function ClientDetailClient({
               )}
 
               {/* Source & Created */}
-              <div className="flex items-center gap-6 text-sm text-gray-500">
+              <div className="flex items-center gap-6 text-sm text-muted-foreground">
                 <div>
                   <span className="font-medium">Источник:</span>{' '}
                   {sourceLabels[client.source]}
@@ -315,23 +315,23 @@ export default function ClientDetailClient({
             </div>
 
             {/* Notes */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <FileText className="h-5 w-5 mr-2 text-gray-400" />
+                <FileText className="h-5 w-5 mr-2 text-muted-foreground" />
                 Заметки
               </h3>
               {client.notes ? (
-                <p className="text-gray-700 whitespace-pre-wrap">{client.notes}</p>
+                <p className="text-foreground whitespace-pre-wrap">{client.notes}</p>
               ) : (
-                <p className="text-gray-400 italic">Нет заметок</p>
+                <p className="text-muted-foreground italic">Нет заметок</p>
               )}
             </div>
 
             {/* Projects */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold flex items-center">
-                  <FolderKanban className="h-5 w-5 mr-2 text-gray-400" />
+                  <FolderKanban className="h-5 w-5 mr-2 text-muted-foreground" />
                   Проекты клиента
                 </h3>
                 <Link href={`/projects/new?clientId=${client.id}`}>
@@ -340,7 +340,7 @@ export default function ClientDetailClient({
               </div>
 
               {client.projects.length === 0 ? (
-                <p className="text-gray-400 text-center py-8">
+                <p className="text-muted-foreground text-center py-8">
                   Нет проектов с этим клиентом
                 </p>
               ) : (
@@ -353,10 +353,10 @@ export default function ClientDetailClient({
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium text-gray-900">
+                          <h4 className="font-medium text-foreground">
                             {project.name}
                           </h4>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             {project._count.tasks} задач
                           </p>
                         </div>
@@ -372,21 +372,21 @@ export default function ClientDetailClient({
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold mb-4">Статистика</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Проектов</span>
+                  <span className="text-muted-foreground">Проектов</span>
                   <span className="font-semibold">{client.projects.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Активных</span>
+                  <span className="text-muted-foreground">Активных</span>
                   <span className="font-semibold">
                     {client.projects.filter((p: any) => p.status === 'IN_PROGRESS').length}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Завершённых</span>
+                  <span className="text-muted-foreground">Завершённых</span>
                   <span className="font-semibold">
                     {client.projects.filter((p: any) => p.status === 'COMPLETED').length}
                   </span>
@@ -395,14 +395,14 @@ export default function ClientDetailClient({
             </div>
 
             {/* AI Analysis */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <Sparkles className="h-5 w-5 mr-2 text-purple-500" />
                 AI Анализ
               </h3>
               {/* Show saved analysis info if available */}
               {client.aiAnalyzedAt && !aiAnalysis && (
-                <div className="text-xs text-gray-500 mb-2">
+                <div className="text-xs text-muted-foreground mb-2">
                   {client.aiAnalysis?.generatedByName && (
                     <span className="block">Автор: {client.aiAnalysis.generatedByName}</span>
                   )}
@@ -417,7 +417,7 @@ export default function ClientDetailClient({
                   </span>
                 </div>
               )}
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 {(aiAnalysis || client.aiAnalysis) ? 'Обновите анализ для получения свежих рекомендаций' : 'Получите AI-рекомендации по работе с этим клиентом'}
               </p>
               <Button
@@ -440,7 +440,7 @@ export default function ClientDetailClient({
               {/* Show fresh analysis first, then saved one */}
               {(aiAnalysis || client.aiAnalysis) && (
                 <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  <p className="text-sm text-foreground whitespace-pre-wrap">
                     {aiAnalysis || (typeof client.aiAnalysis === 'string' ? client.aiAnalysis : client.aiAnalysis?.text)}
                   </p>
                 </div>
@@ -448,11 +448,11 @@ export default function ClientDetailClient({
             </div>
 
             {/* Danger Zone */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold mb-4 text-red-600">
                 Опасная зона
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 Удаление клиента невозможно отменить. Все связанные данные будут
                 удалены.
               </p>

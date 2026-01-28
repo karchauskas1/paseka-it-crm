@@ -23,9 +23,9 @@ interface ProjectsCardsProps {
 export function ProjectsCards({ projects }: ProjectsCardsProps) {
   if (projects.length === 0) {
     return (
-      <div className="col-span-full text-center py-12 bg-white rounded-lg shadow">
+      <div className="col-span-full text-center py-12 bg-card rounded-lg shadow">
         <FolderKanban className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-        <p className="text-lg font-medium text-gray-900">Проекты не найдены</p>
+        <p className="text-lg font-medium text-foreground">Проекты не найдены</p>
         <Link href="/projects/new">
           <Button className="mt-4">Создать первый проект</Button>
         </Link>
@@ -39,10 +39,10 @@ export function ProjectsCards({ projects }: ProjectsCardsProps) {
         <Link
           key={project.id}
           href={`/projects/${project.id}`}
-          className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 block"
+          className="bg-card rounded-lg shadow hover:shadow-md transition-shadow p-6 block"
         >
           <div className="flex items-start justify-between mb-3">
-            <h3 className="font-semibold text-lg text-gray-900 flex-1 mr-2">
+            <h3 className="font-semibold text-lg text-foreground flex-1 mr-2">
               {project.name}
             </h3>
             <Badge variant={getTypeVariant(project.type)}>
@@ -50,12 +50,12 @@ export function ProjectsCards({ projects }: ProjectsCardsProps) {
             </Badge>
           </div>
 
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             {project.client?.name || 'Без клиента'}
           </p>
 
           {project.description && (
-            <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
               {project.description}
             </p>
           )}
@@ -64,7 +64,7 @@ export function ProjectsCards({ projects }: ProjectsCardsProps) {
             <Badge variant={getStatusVariant(project.status)}>
               {getStatusLabel(project.status)}
             </Badge>
-            <div className="flex items-center gap-3 text-xs text-gray-500">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
               {project.budget && (
                 <span>{project.budget.toLocaleString('ru-RU')} ₽</span>
               )}

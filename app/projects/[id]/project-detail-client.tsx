@@ -802,7 +802,7 @@ ${architectureForm.constraints}` : ''}
                 <Sparkles className="mr-2 h-4 w-4" />
                 {isGeneratingPrompt ? 'Генерация...' : 'Сгенерировать AI промпт из данных'}
               </Button>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Создаст готовый промпт для AI с полным описанием проекта и требований
               </p>
             </div>
@@ -827,7 +827,7 @@ ${architectureForm.constraints}` : ''}
                   value={generatedPrompt}
                   readOnly
                   rows={10}
-                  className="text-xs font-mono bg-white"
+                  className="text-xs font-mono bg-card"
                 />
               </div>
             )}
@@ -1011,31 +1011,31 @@ function OverviewTab({ project, updateProjectField }: any) {
   return (
     <div className="space-y-6">
       {/* Progress Bar */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-card rounded-lg shadow p-6">
         <ProgressBar completed={completedTasks} total={totalTasks} size="lg" />
       </div>
 
       {/* Finance Block */}
       <FinanceBlock budget={project.budget} revenue={project.revenue} />
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-card rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold mb-4">Информация о проекте</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Тип проекта</label>
-            <p className="text-gray-900">{project.type === 'MONEY' ? 'Деньги' : project.type === 'GROWTH' ? 'Рост' : 'Инвестиция'}</p>
+            <p className="text-foreground">{project.type === 'MONEY' ? 'Деньги' : project.type === 'GROWTH' ? 'Рост' : 'Инвестиция'}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Приоритет</label>
-            <p className="text-gray-900">{getPriorityLabel(project.priority)}</p>
+            <p className="text-foreground">{getPriorityLabel(project.priority)}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Дата старта</label>
-            <p className="text-gray-900">{project.startDate ? new Date(project.startDate).toLocaleDateString('ru-RU') : 'Не указана'}</p>
+            <p className="text-foreground">{project.startDate ? new Date(project.startDate).toLocaleDateString('ru-RU') : 'Не указана'}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Дата завершения (план)</label>
-            <p className="text-gray-900">{project.endDatePlan ? new Date(project.endDatePlan).toLocaleDateString('ru-RU') : 'Не указана'}</p>
+            <p className="text-foreground">{project.endDatePlan ? new Date(project.endDatePlan).toLocaleDateString('ru-RU') : 'Не указана'}</p>
           </div>
         </div>
         <div className="mt-6">
@@ -1074,15 +1074,15 @@ function OverviewTab({ project, updateProjectField }: any) {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-card rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-700 mb-2">Всего задач</h3>
-          <p className="text-3xl font-bold text-gray-900">{totalTasks}</p>
+          <p className="text-3xl font-bold text-foreground">{totalTasks}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-card rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-700 mb-2">Выполнено</h3>
           <p className="text-3xl font-bold text-green-600">{completedTasks}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-card rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-700 mb-2">Комментариев</h3>
           <p className="text-3xl font-bold text-blue-600">{project.comments?.length || 0}</p>
         </div>
@@ -1105,7 +1105,7 @@ function PainTab({ project, isAIAnalyzing, aiAnalysis, onAnalyze, updateProjectF
   const authorName = project.aiInsights?.painAnalysis?.generatedByName
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-card rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold">Боль и контекст клиента</h2>
         <Button onClick={onAnalyze} disabled={isAIAnalyzing} variant="outline">
@@ -1154,7 +1154,7 @@ function PainTab({ project, isAIAnalyzing, aiAnalysis, onAnalyze, updateProjectF
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold text-purple-900 flex items-center"><Sparkles className="h-5 w-5 mr-2" />AI Анализ</h3>
               {analysisDate && !aiAnalysis && (
-                <div className="text-xs text-gray-500 text-right">
+                <div className="text-xs text-muted-foreground text-right">
                   {authorName && <span className="block">Автор: {authorName}</span>}
                   <span>{analysisDate}</span>
                 </div>
@@ -1172,7 +1172,7 @@ function PainTab({ project, isAIAnalyzing, aiAnalysis, onAnalyze, updateProjectF
 
 function GoalsTab({ project, updateProjectField }: any) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-card rounded-lg shadow p-6">
       <h2 className="text-lg font-semibold mb-6">Задачи и цели проекта</h2>
       <div className="space-y-6">
         <div>
@@ -1210,7 +1210,7 @@ function GoalsTab({ project, updateProjectField }: any) {
 function ArchitectureTab({ project, isAIAnalyzing, onCreateVersion, onGenerateAI }: any) {
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-card rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold">Архитектура решения</h2>
           <div className="flex gap-2">
@@ -1226,27 +1226,27 @@ function ArchitectureTab({ project, isAIAnalyzing, onCreateVersion, onGenerateAI
               <div key={version.id} className="border rounded-lg p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-semibold text-gray-900">Версия {version.version}: {version.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{new Date(version.createdAt).toLocaleDateString('ru-RU')}</p>
+                    <h3 className="font-semibold text-foreground">Версия {version.version}: {version.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{new Date(version.createdAt).toLocaleDateString('ru-RU')}</p>
                   </div>
                 </div>
                 {version.description && <p className="text-gray-700 mb-3">{version.description}</p>}
                 {version.solution && (
                   <div className="mb-3">
                     <h4 className="text-sm font-medium text-gray-700 mb-1">Решение:</h4>
-                    <p className="text-gray-900 text-sm whitespace-pre-wrap">{version.solution}</p>
+                    <p className="text-foreground text-sm whitespace-pre-wrap">{version.solution}</p>
                   </div>
                 )}
                 {version.hypotheses && (
                   <div className="mb-3">
                     <h4 className="text-sm font-medium text-gray-700 mb-1">Гипотезы:</h4>
-                    <p className="text-gray-900 text-sm whitespace-pre-wrap">{version.hypotheses}</p>
+                    <p className="text-foreground text-sm whitespace-pre-wrap">{version.hypotheses}</p>
                   </div>
                 )}
                 {version.constraints && (
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-1">Ограничения:</h4>
-                    <p className="text-gray-900 text-sm whitespace-pre-wrap">{version.constraints}</p>
+                    <p className="text-foreground text-sm whitespace-pre-wrap">{version.constraints}</p>
                   </div>
                 )}
               </div>
@@ -1254,7 +1254,7 @@ function ArchitectureTab({ project, isAIAnalyzing, onCreateVersion, onGenerateAI
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500 mb-4">Нет версий архитектуры</p>
+            <p className="text-muted-foreground mb-4">Нет версий архитектуры</p>
             <Button onClick={onCreateVersion}>Создать первую версию</Button>
           </div>
         )}
@@ -1266,7 +1266,7 @@ function ArchitectureTab({ project, isAIAnalyzing, onCreateVersion, onGenerateAI
 function TasksTab({ project, teamMembers, onCreateTask }: any) {
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-card rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold">Внутренние задачи</h2>
           <Button onClick={onCreateTask}>Создать задачу</Button>
@@ -1277,24 +1277,24 @@ function TasksTab({ project, teamMembers, onCreateTask }: any) {
               <div key={task.id} className="border-l-4 border-l-blue-500 border rounded-lg p-4 hover:bg-blue-50/50 bg-blue-50/20 transition-colors">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{task.title}</h3>
-                    {task.description && <p className="text-sm text-gray-600 mt-1 line-clamp-2">{task.description}</p>}
+                    <h3 className="font-medium text-foreground">{task.title}</h3>
+                    {task.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{task.description}</p>}
                     <div className="flex items-center gap-4 mt-3 flex-wrap">
                       <Badge className={getTaskStatusColor(task.status)}>{getTaskStatusLabel(task.status)}</Badge>
                       {task.assignee && (
-                        <span className="text-xs text-gray-600 flex items-center">
+                        <span className="text-xs text-muted-foreground flex items-center">
                           <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
                           Исполнитель: {task.assignee.name}
                         </span>
                       )}
                       {task.createdBy && (
-                        <span className="text-xs text-gray-500 flex items-center">
+                        <span className="text-xs text-muted-foreground flex items-center">
                           <span className="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>
                           Создал: {task.createdBy.name}
                         </span>
                       )}
                       {task.dueDate && (
-                        <span className="text-xs text-gray-600">
+                        <span className="text-xs text-muted-foreground">
                           До: {new Date(task.dueDate).toLocaleDateString('ru-RU')}
                         </span>
                       )}
@@ -1306,7 +1306,7 @@ function TasksTab({ project, teamMembers, onCreateTask }: any) {
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500 mb-4">Нет задач</p>
+            <p className="text-muted-foreground mb-4">Нет задач</p>
             <Button onClick={onCreateTask}>Создать первую задачу</Button>
           </div>
         )}
@@ -1317,7 +1317,7 @@ function TasksTab({ project, teamMembers, onCreateTask }: any) {
 
 function MilestonesTab({ project, onCreateMilestone }: any) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-card rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold">Этапы проекта</h2>
         <Button onClick={onCreateMilestone}>Добавить этап</Button>
@@ -1328,9 +1328,9 @@ function MilestonesTab({ project, onCreateMilestone }: any) {
             <div key={milestone.id} className="border-l-4 border-blue-500 pl-4 py-2">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-medium text-gray-900">{index + 1}. {milestone.title}</h3>
-                  {milestone.description && <p className="text-sm text-gray-600 mt-1">{milestone.description}</p>}
-                  {milestone.dueDate && <p className="text-xs text-gray-500 mt-2">Срок: {new Date(milestone.dueDate).toLocaleDateString('ru-RU')}</p>}
+                  <h3 className="font-medium text-foreground">{index + 1}. {milestone.title}</h3>
+                  {milestone.description && <p className="text-sm text-muted-foreground mt-1">{milestone.description}</p>}
+                  {milestone.dueDate && <p className="text-xs text-muted-foreground mt-2">Срок: {new Date(milestone.dueDate).toLocaleDateString('ru-RU')}</p>}
                 </div>
                 <Badge className={getMilestoneStatusColor(milestone.status)}>{getMilestoneStatusLabel(milestone.status)}</Badge>
               </div>
@@ -1339,7 +1339,7 @@ function MilestonesTab({ project, onCreateMilestone }: any) {
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-500 mb-4">Нет этапов</p>
+          <p className="text-muted-foreground mb-4">Нет этапов</p>
           <Button onClick={onCreateMilestone}>Добавить первый этап</Button>
         </div>
       )}
@@ -1430,7 +1430,7 @@ function DocumentsTab({ project, onDocumentsUpdate, onPreview }: any) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-card rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold">Документы</h2>
         <div className="flex items-center gap-2">
@@ -1468,10 +1468,10 @@ function DocumentsTab({ project, onDocumentsUpdate, onPreview }: any) {
           {project.documents.map((doc: any) => (
             <div key={doc.id} className="flex items-center justify-between border rounded-lg p-4">
               <div className="flex items-center gap-3">
-                <FileText className="h-8 w-8 text-gray-400" />
+                <FileText className="h-8 w-8 text-muted-foreground" />
                 <div>
-                  <h3 className="font-medium text-gray-900">{doc.name}</h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h3 className="font-medium text-foreground">{doc.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
                     {typeLabels[doc.type] || doc.type} • Версия {doc.version} • {new Date(doc.uploadedAt).toLocaleDateString('ru-RU')}
                     {doc.size && ` • ${(doc.size / 1024).toFixed(1)} KB`}
                   </p>
@@ -1496,7 +1496,7 @@ function DocumentsTab({ project, onDocumentsUpdate, onPreview }: any) {
       ) : (
         <div className="text-center py-8">
           <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 mb-4">Нет документов</p>
+          <p className="text-muted-foreground mb-4">Нет документов</p>
           <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
             <Upload className="h-4 w-4 mr-2" />
             Загрузить первый документ
@@ -1660,7 +1660,7 @@ function FilesTab({ project, onFilesUpdate }: any) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-card rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold">Файлы проекта</h2>
         <div className="flex items-center gap-2">
@@ -1691,14 +1691,14 @@ function FilesTab({ project, onFilesUpdate }: any) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-lg p-8 mb-6 text-center transition-colors ${
-          isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+          isDragging ? 'border-blue-500 bg-blue-50' : 'border-border'
         }`}
       >
-        <FolderOpen className={`h-12 w-12 mx-auto mb-3 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />
-        <p className="text-gray-600">
+        <FolderOpen className={`h-12 w-12 mx-auto mb-3 ${isDragging ? 'text-blue-500' : 'text-muted-foreground'}`} />
+        <p className="text-muted-foreground">
           {isDragging ? 'Отпустите файлы для загрузки' : 'Перетащите файлы сюда или нажмите кнопку выше'}
         </p>
-        <p className="text-sm text-gray-400 mt-1">Максимальный размер файла: 50MB</p>
+        <p className="text-sm text-muted-foreground mt-1">Максимальный размер файла: 50MB</p>
       </div>
 
       {project.files && project.files.length > 0 ? (
@@ -1708,7 +1708,7 @@ function FilesTab({ project, onFilesUpdate }: any) {
               {editingFile === file.id ? (
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-xs text-gray-500">Название</Label>
+                    <Label className="text-xs text-muted-foreground">Название</Label>
                     <Input
                       value={editForm.name}
                       onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
@@ -1716,7 +1716,7 @@ function FilesTab({ project, onFilesUpdate }: any) {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-gray-500">Описание</Label>
+                    <Label className="text-xs text-muted-foreground">Описание</Label>
                     <Textarea
                       value={editForm.description}
                       onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
@@ -1726,7 +1726,7 @@ function FilesTab({ project, onFilesUpdate }: any) {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-gray-500">Категория</Label>
+                    <Label className="text-xs text-muted-foreground">Категория</Label>
                     <Select value={editForm.category} onValueChange={(v) => setEditForm({ ...editForm, category: v })}>
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Выберите категорию" />
@@ -1754,11 +1754,11 @@ function FilesTab({ project, onFilesUpdate }: any) {
                   <div className="flex items-start gap-3">
                     <span className="text-2xl">{getFileIcon(file.mimeType)}</span>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 truncate">{file.name}</h3>
+                      <h3 className="font-medium text-foreground truncate">{file.name}</h3>
                       {file.description && (
-                        <p className="text-sm text-gray-600 mt-1">{file.description}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{file.description}</p>
                       )}
-                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                         {file.category && (
                           <Badge variant="outline" className="text-xs">
                             {categoryLabels[file.category] || file.category}
@@ -1794,7 +1794,7 @@ function FilesTab({ project, onFilesUpdate }: any) {
         </div>
       ) : (
         <div className="text-center py-4">
-          <p className="text-gray-500">Нет файлов</p>
+          <p className="text-muted-foreground">Нет файлов</p>
         </div>
       )}
     </div>
@@ -1803,7 +1803,7 @@ function FilesTab({ project, onFilesUpdate }: any) {
 
 function CommentsTab({ project, newComment, setNewComment, onSubmit, isSubmitting }: any) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-card rounded-lg shadow p-6">
       <h2 className="text-lg font-semibold mb-6">Комментарии</h2>
       <div className="mb-6">
         <textarea
@@ -1824,18 +1824,18 @@ function CommentsTab({ project, newComment, setNewComment, onSubmit, isSubmittin
             <div key={comment.id} className="border-b pb-4 last:border-0">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <span className="font-medium text-gray-900">{comment.author.name}</span>
-                  <span className="text-sm text-gray-500 ml-2">
+                  <span className="font-medium text-foreground">{comment.author.name}</span>
+                  <span className="text-sm text-muted-foreground ml-2">
                     {new Date(comment.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               </div>
-              <p className="text-gray-900 whitespace-pre-wrap">{comment.content}</p>
+              <p className="text-foreground whitespace-pre-wrap">{comment.content}</p>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-8"><p className="text-gray-500">Нет комментариев</p></div>
+        <div className="text-center py-8"><p className="text-muted-foreground">Нет комментариев</p></div>
       )}
     </div>
   )
@@ -1872,7 +1872,7 @@ function getTaskStatusColor(status: string): string {
   const colors: Record<string, string> = {
     TODO: 'bg-gray-100 text-gray-800', IN_PROGRESS: 'bg-blue-100 text-blue-800',
     IN_REVIEW: 'bg-purple-100 text-purple-800', BLOCKED: 'bg-red-100 text-red-800',
-    COMPLETED: 'bg-green-100 text-green-800', CANCELLED: 'bg-gray-100 text-gray-600',
+    COMPLETED: 'bg-green-100 text-green-800', CANCELLED: 'bg-gray-100 text-muted-foreground',
   }
   return colors[status] || colors.TODO
 }

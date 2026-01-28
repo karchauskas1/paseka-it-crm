@@ -66,52 +66,52 @@ export default function InviteClient({
 
   if (accepted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow max-w-md w-full text-center">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
+        <div className="bg-card p-8 rounded-lg shadow max-w-md w-full text-center">
           <div className="h-16 w-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
           <h1 className="text-2xl font-bold text-green-600 mb-4">Добро пожаловать!</h1>
-          <p className="text-gray-600 mb-2">Вы присоединились к команде {workspace.name}</p>
-          <p className="text-sm text-gray-500">Перенаправление...</p>
+          <p className="text-muted-foreground mb-2">Вы присоединились к команде {workspace.name}</p>
+          <p className="text-sm text-muted-foreground">Перенаправление...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-muted">
+      <div className="bg-card p-8 rounded-lg shadow max-w-md w-full">
         <div className="text-center mb-6">
           <div className="h-16 w-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-4">
             <Users className="h-8 w-8 text-blue-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Приглашение в команду</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-foreground mb-2">Приглашение в команду</h1>
+          <p className="text-muted-foreground">
             {invitedBy} приглашает вас присоединиться к рабочему пространству
           </p>
         </div>
 
         <div className="space-y-4 mb-6">
-          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-            <Building2 className="h-5 w-5 text-gray-500" />
+          <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
+            <Building2 className="h-5 w-5 text-muted-foreground" />
             <div>
-              <p className="text-sm text-gray-500">Рабочее пространство</p>
-              <p className="font-medium text-gray-900">{workspace.name}</p>
+              <p className="text-sm text-muted-foreground">Рабочее пространство</p>
+              <p className="font-medium text-foreground">{workspace.name}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-            <Shield className="h-5 w-5 text-gray-500" />
+          <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
+            <Shield className="h-5 w-5 text-muted-foreground" />
             <div>
-              <p className="text-sm text-gray-500">Ваша роль</p>
-              <p className="font-medium text-gray-900">{roleLabel}</p>
+              <p className="text-sm text-muted-foreground">Ваша роль</p>
+              <p className="font-medium text-foreground">{roleLabel}</p>
             </div>
           </div>
         </div>
 
         <div className="border-t pt-4 mb-6">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Вы войдёте как <span className="font-medium">{user.name}</span> ({user.email})
           </p>
         </div>

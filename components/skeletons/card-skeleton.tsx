@@ -8,7 +8,7 @@ interface CardSkeletonProps {
 
 export function CardSkeleton({ className }: CardSkeletonProps) {
   return (
-    <div className={cn('bg-white rounded-lg shadow border p-6 animate-pulse', className)}>
+    <div className={cn('bg-card rounded-lg shadow border p-6 animate-pulse', className)}>
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 bg-gray-200 rounded-full" />
@@ -43,7 +43,7 @@ export function CardSkeletonGrid({ count = 6 }: { count?: number }) {
 
 export function ProjectCardSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow border p-6 animate-pulse">
+    <div className="bg-card rounded-lg shadow border p-6 animate-pulse">
       <div className="flex items-start justify-between mb-4">
         <div className="space-y-2">
           <div className="h-5 w-40 bg-gray-200 rounded" />
@@ -72,7 +72,7 @@ export function ProjectCardSkeleton() {
 
 export function TaskCardSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow border p-4 animate-pulse">
+    <div className="bg-card rounded-lg shadow border p-4 animate-pulse">
       <div className="flex items-start gap-3">
         <div className="h-5 w-5 bg-gray-200 rounded" />
         <div className="flex-1 space-y-2">

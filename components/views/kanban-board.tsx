@@ -47,7 +47,7 @@ interface KanbanBoardProps {
 }
 
 const columns = [
-  { id: 'TODO', title: 'К выполнению', color: 'bg-gray-100' },
+  { id: 'TODO', title: 'К выполнению', color: 'bg-muted' },
   { id: 'IN_PROGRESS', title: 'В работе', color: 'bg-blue-100' },
   { id: 'IN_REVIEW', title: 'На проверке', color: 'bg-purple-100' },
   { id: 'COMPLETED', title: 'Выполнено', color: 'bg-green-100' },
@@ -57,19 +57,19 @@ function TaskCard({ task, isDragging, onClick }: { task: Task; isDragging?: bool
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-lg border p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow ${
+      className={`bg-card rounded-lg border p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow ${
         isDragging ? 'opacity-50 shadow-lg' : ''
       }`}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <h4 className="font-medium text-sm text-gray-900 line-clamp-2">
+        <h4 className="font-medium text-sm text-foreground line-clamp-2">
           {task.title}
         </h4>
-        <GripVertical className="h-4 w-4 text-gray-400 flex-shrink-0 cursor-grab" />
+        <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0 cursor-grab" />
       </div>
 
       {task.description && (
-        <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
           {task.description}
         </p>
       )}
@@ -80,7 +80,7 @@ function TaskCard({ task, isDragging, onClick }: { task: Task; isDragging?: bool
         </Badge>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-gray-500">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           {task.project && (
             <div className="flex items-center">
@@ -158,8 +158,8 @@ function Column({
       }`}
     >
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-900">{title}</h3>
-        <span className="bg-white rounded-full px-2 py-0.5 text-xs font-medium text-gray-600">
+        <h3 className="font-semibold text-foreground">{title}</h3>
+        <span className="bg-card rounded-full px-2 py-0.5 text-xs font-medium text-muted-foreground">
           {tasks.length}
         </span>
       </div>
@@ -172,7 +172,7 @@ function Column({
             <SortableTaskCard key={task.id} task={task} onClick={() => onTaskClick?.(task)} />
           ))}
           {tasks.length === 0 && (
-            <div className="text-center py-8 text-gray-400 text-sm">
+            <div className="text-center py-8 text-muted-foreground text-sm">
               Перетащите задачу сюда
             </div>
           )}

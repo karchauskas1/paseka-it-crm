@@ -250,7 +250,7 @@ export function CustomFieldManager({ entityType, workspaceId }: CustomFieldManag
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Кастомные поля</h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Добавьте дополнительные поля для {entityType === 'client' ? 'клиентов' : 'сущностей'}
           </p>
         </div>
@@ -261,8 +261,8 @@ export function CustomFieldManager({ entityType, workspaceId }: CustomFieldManag
       </div>
 
       {fields.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
-          <p className="text-gray-500">Нет кастомных полей</p>
+        <div className="text-center py-12 border-2 border-dashed border-border rounded-lg">
+          <p className="text-muted-foreground">Нет кастомных полей</p>
           <Button variant="link" onClick={openCreateDialog}>
             Создать первое поле
           </Button>
@@ -272,10 +272,10 @@ export function CustomFieldManager({ entityType, workspaceId }: CustomFieldManag
           {fields.map((field) => (
             <div
               key={field.id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted"
             >
               <div className="flex items-center gap-3">
-                <GripVertical className="h-4 w-4 text-gray-400" />
+                <GripVertical className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{field.name}</span>
@@ -285,7 +285,7 @@ export function CustomFieldManager({ entityType, workspaceId }: CustomFieldManag
                     )}
                   </div>
                   {field.options && field.options.length > 0 && (
-                    <div className="text-sm text-gray-500 mt-1">
+                    <div className="text-sm text-muted-foreground mt-1">
                       Варианты: {field.options.join(', ')}
                     </div>
                   )}

@@ -39,9 +39,9 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
   const goToToday = () => setCurrentDate(new Date())
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-card rounded-lg shadow overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-3 border-b flex items-center justify-between bg-gray-50">
+      <div className="px-4 py-3 border-b flex items-center justify-between bg-muted">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={goToPrevMonth}>
             <ChevronLeft className="h-4 w-4" />
@@ -53,10 +53,10 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
             Сегодня
           </Button>
         </div>
-        <h3 className="font-semibold text-gray-900">
+        <h3 className="font-semibold text-foreground">
           {format(currentDate, 'LLLL yyyy', { locale: ru })}
         </h3>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-muted-foreground">
           {projectsWithDates.length} проектов с датами
         </div>
       </div>
@@ -66,7 +66,7 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
         <div className="min-w-[800px]">
           {/* Days Header */}
           <div className="flex border-b">
-            <div className="w-48 flex-shrink-0 px-3 py-2 font-medium text-sm text-gray-600 bg-gray-50 border-r">
+            <div className="w-48 flex-shrink-0 px-3 py-2 font-medium text-sm text-muted-foreground bg-muted border-r">
               Проект
             </div>
             <div className="flex-1 flex">
@@ -81,8 +81,8 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
                       isToday
                         ? 'bg-blue-100 font-bold text-blue-700'
                         : isWeekend
-                        ? 'bg-gray-50 text-gray-400'
-                        : 'text-gray-600'
+                        ? 'bg-muted text-muted-foreground'
+                        : 'text-muted-foreground'
                     }`}
                   >
                     <div>{format(day, 'd')}</div>
@@ -95,7 +95,7 @@ export function ProjectsTimeline({ projects }: ProjectsTimelineProps) {
 
           {/* Project Rows */}
           {projectsWithDates.length === 0 ? (
-            <div className="px-4 py-8 text-center text-gray-500">
+            <div className="px-4 py-8 text-center text-muted-foreground">
               Нет проектов с указанными датами начала и окончания
             </div>
           ) : (
@@ -159,7 +159,7 @@ function TimelineRow({
   }
 
   return (
-    <div className="flex border-b hover:bg-gray-50">
+    <div className="flex border-b hover:bg-muted">
       <div className="w-48 flex-shrink-0 px-3 py-2 border-r">
         <Link
           href={`/projects/${project.id}`}
@@ -167,7 +167,7 @@ function TimelineRow({
         >
           {project.name}
         </Link>
-        <p className="text-xs text-gray-500 truncate">{project.client?.name}</p>
+        <p className="text-xs text-muted-foreground truncate">{project.client?.name}</p>
       </div>
       <div className="flex-1 relative py-2">
         <div

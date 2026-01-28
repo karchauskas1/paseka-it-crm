@@ -63,7 +63,7 @@ const typeColors: Record<string, string> = {
   CALL: 'bg-green-100 text-green-700',
   EMAIL: 'bg-blue-100 text-blue-700',
   MEETING: 'bg-purple-100 text-purple-700',
-  NOTE: 'bg-gray-100 text-gray-700',
+  NOTE: 'bg-muted text-foreground',
 }
 
 export function CommunicationHistory({ clientId }: CommunicationHistoryProps) {
@@ -147,7 +147,7 @@ export function CommunicationHistory({ clientId }: CommunicationHistoryProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -178,7 +178,7 @@ export function CommunicationHistory({ clientId }: CommunicationHistoryProps) {
 
       {/* List */}
       {communications.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-muted-foreground">
           <StickyNote className="h-12 w-12 mx-auto mb-4 text-gray-300" />
           <p>Нет записей о коммуникациях</p>
           <Button
@@ -194,7 +194,7 @@ export function CommunicationHistory({ clientId }: CommunicationHistoryProps) {
           {communications.map((comm) => (
             <div
               key={comm.id}
-              className="bg-white rounded-lg shadow border p-4"
+              className="bg-card rounded-lg shadow border p-4"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -207,16 +207,16 @@ export function CommunicationHistory({ clientId }: CommunicationHistoryProps) {
                     {typeLabels[comm.type]}
                   </span>
                   {comm.subject && (
-                    <span className="font-medium text-gray-900">{comm.subject}</span>
+                    <span className="font-medium text-foreground">{comm.subject}</span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-3.5 w-3.5" />
                   {format(new Date(comm.date), 'd MMM yyyy, HH:mm', { locale: ru })}
                 </div>
               </div>
-              <p className="text-gray-700 whitespace-pre-wrap">{comm.content}</p>
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-foreground whitespace-pre-wrap">{comm.content}</p>
+              <p className="text-xs text-muted-foreground mt-2">
                 {comm.createdBy.name}
               </p>
             </div>

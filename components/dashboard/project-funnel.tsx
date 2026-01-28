@@ -10,14 +10,14 @@ interface ProjectFunnelProps {
 }
 
 const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-  LEAD: { label: 'Лид', color: 'text-gray-700', bgColor: 'bg-gray-100' },
+  LEAD: { label: 'Лид', color: 'text-foreground', bgColor: 'bg-muted' },
   QUALIFICATION: { label: 'Квалификация', color: 'text-yellow-700', bgColor: 'bg-yellow-100' },
   BRIEFING: { label: 'Брифинг', color: 'text-blue-700', bgColor: 'bg-blue-100' },
   IN_PROGRESS: { label: 'В работе', color: 'text-indigo-700', bgColor: 'bg-indigo-100' },
   ON_HOLD: { label: 'На паузе', color: 'text-orange-700', bgColor: 'bg-orange-100' },
   COMPLETED: { label: 'Завершён', color: 'text-green-700', bgColor: 'bg-green-100' },
   REJECTED: { label: 'Отклонён', color: 'text-red-700', bgColor: 'bg-red-100' },
-  ARCHIVED: { label: 'Архив', color: 'text-gray-500', bgColor: 'bg-gray-50' },
+  ARCHIVED: { label: 'Архив', color: 'text-muted-foreground', bgColor: 'bg-muted' },
 }
 
 export function ProjectFunnel({ funnel }: ProjectFunnelProps) {
@@ -25,14 +25,14 @@ export function ProjectFunnel({ funnel }: ProjectFunnelProps) {
   const maxCount = Math.max(...funnel.map((f) => f.count), 1)
 
   return (
-    <div className="bg-white rounded-lg shadow border">
+    <div className="bg-card rounded-lg shadow border">
       <div className="px-4 py-3 border-b">
-        <h3 className="text-base font-semibold text-gray-900">Воронка проектов</h3>
-        <p className="text-xs text-gray-500 mt-0.5">Всего: {total} проектов</p>
+        <h3 className="text-base font-semibold text-foreground">Воронка проектов</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">Всего: {total} проектов</p>
       </div>
       <div className="p-4 space-y-2">
         {funnel.map(({ status, count }) => {
-          const config = statusConfig[status] || { label: status, color: 'text-gray-700', bgColor: 'bg-gray-100' }
+          const config = statusConfig[status] || { label: status, color: 'text-foreground', bgColor: 'bg-muted' }
           const percentage = total > 0 ? Math.round((count / total) * 100) : 0
           const barWidth = maxCount > 0 ? Math.max((count / maxCount) * 100, count > 0 ? 10 : 0) : 0
 
@@ -48,7 +48,7 @@ export function ProjectFunnel({ funnel }: ProjectFunnelProps) {
                     {config.label}
                   </span>
                 </div>
-                <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden">
                   <div
                     className={`h-full ${config.bgColor} transition-all duration-300 group-hover:opacity-80 flex items-center justify-end pr-2`}
                     style={{ width: `${barWidth}%` }}
@@ -61,7 +61,7 @@ export function ProjectFunnel({ funnel }: ProjectFunnelProps) {
                   </div>
                 </div>
                 <div className="w-12 text-right">
-                  <span className="text-xs text-gray-500">{percentage}%</span>
+                  <span className="text-xs text-muted-foreground">{percentage}%</span>
                 </div>
               </div>
             </Link>

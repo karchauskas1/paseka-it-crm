@@ -80,14 +80,14 @@ export function ClientAnalytics({ clientId }: ClientAnalyticsProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
 
   if (!analytics) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-muted-foreground">
         Не удалось загрузить аналитику
       </div>
     )
@@ -97,49 +97,49 @@ export function ClientAnalytics({ clientId }: ClientAnalyticsProps) {
     <div className="space-y-6">
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-card rounded-lg shadow p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Users className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Всего проектов</p>
+              <p className="text-sm text-muted-foreground">Всего проектов</p>
               <p className="text-2xl font-bold">{analytics.totalProjects}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-card rounded-lg shadow p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 rounded-lg">
               <DollarSign className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Общая выручка</p>
+              <p className="text-sm text-muted-foreground">Общая выручка</p>
               <p className="text-2xl font-bold">{formatCurrency(analytics.totalRevenue)}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-card rounded-lg shadow p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-100 rounded-lg">
               <TrendingUp className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Средний чек</p>
+              <p className="text-sm text-muted-foreground">Средний чек</p>
               <p className="text-2xl font-bold">{formatCurrency(analytics.avgCheck)}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-card rounded-lg shadow p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-100 rounded-lg">
               <Target className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Win Rate</p>
+              <p className="text-sm text-muted-foreground">Win Rate</p>
               <p className="text-2xl font-bold">{analytics.winRate.toFixed(1)}%</p>
             </div>
           </div>
@@ -148,7 +148,7 @@ export function ClientAnalytics({ clientId }: ClientAnalyticsProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Chart */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-card rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Выручка по месяцам</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -176,7 +176,7 @@ export function ClientAnalytics({ clientId }: ClientAnalyticsProps) {
         </div>
 
         {/* Projects by Status */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-card rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Проекты по статусам</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -207,24 +207,24 @@ export function ClientAnalytics({ clientId }: ClientAnalyticsProps) {
       </div>
 
       {/* Summary */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-card rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">Сводка</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-center p-4 bg-muted rounded-lg">
             <p className="text-2xl font-bold text-green-600">{analytics.completedProjects}</p>
-            <p className="text-sm text-gray-600">Завершено</p>
+            <p className="text-sm text-muted-foreground">Завершено</p>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-center p-4 bg-muted rounded-lg">
             <p className="text-2xl font-bold text-blue-600">{analytics.activeProjects}</p>
-            <p className="text-sm text-gray-600">Активных</p>
+            <p className="text-sm text-muted-foreground">Активных</p>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-center p-4 bg-muted rounded-lg">
             <p className="text-2xl font-bold text-red-600">{analytics.rejectedProjects}</p>
-            <p className="text-sm text-gray-600">Отклонено</p>
+            <p className="text-sm text-muted-foreground">Отклонено</p>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-center p-4 bg-muted rounded-lg">
             <p className="text-2xl font-bold text-purple-600">{formatCurrency(analytics.totalBudget)}</p>
-            <p className="text-sm text-gray-600">Общий бюджет</p>
+            <p className="text-sm text-muted-foreground">Общий бюджет</p>
           </div>
         </div>
       </div>

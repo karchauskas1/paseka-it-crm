@@ -120,11 +120,11 @@ export default function NotificationsClient({ user, workspace, initialNotificati
         </div>
 
         {/* Notifications list */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-card rounded-lg shadow">
           {filteredNotifications.length === 0 ? (
             <div className="text-center py-12">
-              <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">
+              <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
                 {filter === 'unread' ? 'Нет непрочитанных уведомлений' : 'Нет уведомлений'}
               </p>
             </div>
@@ -135,14 +135,14 @@ export default function NotificationsClient({ user, workspace, initialNotificati
                   key={notification.id}
                   href={getNotificationLink(notification)}
                   onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
-                  className={`block px-6 py-4 hover:bg-gray-50 transition-colors ${
-                    notification.isRead ? 'bg-white' : 'bg-blue-50'
+                  className={`block px-6 py-4 hover:bg-muted transition-colors ${
+                    notification.isRead ? 'bg-card' : 'bg-blue-50'
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className={`text-sm font-medium ${notification.isRead ? 'text-gray-700' : 'text-gray-900'}`}>
+                        <p className={`text-sm font-medium ${notification.isRead ? 'text-foreground' : 'text-foreground'}`}>
                           {notification.title}
                         </p>
                         {!notification.isRead && (
@@ -150,11 +150,11 @@ export default function NotificationsClient({ user, workspace, initialNotificati
                         )}
                       </div>
                       {notification.message && (
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           {notification.message}
                         </p>
                       )}
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-muted-foreground mt-2">
                         {formatDistanceToNow(new Date(notification.createdAt), {
                           addSuffix: true,
                           locale: ru,

@@ -183,14 +183,14 @@ export default function DashboardClient({
 
 function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    LEAD: 'bg-gray-100 text-gray-800',
+    LEAD: 'bg-muted text-gray-800',
     QUALIFICATION: 'bg-yellow-100 text-yellow-800',
     BRIEFING: 'bg-blue-100 text-blue-800',
     IN_PROGRESS: 'bg-indigo-100 text-indigo-800',
     ON_HOLD: 'bg-orange-100 text-orange-800',
     COMPLETED: 'bg-green-100 text-green-800',
     REJECTED: 'bg-red-100 text-red-800',
-    ARCHIVED: 'bg-gray-100 text-gray-600',
+    ARCHIVED: 'bg-muted text-muted-foreground',
   }
   return colors[status] || colors.LEAD
 }

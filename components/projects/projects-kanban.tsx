@@ -37,7 +37,7 @@ interface ProjectsKanbanProps {
 }
 
 const statusColumns = [
-  { id: 'LEAD', label: 'Лид', color: 'bg-gray-100' },
+  { id: 'LEAD', label: 'Лид', color: 'bg-muted' },
   { id: 'QUALIFICATION', label: 'Квалификация', color: 'bg-yellow-50' },
   { id: 'BRIEFING', label: 'Брифинг', color: 'bg-blue-50' },
   { id: 'IN_PROGRESS', label: 'В работе', color: 'bg-indigo-50' },
@@ -142,10 +142,10 @@ function KanbanColumn({
         isOver ? 'ring-2 ring-blue-400' : ''
       }`}
     >
-      <div className="px-3 py-2 border-b border-gray-200">
+      <div className="px-3 py-2 border-b border-border">
         <div className="flex items-center justify-between">
-          <h3 className="font-medium text-sm text-gray-900">{title}</h3>
-          <span className="text-xs bg-white text-gray-600 px-2 py-0.5 rounded-full">
+          <h3 className="font-medium text-sm text-foreground">{title}</h3>
+          <span className="text-xs bg-card text-muted-foreground px-2 py-0.5 rounded-full">
             {count}
           </span>
         </div>
@@ -177,7 +177,7 @@ function KanbanCard({ project, isDragging }: { project: Project; isDragging?: bo
       style={style}
       {...attributes}
       {...listeners}
-      className={`bg-white rounded-lg shadow-sm border p-3 cursor-grab active:cursor-grabbing ${
+      className={`bg-card rounded-lg shadow-sm border p-3 cursor-grab active:cursor-grabbing ${
         isDragging ? 'shadow-lg ring-2 ring-blue-400' : ''
       }`}
     >
@@ -186,17 +186,17 @@ function KanbanCard({ project, isDragging }: { project: Project; isDragging?: bo
         onClick={(e) => e.stopPropagation()}
         className="block"
       >
-        <h4 className="font-medium text-sm text-gray-900 mb-1 hover:text-blue-600">
+        <h4 className="font-medium text-sm text-foreground mb-1 hover:text-blue-600">
           {project.name}
         </h4>
       </Link>
-      <p className="text-xs text-gray-500 mb-2">{project.client?.name || 'Без клиента'}</p>
+      <p className="text-xs text-muted-foreground mb-2">{project.client?.name || 'Без клиента'}</p>
       <div className="flex items-center justify-between">
         <Badge variant={getTypeVariant(project.type)} className="text-xs">
           {getTypeLabel(project.type)}
         </Badge>
         {project.budget && (
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-muted-foreground">
             {project.budget.toLocaleString('ru-RU')} ₽
           </span>
         )}

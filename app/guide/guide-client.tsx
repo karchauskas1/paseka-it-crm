@@ -190,19 +190,19 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
                   <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-6">
                     <div className="p-3 bg-orange-50 rounded-lg">
                       <span className="font-medium text-orange-700">WARM</span>
-                      <p className="text-sm text-gray-600">Тёплый контакт</p>
+                      <p className="text-sm text-muted-foreground">Тёплый контакт</p>
                     </div>
                     <div className="p-3 bg-blue-50 rounded-lg">
                       <span className="font-medium text-blue-700">COLD</span>
-                      <p className="text-sm text-gray-600">Холодный контакт</p>
+                      <p className="text-sm text-muted-foreground">Холодный контакт</p>
                     </div>
                     <div className="p-3 bg-green-50 rounded-lg">
                       <span className="font-medium text-green-700">REFERRAL</span>
-                      <p className="text-sm text-gray-600">По рекомендации</p>
+                      <p className="text-sm text-muted-foreground">По рекомендации</p>
                     </div>
                     <div className="p-3 bg-purple-50 rounded-lg">
                       <span className="font-medium text-purple-700">WEBSITE</span>
-                      <p className="text-sm text-gray-600">С сайта</p>
+                      <p className="text-sm text-muted-foreground">С сайта</p>
                     </div>
                   </div>
                 </div>
@@ -225,21 +225,21 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
                       <Sparkles className="h-5 w-5 text-green-600" />
                       <div>
                         <span className="font-medium text-green-700">MONEY</span>
-                        <p className="text-sm text-gray-600">Коммерческий проект</p>
+                        <p className="text-sm text-muted-foreground">Коммерческий проект</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                       <Target className="h-5 w-5 text-blue-600" />
                       <div>
                         <span className="font-medium text-blue-700">STRATEGIC</span>
-                        <p className="text-sm text-gray-600">Стратегический проект</p>
+                        <p className="text-sm text-muted-foreground">Стратегический проект</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
                       <LayoutGrid className="h-5 w-5 text-purple-600" />
                       <div>
                         <span className="font-medium text-purple-700">INTERNAL</span>
-                        <p className="text-sm text-gray-600">Внутренний проект</p>
+                        <p className="text-sm text-muted-foreground">Внутренний проект</p>
                       </div>
                     </div>
                   </div>
@@ -297,21 +297,21 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
 
                   <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3">Статусы задач</h3>
                   <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-6">
-                    <div className="p-3 bg-gray-100 rounded-lg">
+                    <div className="p-3 bg-muted rounded-lg">
                       <span className="font-medium">TODO</span>
-                      <p className="text-sm text-gray-600">К выполнению</p>
+                      <p className="text-sm text-muted-foreground">К выполнению</p>
                     </div>
                     <div className="p-3 bg-blue-100 rounded-lg">
                       <span className="font-medium text-blue-700">IN_PROGRESS</span>
-                      <p className="text-sm text-gray-600">В работе</p>
+                      <p className="text-sm text-muted-foreground">В работе</p>
                     </div>
                     <div className="p-3 bg-purple-100 rounded-lg">
                       <span className="font-medium text-purple-700">IN_REVIEW</span>
-                      <p className="text-sm text-gray-600">На проверке</p>
+                      <p className="text-sm text-muted-foreground">На проверке</p>
                     </div>
                     <div className="p-3 bg-green-100 rounded-lg">
                       <span className="font-medium text-green-700">COMPLETED</span>
-                      <p className="text-sm text-gray-600">Выполнено</p>
+                      <p className="text-sm text-muted-foreground">Выполнено</p>
                     </div>
                   </div>
 
@@ -330,13 +330,13 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
                       <span><strong>MEDIUM</strong> - Средний</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-gray-400" />
+                      <AlertCircle className="h-4 w-4 text-muted-foreground" />
                       <span><strong>LOW</strong> - Низкий</span>
                     </div>
                   </div>
 
                   <h3 className="text-lg font-semibold mb-3">Kanban-доска</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     На Kanban-доске задачи отображаются в колонках по статусам. Перетаскивайте карточки между колонками для изменения статуса.
                   </p>
                 </div>
@@ -359,14 +359,14 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
                       <Sparkles className="h-5 w-5 text-purple-500 flex-shrink-0 mt-0.5" />
                       <div>
                         <strong>Анализ боли</strong>
-                        <p className="text-sm text-gray-600">AI анализирует описание проблемы клиента и предлагает подходы к решению</p>
+                        <p className="text-sm text-muted-foreground">AI анализирует описание проблемы клиента и предлагает подходы к решению</p>
                       </div>
                     </li>
                     <li className="flex items-start gap-2">
                       <FileText className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
                       <div>
                         <strong>Генерация архитектуры</strong>
-                        <p className="text-sm text-gray-600">На основе боли AI генерирует предложение по архитектуре решения</p>
+                        <p className="text-sm text-muted-foreground">На основе боли AI генерирует предложение по архитектуре решения</p>
                       </div>
                     </li>
                   </ul>
@@ -462,11 +462,11 @@ export default function GuideClient({ user, workspace }: GuideClientProps) {
                   <div className="space-y-3 mb-6">
                     <div className="p-3 bg-blue-50 rounded-lg">
                       <span className="font-medium text-blue-700">ADMIN</span>
-                      <p className="text-sm text-gray-600">Полный доступ: управление пользователями, настройками, интеграциями</p>
+                      <p className="text-sm text-muted-foreground">Полный доступ: управление пользователями, настройками, интеграциями</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-gray-700">MEMBER</span>
-                      <p className="text-sm text-gray-600">Работа с проектами, клиентами и задачами</p>
+                    <div className="p-3 bg-muted rounded-lg">
+                      <span className="font-medium text-foreground">MEMBER</span>
+                      <p className="text-sm text-muted-foreground">Работа с проектами, клиентами и задачами</p>
                     </div>
                   </div>
 

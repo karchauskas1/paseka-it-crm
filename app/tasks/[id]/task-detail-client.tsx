@@ -53,7 +53,7 @@ const taskStatusLabels: Record<string, string> = {
 }
 
 const taskStatusColors: Record<string, string> = {
-  BACKLOG: 'bg-gray-100 text-gray-800',
+  BACKLOG: 'bg-muted text-gray-800',
   TODO: 'bg-blue-100 text-blue-800',
   IN_PROGRESS: 'bg-yellow-100 text-yellow-800',
   IN_REVIEW: 'bg-purple-100 text-purple-800',
@@ -68,7 +68,7 @@ const priorityLabels: Record<string, string> = {
 }
 
 const priorityColors: Record<string, string> = {
-  LOW: 'bg-gray-100 text-gray-800',
+  LOW: 'bg-muted text-gray-800',
   MEDIUM: 'bg-blue-100 text-blue-800',
   HIGH: 'bg-orange-100 text-orange-800',
   URGENT: 'bg-red-100 text-red-800',
@@ -286,13 +286,13 @@ export default function TaskDetailClient({
 
   if (renderError) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow p-8 max-w-md">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
+        <div className="bg-card rounded-lg shadow p-8 max-w-md">
           <div className="flex items-center gap-3 text-red-600 mb-4">
             <AlertCircle className="h-6 w-6" />
             <h2 className="text-lg font-semibold">Ошибка загрузки</h2>
           </div>
-          <p className="text-gray-700 mb-4">{renderError}</p>
+          <p className="text-foreground mb-4">{renderError}</p>
           <Button onClick={() => router.push('/tasks')}>
             Вернуться к задачам
           </Button>
@@ -302,29 +302,29 @@ export default function TaskDetailClient({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card shadow-sm border-b">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-2 mb-2 text-sm">
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 flex items-center">
+            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground flex items-center">
               <Home className="h-4 w-4 mr-1" />
               Dashboard
             </Link>
-            <span className="text-gray-400">/</span>
-            <Link href="/tasks" className="text-gray-600 hover:text-gray-900">
+            <span className="text-muted-foreground">/</span>
+            <Link href="/tasks" className="text-muted-foreground hover:text-foreground">
               Задачи
             </Link>
                         <Link
               href={`/pain-radar?workspace=${workspace.id}`}
-              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-muted-foreground hover:text-foreground hover:border-border"
             >
               Pain Radar
             </Link>
             {task.project && (
               <>
-                <span className="text-gray-400">/</span>
-                <Link href={`/projects/${task.project.id}`} className="text-gray-600 hover:text-gray-900">
+                <span className="text-muted-foreground">/</span>
+                <Link href={`/projects/${task.project.id}`} className="text-muted-foreground hover:text-foreground">
                   {task.project.name}
                 </Link>
               </>
@@ -355,7 +355,7 @@ export default function TaskDetailClient({
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Description */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold mb-4">Описание</h2>
               <InlineTextarea
                 value={task.description || ''}
@@ -394,11 +394,11 @@ export default function TaskDetailClient({
             )}
 
             {/* Subtasks */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Подзадачи</h2>
                 {totalSubtasks > 0 && (
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     {completedSubtasks} / {totalSubtasks}
                   </span>
                 )}
@@ -418,17 +418,17 @@ export default function TaskDetailClient({
                 {task.subtasks?.map((subtask: any) => (
                   <div
                     key={subtask.id}
-                    className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors"
+                    className="flex items-center gap-3 p-2 hover:bg-muted rounded-md transition-colors"
                   >
                     <input
                       type="checkbox"
                       checked={subtask.completed}
                       onChange={(e) => handleToggleSubtask(subtask.id, e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-border text-blue-600 focus:ring-blue-500"
                     />
                     <span
                       className={`flex-1 ${
-                        subtask.completed ? 'line-through text-gray-400' : 'text-gray-900'
+                        subtask.completed ? 'line-through text-muted-foreground' : 'text-foreground'
                       }`}
                     >
                       {subtask.title}
@@ -455,7 +455,7 @@ export default function TaskDetailClient({
             </div>
 
             {/* Comments */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
                 Комментарии ({task.comments?.length || 0})
@@ -485,10 +485,10 @@ export default function TaskDetailClient({
                 {task.comments?.map((comment: any) => (
                   <div key={comment.id} className="border-b pb-4 last:border-0">
                     <div className="flex items-start justify-between mb-2">
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-foreground">
                         {comment.author?.name || 'Неизвестный'}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-muted-foreground">
                         {(() => {
                           try {
                             if (!comment.createdAt) return ''
@@ -501,11 +501,11 @@ export default function TaskDetailClient({
                         })()}
                       </span>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                    <p className="text-foreground whitespace-pre-wrap">{comment.content}</p>
                   </div>
                 ))}
                 {(!task.comments || task.comments.length === 0) && (
-                  <p className="text-center text-gray-500 py-4">Нет комментариев</p>
+                  <p className="text-center text-muted-foreground py-4">Нет комментариев</p>
                 )}
               </div>
             </div>
@@ -514,13 +514,13 @@ export default function TaskDetailClient({
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Timer */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <div className="bg-card rounded-lg shadow p-6">
+              <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Clock className="h-4 w-4" />
                 Таймер
               </h3>
               <div className="text-center">
-                <div className="text-3xl font-mono font-bold text-gray-900 mb-4">
+                <div className="text-3xl font-mono font-bold text-foreground mb-4">
                   {getCurrentTime()}
                 </div>
                 <div className="flex justify-center gap-2">
@@ -548,11 +548,11 @@ export default function TaskDetailClient({
             </div>
 
             {/* Details */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">Детали</h3>
+            <div className="bg-card rounded-lg shadow p-6">
+              <h3 className="text-sm font-semibold text-foreground mb-4">Детали</h3>
               <div className="space-y-4">
                 <div>
-                  <Label className="text-xs text-gray-500">Статус</Label>
+                  <Label className="text-xs text-muted-foreground">Статус</Label>
                   <Select
                     value={task.status}
                     onValueChange={(v) => updateTaskField('status', v)}
@@ -571,7 +571,7 @@ export default function TaskDetailClient({
                 </div>
 
                 <div>
-                  <Label className="text-xs text-gray-500">Приоритет</Label>
+                  <Label className="text-xs text-muted-foreground">Приоритет</Label>
                   <Select
                     value={task.priority}
                     onValueChange={(v) => updateTaskField('priority', v)}
@@ -590,7 +590,7 @@ export default function TaskDetailClient({
                 </div>
 
                 <div>
-                  <Label className="text-xs text-gray-500">Исполнитель</Label>
+                  <Label className="text-xs text-muted-foreground">Исполнитель</Label>
                   <Select
                     value={task.assigneeId || 'none'}
                     onValueChange={(v) => updateTaskField('assigneeId', v === 'none' ? null : v)}
@@ -610,7 +610,7 @@ export default function TaskDetailClient({
                 </div>
 
                 <div>
-                  <Label className="text-xs text-gray-500">Срок выполнения</Label>
+                  <Label className="text-xs text-muted-foreground">Срок выполнения</Label>
                   <Input
                     type="date"
                     value={(() => {
@@ -641,8 +641,8 @@ export default function TaskDetailClient({
 
             {/* Project Info */}
             {task.project && (
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              <div className="bg-card rounded-lg shadow p-6">
+                <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Folder className="h-4 w-4" />
                   Проект
                 </h3>
@@ -653,7 +653,7 @@ export default function TaskDetailClient({
                   {task.project.name}
                 </Link>
                 {task.project.client && (
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     {task.project.client.name}
                   </p>
                 )}
@@ -661,22 +661,22 @@ export default function TaskDetailClient({
             )}
 
             {/* Meta */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">Информация</h3>
+            <div className="bg-card rounded-lg shadow p-6">
+              <h3 className="text-sm font-semibold text-foreground mb-4">Информация</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Создано</span>
-                  <span className="text-gray-900">
+                  <span className="text-muted-foreground">Создано</span>
+                  <span className="text-foreground">
                     {task.createdAt ? format(new Date(task.createdAt), 'd MMM yyyy', { locale: ru }) : '-'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Автор</span>
-                  <span className="text-gray-900">{task.createdBy?.name}</span>
+                  <span className="text-muted-foreground">Автор</span>
+                  <span className="text-foreground">{task.createdBy?.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Обновлено</span>
-                  <span className="text-gray-900">
+                  <span className="text-muted-foreground">Обновлено</span>
+                  <span className="text-foreground">
                     {task.updatedAt ? format(new Date(task.updatedAt), 'd MMM yyyy', { locale: ru }) : '-'}
                   </span>
                 </div>

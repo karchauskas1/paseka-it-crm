@@ -702,7 +702,7 @@ export default function AdminClient({
                     <Crown className="h-5 w-5" />
                     Передача прав владельца
                   </h4>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-muted-foreground mb-4">
                     Передача прав владельца другому пользователю. После передачи вы станете администратором.
                     Это действие нельзя отменить без участия нового владельца.
                   </p>
@@ -721,14 +721,14 @@ export default function AdminClient({
           <TabsContent value="integrations">
             <div className="space-y-6">
               {/* Telegram Integration */}
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-card rounded-lg shadow p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <Bot className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold">Telegram</h3>
-                    <p className="text-sm text-gray-500">Уведомления в Telegram</p>
+                    <p className="text-sm text-muted-foreground">Уведомления в Telegram</p>
                   </div>
                   {workspace.telegramBotToken && workspace.telegramChatId ? (
                     <Badge variant="success" className="ml-auto">
@@ -772,7 +772,7 @@ export default function AdminClient({
                         )}
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Получите токен у @BotFather в Telegram
                     </p>
                   </div>
@@ -789,7 +789,7 @@ export default function AdminClient({
                       }
                       placeholder="-1001234567890"
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       ID чата или группы для уведомлений
                     </p>
                   </div>
@@ -832,14 +832,14 @@ export default function AdminClient({
 
                       {notificationSettings.enabled && (
                         <div className="space-y-3 pl-6">
-                          <p className="text-sm text-gray-500 mb-3">
+                          <p className="text-sm text-muted-foreground mb-3">
                             Выберите события, о которых будут отправляться уведомления:
                           </p>
 
                           <div className="grid grid-cols-1 gap-2">
                             {/* Tasks */}
                             <div className="space-y-2">
-                              <p className="text-sm font-medium text-gray-700">Задачи</p>
+                              <p className="text-sm font-medium text-foreground">Задачи</p>
                               {['taskCreated', 'taskStatusChanged', 'taskAssigned', 'taskDeleted'].map((event) => (
                                 <div key={event} className="flex items-center gap-2 ml-4">
                                   <Checkbox
@@ -864,7 +864,7 @@ export default function AdminClient({
 
                             {/* Projects */}
                             <div className="space-y-2 mt-3">
-                              <p className="text-sm font-medium text-gray-700">Проекты</p>
+                              <p className="text-sm font-medium text-foreground">Проекты</p>
                               {['projectCreated', 'projectStatusChanged', 'projectDeleted'].map((event) => (
                                 <div key={event} className="flex items-center gap-2 ml-4">
                                   <Checkbox
@@ -889,7 +889,7 @@ export default function AdminClient({
 
                             {/* Clients */}
                             <div className="space-y-2 mt-3">
-                              <p className="text-sm font-medium text-gray-700">Клиенты</p>
+                              <p className="text-sm font-medium text-foreground">Клиенты</p>
                               {['clientCreated', 'clientUpdated', 'clientDeleted'].map((event) => (
                                 <div key={event} className="flex items-center gap-2 ml-4">
                                   <Checkbox
@@ -914,7 +914,7 @@ export default function AdminClient({
 
                             {/* Other */}
                             <div className="space-y-2 mt-3">
-                              <p className="text-sm font-medium text-gray-700">Другое</p>
+                              <p className="text-sm font-medium text-foreground">Другое</p>
                               {['commentAdded', 'feedbackSubmitted', 'eventCreated'].map((event) => (
                                 <div key={event} className="flex items-center gap-2 ml-4">
                                   <Checkbox
@@ -953,14 +953,14 @@ export default function AdminClient({
               </div>
 
               {/* AI Integration */}
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-card rounded-lg shadow p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <UserCheck className="h-6 w-6 text-purple-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold">AI Ассистент</h3>
-                    <p className="text-sm text-gray-500">OpenRouter API для AI функций</p>
+                    <p className="text-sm text-muted-foreground">OpenRouter API для AI функций</p>
                   </div>
                   {workspace.openRouterApiKey ? (
                     <Badge variant="success" className="ml-auto">
@@ -1004,7 +1004,7 @@ export default function AdminClient({
                         )}
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Получите ключ на openrouter.ai
                     </p>
                   </div>
@@ -1105,7 +1105,7 @@ export default function AdminClient({
               <div className="grid gap-2">
                 <Label>Email</Label>
                 <Input value={selectedUser.email} disabled />
-                <p className="text-xs text-gray-500">Email нельзя изменить</p>
+                <p className="text-xs text-muted-foreground">Email нельзя изменить</p>
               </div>
               <div className="grid gap-2">
                 <Label>Роль</Label>
@@ -1161,7 +1161,7 @@ export default function AdminClient({
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Отправьте эту ссылку пользователю. Ссылка действительна 7 дней.
               </p>
             </div>
@@ -1176,7 +1176,7 @@ export default function AdminClient({
                   onChange={(e) => setNewInvite({ ...newInvite, email: e.target.value })}
                   placeholder="user@example.com"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Если указан, только пользователь с этим email сможет использовать приглашение
                 </p>
               </div>
