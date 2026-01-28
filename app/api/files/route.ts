@@ -7,12 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-import { v4 as uuidv4 } from 'uuid'
-
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'workspace')
+import { put } from '@vercel/blob'
 
 // Получить все файлы workspace (и проектные, и общие)
 export async function GET(req: NextRequest) {
@@ -126,24 +121,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Создать папку для workspace если не существует
-    const workspaceDir = path.join(UPLOAD_DIR, workspaceId)
-    if (!existsSync(workspaceDir)) {
-      await mkdir(workspaceDir, { recursive: true })
-    }
-
-    // Генерируем уникальное имя файла
-    const ext = path.extname(file.name)
-    const uniqueName = `${uuidv4()}${ext}`
-    const filePath = path.join(workspaceDir, uniqueName)
-
-    // Сохраняем файл
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filePath, buffer)
-
-    // URL для доступа к файлу
-    const fileUrl = `/uploads/workspace/${workspaceId}/${uniqueName}`
+    // Загружаем файл в Vercel Blob
+    const blob = await put(`workspace/${workspaceId}/${file.name}`, file, {
+      access: 'public',
+      addRandomSuffix: true,
+    })
 
     // Создаем запись в БД (без projectId - общий файл)
     const workspaceFile = await db.projectFile.create({
@@ -152,7 +134,7 @@ export async function POST(req: NextRequest) {
         projectId: null,
         name: file.name,
         description: description || null,
-        url: fileUrl,
+        url: blob.url,
         size: file.size,
         mimeType: file.type,
         category: category || null,

@@ -7,12 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-import { v4 as uuidv4 } from 'uuid'
-
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'projects')
+import { put } from '@vercel/blob'
 
 // Получить список файлов проекта
 export async function GET(
@@ -114,24 +109,11 @@ export async function POST(
       )
     }
 
-    // Создать папку для проекта если не существует
-    const projectDir = path.join(UPLOAD_DIR, projectId)
-    if (!existsSync(projectDir)) {
-      await mkdir(projectDir, { recursive: true })
-    }
-
-    // Генерируем уникальное имя файла
-    const ext = path.extname(file.name)
-    const uniqueName = `${uuidv4()}${ext}`
-    const filePath = path.join(projectDir, uniqueName)
-
-    // Сохраняем файл
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filePath, buffer)
-
-    // URL для доступа к файлу
-    const fileUrl = `/uploads/projects/${projectId}/${uniqueName}`
+    // Загружаем файл в Vercel Blob
+    const blob = await put(`projects/${projectId}/${file.name}`, file, {
+      access: 'public',
+      addRandomSuffix: true,
+    })
 
     // Создаем запись в БД
     const projectFile = await db.projectFile.create({
@@ -139,7 +121,7 @@ export async function POST(
         projectId,
         name: file.name,
         description: description || null,
-        url: fileUrl,
+        url: blob.url,
         size: file.size,
         mimeType: file.type,
         category: category || null,

@@ -8,8 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { unlink } from 'fs/promises'
-import path from 'path'
+import { del } from '@vercel/blob'
 
 // Получить информацию о файле
 export async function GET(
@@ -172,13 +171,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'File not found' }, { status: 404 })
     }
 
-    // Удалить физический файл
-    try {
-      const filePath = path.join(process.cwd(), 'public', file.url)
-      await unlink(filePath)
-    } catch (e) {
-      // Файл может уже не существовать, игнорируем
-      console.warn('[Delete Project File] Could not delete physical file:', e)
+    // Удалить файл из Vercel Blob (если URL от blob.vercel-storage.com)
+    if (file.url.includes('blob.vercel-storage.com')) {
+      try {
+        await del(file.url)
+      } catch (e) {
+        console.error('Failed to delete blob:', e)
+      }
     }
 
     // Удалить запись из БД

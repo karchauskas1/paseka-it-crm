@@ -8,9 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { unlink } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
+import { del } from '@vercel/blob'
 
 // Получить файл
 export async function GET(
@@ -166,10 +164,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'File not found' }, { status: 404 })
     }
 
-    // Удалить физический файл
-    const filePath = path.join(process.cwd(), 'public', file.url)
-    if (existsSync(filePath)) {
-      await unlink(filePath)
+    // Удалить файл из Vercel Blob (если URL от blob.vercel-storage.com)
+    if (file.url.includes('blob.vercel-storage.com')) {
+      try {
+        await del(file.url)
+      } catch (e) {
+        console.error('Failed to delete blob:', e)
+      }
     }
 
     // Удалить запись из БД
