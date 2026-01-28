@@ -92,6 +92,9 @@ model Workspace {
   // Чат
   chatChannels    ChatChannel[]
 
+  // Файлы (общие для workspace)
+  files           ProjectFile[]
+
   @@map("workspaces")
 }
 
@@ -1102,11 +1105,12 @@ model PushSubscription {
   @@map("push_subscriptions")
 }
 
-// ==================== PROJECT FILES (STORAGE) ====================
+// ==================== FILES (STORAGE) ====================
 
 model ProjectFile {
   id          String   @id @default(uuid())
-  projectId   String   @map("project_id")
+  projectId   String?  @map("project_id")      // Опционально - если null, то общий файл workspace
+  workspaceId String?  @map("workspace_id")    // Для общих файлов workspace
 
   name        String                    // Имя файла
   description String?  @db.Text         // Описание (для чего нужен файл)
@@ -1119,10 +1123,12 @@ model ProjectFile {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploadedBy  User    @relation("UploadedFiles", fields: [uploadedById], references: [id])
+  project     Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  uploadedBy  User       @relation("UploadedFiles", fields: [uploadedById], references: [id])
 
   @@index([projectId])
+  @@index([workspaceId])
   @@index([projectId, category])
   @@map("project_files")
 }

@@ -20,11 +20,11 @@ export default async function FilesPage() {
     redirect('/login')
   }
 
+  const workspaceId = workspaceMember.workspaceId
+
   // Get all projects with their files
   const projects = await db.project.findMany({
-    where: {
-      workspaceId: workspaceMember.workspaceId,
-    },
+    where: { workspaceId },
     select: {
       id: true,
       name: true,
@@ -47,6 +47,25 @@ export default async function FilesPage() {
     },
   })
 
+  // Get workspace files (general storage, not attached to any project)
+  const workspaceFiles = await db.projectFile.findMany({
+    where: {
+      workspaceId,
+      projectId: null,
+    },
+    include: {
+      uploadedBy: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  })
+
   // Serialize dates
   const serializedProjects = projects.map((project) => ({
     ...project,
@@ -57,16 +76,27 @@ export default async function FilesPage() {
     })),
   }))
 
-  // Calculate total stats
-  const totalFiles = projects.reduce((acc, p) => acc + p.files.length, 0)
-  const totalSize = projects.reduce(
+  const serializedWorkspaceFiles = workspaceFiles.map((file) => ({
+    ...file,
+    createdAt: file.createdAt.toISOString(),
+    updatedAt: file.updatedAt.toISOString(),
+  }))
+
+  // Calculate total stats (project files + workspace files)
+  const projectFilesCount = projects.reduce((acc, p) => acc + p.files.length, 0)
+  const projectFilesSize = projects.reduce(
     (acc, p) => acc + p.files.reduce((sum, f) => sum + f.size, 0),
     0
   )
+  const workspaceFilesSize = workspaceFiles.reduce((sum, f) => sum + f.size, 0)
+
+  const totalFiles = projectFilesCount + workspaceFiles.length
+  const totalSize = projectFilesSize + workspaceFilesSize
 
   return (
     <FilesPageClient
       projects={serializedProjects}
+      workspaceFiles={serializedWorkspaceFiles}
       user={user}
       workspace={workspaceMember.workspace}
       totalFiles={totalFiles}
