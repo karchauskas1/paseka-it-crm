@@ -22,6 +22,7 @@ import {
   MoreHorizontal,
   Home,
   MessageSquare,
+  HardDrive,
 } from 'lucide-react'
 import { UnreadBadge } from '@/components/chat/unread-badge'
 import { Button } from '@/components/ui/button'
@@ -60,6 +61,7 @@ export function AppLayout({ user, workspace, currentPage, userRole, children }: 
     { href: '/projects', label: 'Проекты', icon: FolderKanban, mobileLabel: 'Проекты' },
     { href: '/clients', label: 'Клиенты', icon: Users, mobileLabel: 'Клиенты' },
     { href: '/tasks', label: 'Задачи', icon: CheckSquare, mobileLabel: 'Задачи' },
+    { href: '/files', label: 'Хранилище', icon: HardDrive, mobileLabel: 'Файлы' },
     { href: '/chat', label: 'Чат', icon: MessageSquare, mobileLabel: 'Чат', badge: true },
     { href: '/touches', label: 'Касания', icon: Phone, mobileLabel: 'Касания' },
     { href: '/calendar', label: 'Календарь', icon: Calendar, mobileLabel: 'Календарь' },
