@@ -28,7 +28,7 @@ import { taskStatusLabels, priorityLabels } from '@/lib/validations/task'
 import { InlineText, InlineTextarea } from '@/components/inline-edit'
 import { ProgressBar, FinanceBlock, ActivitySidebar } from '@/components/project'
 import { AppLayout } from '@/components/layout'
-import { Sparkles, Loader2, Activity, FileText, Trash2, Pencil, Upload, Download, X, Eye } from 'lucide-react'
+import { Sparkles, Loader2, Activity, FileText, Trash2, Pencil, Upload, Download, X, Eye, FolderOpen, Check, FileIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { DocumentPreview } from '@/components/documents/document-preview'
 import { BriefEditor } from '@/components/briefs/brief-editor'
@@ -115,6 +115,7 @@ export default function ProjectDetailClient({ project: initialProject, user, tea
     { id: 'tasks', label: `Задачи (${project.tasks?.length || 0})` },
     { id: 'milestones', label: 'Этапы' },
     { id: 'documents', label: 'Документы' },
+    { id: 'files', label: `Файлы (${project.files?.length || 0})` },
     { id: 'comments', label: `Комментарии (${project.comments?.length || 0})` },
   ]
 
@@ -627,6 +628,7 @@ ${architectureForm.constraints}` : ''}
           <MilestonesTab project={project} onCreateMilestone={() => setIsMilestoneDialogOpen(true)} />
         )}
         {activeTab === 'documents' && <DocumentsTab project={project} onDocumentsUpdate={() => router.refresh()} onPreview={setPreviewDocument} />}
+        {activeTab === 'files' && <FilesTab project={project} onFilesUpdate={() => router.refresh()} />}
         {activeTab === 'comments' && (
           <CommentsTab
             project={project}
@@ -1499,6 +1501,300 @@ function DocumentsTab({ project, onDocumentsUpdate, onPreview }: any) {
             <Upload className="h-4 w-4 mr-2" />
             Загрузить первый документ
           </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function FilesTab({ project, onFilesUpdate }: any) {
+  const [isUploading, setIsUploading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [editingFile, setEditingFile] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState({ name: '', description: '', category: '' })
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const categoryLabels: Record<string, string> = {
+    REFERENCE: 'Референс',
+    DESIGN: 'Дизайн',
+    DOCUMENT: 'Документ',
+    CODE: 'Код',
+    ASSET: 'Ассет',
+    OTHER: 'Другое',
+  }
+
+  const handleFileSelect = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+
+    setIsUploading(true)
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+
+        // Validate file size (max 50MB)
+        if (file.size > 50 * 1024 * 1024) {
+          toast.error(`Файл ${file.name} слишком большой. Максимальный размер: 50MB`)
+          continue
+        }
+
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const res = await fetch(`/api/projects/${project.id}/files`, {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!res.ok) {
+          const error = await res.json()
+          throw new Error(error.error || 'Ошибка загрузки')
+        }
+      }
+
+      toast.success(files.length > 1 ? 'Файлы загружены' : 'Файл загружен')
+      onFilesUpdate?.()
+    } catch (error: any) {
+      toast.error(error.message)
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    handleFileSelect(e.dataTransfer.files)
+  }
+
+  const handleDelete = async (fileId: string) => {
+    if (!confirm('Удалить этот файл?')) return
+
+    try {
+      const res = await fetch(`/api/projects/${project.id}/files/${fileId}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) throw new Error('Ошибка удаления')
+
+      toast.success('Файл удалён')
+      onFilesUpdate?.()
+    } catch (error: any) {
+      toast.error(error.message)
+    }
+  }
+
+  const handleDownload = (file: any) => {
+    const link = document.createElement('a')
+    link.href = file.url
+    link.download = file.name
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const startEditing = (file: any) => {
+    setEditingFile(file.id)
+    setEditForm({
+      name: file.name,
+      description: file.description || '',
+      category: file.category || '',
+    })
+  }
+
+  const cancelEditing = () => {
+    setEditingFile(null)
+    setEditForm({ name: '', description: '', category: '' })
+  }
+
+  const saveEdit = async (fileId: string) => {
+    try {
+      const res = await fetch(`/api/projects/${project.id}/files/${fileId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editForm.name,
+          description: editForm.description || null,
+          category: editForm.category || null,
+        }),
+      })
+
+      if (!res.ok) throw new Error('Ошибка сохранения')
+
+      toast.success('Файл обновлён')
+      setEditingFile(null)
+      onFilesUpdate?.()
+    } catch (error: any) {
+      toast.error(error.message)
+    }
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const getFileIcon = (mimeType: string) => {
+    if (mimeType.startsWith('image/')) return '🖼️'
+    if (mimeType.startsWith('video/')) return '🎬'
+    if (mimeType.startsWith('audio/')) return '🎵'
+    if (mimeType.includes('pdf')) return '📄'
+    if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('7z')) return '📦'
+    if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return '📊'
+    if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return '📽️'
+    if (mimeType.includes('document') || mimeType.includes('word')) return '📝'
+    return '📎'
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-semibold">Файлы проекта</h2>
+        <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            multiple
+            onChange={(e) => handleFileSelect(e.target.files)}
+          />
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4 mr-2" />
+            )}
+            {isUploading ? 'Загрузка...' : 'Загрузить файлы'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Drop zone */}
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`border-2 border-dashed rounded-lg p-8 mb-6 text-center transition-colors ${
+          isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+        }`}
+      >
+        <FolderOpen className={`h-12 w-12 mx-auto mb-3 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />
+        <p className="text-gray-600">
+          {isDragging ? 'Отпустите файлы для загрузки' : 'Перетащите файлы сюда или нажмите кнопку выше'}
+        </p>
+        <p className="text-sm text-gray-400 mt-1">Максимальный размер файла: 50MB</p>
+      </div>
+
+      {project.files && project.files.length > 0 ? (
+        <div className="space-y-3">
+          {project.files.map((file: any) => (
+            <div key={file.id} className="border rounded-lg p-4">
+              {editingFile === file.id ? (
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs text-gray-500">Название</Label>
+                    <Input
+                      value={editForm.name}
+                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">Описание</Label>
+                    <Textarea
+                      value={editForm.description}
+                      onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                      placeholder="Для чего нужен этот файл..."
+                      className="mt-1"
+                      rows={2}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">Категория</Label>
+                    <Select value={editForm.category} onValueChange={(v) => setEditForm({ ...editForm, category: v })}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Выберите категорию" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(categoryLabels).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={cancelEditing}>
+                      <X className="h-4 w-4 mr-1" />
+                      Отмена
+                    </Button>
+                    <Button size="sm" onClick={() => saveEdit(file.id)}>
+                      <Check className="h-4 w-4 mr-1" />
+                      Сохранить
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">{getFileIcon(file.mimeType)}</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">{file.name}</h3>
+                      {file.description && (
+                        <p className="text-sm text-gray-600 mt-1">{file.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                        {file.category && (
+                          <Badge variant="outline" className="text-xs">
+                            {categoryLabels[file.category] || file.category}
+                          </Badge>
+                        )}
+                        <span>{formatFileSize(file.size)}</span>
+                        <span>•</span>
+                        <span>{new Date(file.createdAt).toLocaleDateString('ru-RU')}</span>
+                        {file.uploadedBy && (
+                          <>
+                            <span>•</span>
+                            <span>{file.uploadedBy.name}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 ml-4">
+                    <Button variant="ghost" size="sm" onClick={() => startEditing(file)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDownload(file)}>
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(file.id)}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-4">
+          <p className="text-gray-500">Нет файлов</p>
         </div>
       )}
     </div>

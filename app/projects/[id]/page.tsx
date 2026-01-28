@@ -54,6 +54,19 @@ export default async function ProjectDetailPage({
           uploadedAt: 'desc',
         },
       },
+      files: {
+        include: {
+          uploadedBy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      },
       comments: {
         include: {
           author: {
@@ -131,6 +144,11 @@ export default async function ProjectDetailPage({
     documents: project.documents.map((d) => ({
       ...d,
       uploadedAt: d.uploadedAt.toISOString(),
+    })),
+    files: project.files.map((f) => ({
+      ...f,
+      createdAt: f.createdAt.toISOString(),
+      updatedAt: f.updatedAt.toISOString(),
     })),
     comments: project.comments.map((c) => ({
       ...c,

@@ -47,6 +47,7 @@ model User {
   createdPainKeywords PainKeyword[] @relation("PainKeywordCreator")
   createdTouches Touch[] @relation("TouchCreator")
   assignedTouches Touch[] @relation("TouchAssignee")
+  uploadedFiles ProjectFile[] @relation("UploadedFiles")
 
   // Чат
   chatMessages      ChatMessage[]      @relation("ChatMessageAuthor")
@@ -245,6 +246,7 @@ model Project {
   aiSuggestions AISuggestion[]
   events      Event[] @relation("EventProject")
   briefs      Brief[]
+  files       ProjectFile[]
 
   @@index([workspaceId])
   @@index([clientId])
@@ -1098,6 +1100,31 @@ model PushSubscription {
   @@unique([userId, endpoint])
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+// ==================== PROJECT FILES (STORAGE) ====================
+
+model ProjectFile {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+
+  name        String                    // Имя файла
+  description String?  @db.Text         // Описание (для чего нужен файл)
+  url         String                    // URL файла
+  size        Int                       // Размер в байтах
+  mimeType    String   @map("mime_type") // MIME тип
+  category    String?                   // Категория (опционально: ТЗ, Договор, Макеты и т.д.)
+
+  uploadedById String  @map("uploaded_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy  User    @relation("UploadedFiles", fields: [uploadedById], references: [id])
+
+  @@index([projectId])
+  @@index([projectId, category])
+  @@map("project_files")
 }
 
 // ==================== PROJECT BRIEFS ====================
