@@ -1,0 +1,189 @@
+/* ══════════════════════════════════════════════
+   PASEKA IT CRM — V2 Design System
+   Inspired by .solutions CRM design language
+   ══════════════════════════════════════════════ */
+
+/* ── Design Tokens ── */
+:root {
+  --v2-bg-page: #F2F2F0;
+  --v2-bg-card: #FFFFFF;
+  --v2-bg-sidebar: #0A0A0A;
+  --v2-bg-sidebar-light: #1A1A1A;
+  --v2-bg-hover: #EDEDEA;
+  --v2-bg-input: #F2F2F0;
+
+  --v2-text-primary: #0A0A0A;
+  --v2-text-secondary: #999999;
+  --v2-text-muted: #AAAAAA;
+  --v2-text-white: #FFFFFF;
+  --v2-text-sidebar-muted: #555555;
+
+  --v2-border: #E8E8E5;
+  --v2-border-light: #EEEEEB;
+  --v2-border-input: #E0E0DD;
+
+  --v2-accent: #E85D3A;
+  --v2-accent-hover: #D4512F;
+
+  --v2-bg-disabled: #CCCCCC;
+  --v2-bg-button-primary: #0A0A0A;
+  --v2-bg-button-primary-text: #FFFFFF;
+  --v2-bg-button-hover: #222222;
+  --v2-bg-modal-overlay: rgba(0, 0, 0, 0.5);
+
+  --v2-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --v2-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --v2-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  --v2-status-active: #22C55E;
+  --v2-status-inactive: #F59E0B;
+  --v2-status-archived: #94A3B8;
+}
+
+/* Dark theme */
+.dark {
+  --v2-bg-page: #1A1A1E;
+  --v2-bg-card: #242428;
+  --v2-bg-sidebar: #111114;
+  --v2-bg-sidebar-light: #1E1E22;
+  --v2-bg-hover: #2E2E33;
+  --v2-bg-input: #2A2A2F;
+
+  --v2-text-primary: #E8E8E8;
+  --v2-text-secondary: #888888;
+  --v2-text-muted: #666666;
+  --v2-text-white: #FFFFFF;
+  --v2-text-sidebar-muted: #777777;
+
+  --v2-border: #3A3A3F;
+  --v2-border-light: #333338;
+  --v2-border-input: #3E3E44;
+
+  --v2-accent: #E85D3A;
+  --v2-accent-hover: #F06A47;
+
+  --v2-bg-disabled: #555555;
+  --v2-bg-button-primary: #E8E8E8;
+  --v2-bg-button-primary-text: #0A0A0A;
+  --v2-bg-button-hover: #D0D0D0;
+  --v2-bg-modal-overlay: rgba(0, 0, 0, 0.7);
+
+  --v2-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --v2-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --v2-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+  --v2-status-active: #4ADE80;
+  --v2-status-inactive: #FBBF24;
+  --v2-status-archived: #64748B;
+}
+
+/* ── Animations ── */
+@keyframes v2-fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes v2-fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes v2-slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes v2-slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes v2-slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes v2-slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes v2-overlayIn {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(2px); }
+}
+
+@keyframes v2-modalIn {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes v2-drawerSlideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes v2-drawerSlideOut {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes v2-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.92); }
+}
+
+@keyframes v2-checkPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes v2-shimmer {
+  0% { opacity: 0.6; transform: translateX(-100%); }
+  100% { opacity: 1; transform: translateX(100%); }
+}
+
+@keyframes v2-scaleUp {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes v2-slideInCard {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── V2 Scoped Styles ── */
+.v2-root {
+  font-family: "Space Grotesk", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--v2-bg-page);
+  color: var(--v2-text-primary);
+  height: 100%;
+}
+
+/* Material Design easing for all v2 transitions */
+.v2-root *,
+.v2-root *::before,
+.v2-root *::after {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth scrollbar within v2 */
+.v2-root ::-webkit-scrollbar { width: 6px; height: 6px; }
+.v2-root ::-webkit-scrollbar-track { background: transparent; }
+.v2-root ::-webkit-scrollbar-thumb { background: var(--v2-border); border-radius: 3px; }
+.v2-root ::-webkit-scrollbar-thumb:hover { background: var(--v2-text-muted); }
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .v2-root *,
+  .v2-root *::before,
+  .v2-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
