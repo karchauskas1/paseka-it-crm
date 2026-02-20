@@ -21,7 +21,7 @@ export default async function V2Layout({
   }
 
   return (
-    <div className={`${spaceGrotesk.variable} v2-root`}>
+    <div className={`${spaceGrotesk.variable} v2-root`} style={{ height: "100vh", overflow: "hidden" }}>
       <V2LayoutClient
         userName={user.name || user.email}
         userRole={user.role}
